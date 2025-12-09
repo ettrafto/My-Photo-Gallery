@@ -1,0 +1,8 @@
+{
+  "title": "Sample Album",
+  "description": "This is a sample album. Drop your images here and run 'npm run scan'",
+  "tags": ["demo", "example"],
+  "date": "2025-10-08"
+}
+
+

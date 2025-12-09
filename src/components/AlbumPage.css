@@ -1,0 +1,90 @@
+.album-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.album-header {
+  margin-bottom: 2rem;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.album-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2.5rem;
+}
+
+.description {
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  line-height: 1.5;
+}
+
+.album-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.6;
+  margin-top: 0.5rem;
+}
+
+.album-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.tag {
+  font-size: 0.8rem;
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  opacity: 0.7;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.photo-item {
+  cursor: pointer;
+  overflow: hidden;
+  background: #000;
+  border-radius: 4px;
+  transition: transform 0.2s;
+}
+
+.photo-item:hover {
+  transform: scale(1.02);
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .photo-grid {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+  }
+}
+
+
