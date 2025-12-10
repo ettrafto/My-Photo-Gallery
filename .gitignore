@@ -29,6 +29,7 @@ content/*
 
 ./photos
 ./creative
+./public/images/
 
 # Image files
 *.jpg
