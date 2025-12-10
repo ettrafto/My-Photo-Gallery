@@ -6,3 +6,10 @@
   width: 100%;
   min-height: 100vh;
 }
+
+.app-shell {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

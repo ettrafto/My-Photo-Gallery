@@ -29,3 +29,24 @@ content/*
 
 ./photos
 ./creative
+
+# Image files
+*.jpg
+*.jpeg
+*.JPG
+*.JPEG
+*.png
+*.PNG
+*.gif
+*.GIF
+*.webp
+*.WEBP
+*.heic
+*.HEIC
+*.bmp
+*.BMP
+*.tiff
+*.TIFF
+*.svg
+*.ico
+public/images/**

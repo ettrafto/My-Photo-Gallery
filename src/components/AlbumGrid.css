@@ -12,12 +12,18 @@
 .gallery-header h1 {
   margin: 0 0 0.5rem 0;
   font-size: 3rem;
+  font-family: var(--mono-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .subtitle {
   margin: 0;
   opacity: 0.6;
-  font-size: 1rem;
+  font-size: 0.9rem;
+  font-family: var(--mono-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
 }
 
 .tag-filter {
@@ -37,6 +43,9 @@
   cursor: pointer;
   transition: all 0.2s;
   font-size: 0.9rem;
+  font-family: var(--mono-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .tag-filter button:hover {
@@ -97,6 +106,9 @@
   margin: 0 0 0.5rem 0;
   font-size: 1.5rem;
   line-height: 1.2;
+  font-family: var(--mono-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .album-meta {
@@ -105,6 +117,7 @@
   font-size: 0.9rem;
   opacity: 0.7;
   margin-bottom: 0.5rem;
+  font-family: var(--mono-ui);
 }
 
 .album-description {
@@ -112,6 +125,7 @@
   font-size: 0.95rem;
   opacity: 0.8;
   line-height: 1.4;
+  font-family: var(--mono-ui);
 }
 
 .album-tags {
@@ -127,6 +141,7 @@
   background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   opacity: 0.7;
+  font-family: var(--mono-ui);
 }
 
 .loading {

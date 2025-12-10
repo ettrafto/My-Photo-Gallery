@@ -54,7 +54,9 @@ async function extractExif(imagePath) {
       pick: [
         'Make', 'Model', 'LensModel', 'FNumber', 'ExposureTime', 
         'ISO', 'DateTimeOriginal', 'FocalLength', 'Copyright',
-        'Artist', 'ImageDescription'
+        'Artist', 'ImageDescription',
+        'latitude', 'longitude', 'GPSLatitude', 'GPSLongitude',
+        'GPSLatitudeRef', 'GPSLongitudeRef'
       ]
     });
     return exif || {};
@@ -88,16 +90,44 @@ async function getImageDimensions(imagePath) {
  */
 async function processImage(albumPath, filename, albumSlug) {
   const imagePath = path.join(albumPath, filename);
-  const relativePath = `/images/${albumSlug}/${filename}`;
+  // Use the actual folder name from albumPath (preserves case)
+  const albumFolder = path.basename(albumPath);
+  const relativePath = `images/${albumFolder}/${filename}`.replace(/\\/g, '/');
   
   const [exif, dimensions] = await Promise.all([
     extractExif(imagePath),
     getImageDimensions(imagePath)
   ]);
 
+  // Convert GPS data to decimal coordinates
+  let lat = null;
+  let lng = null;
+
+  if (typeof exif.latitude === 'number' && typeof exif.longitude === 'number') {
+    // Already in decimal format
+    lat = exif.latitude;
+    lng = exif.longitude;
+  } else if (exif.GPSLatitude && exif.GPSLongitude) {
+    // Convert from DMS (degrees, minutes, seconds) array to decimal
+    const toDecimal = (value, ref) => {
+      if (Array.isArray(value)) {
+        const [deg, min, sec] = value;
+        let dec = deg + (min || 0) / 60 + (sec || 0) / 3600;
+        if (ref === 'S' || ref === 'W') dec = -dec;
+        return dec;
+      }
+      return null;
+    };
+    
+    lat = toDecimal(exif.GPSLatitude, exif.GPSLatitudeRef);
+    lng = toDecimal(exif.GPSLongitude, exif.GPSLongitudeRef);
+  }
+
   return {
     filename,
     path: relativePath,
+    lat,
+    lng,
     ...dimensions,
     exif: {
       camera: exif.Make && exif.Model ? `${exif.Make} ${exif.Model}` : null,
@@ -178,7 +208,20 @@ async function processAlbum(albumName) {
 
   // Auto-detect date from first photo if not set
   if (!metadata.date && photos[0]?.exif?.dateTaken) {
-    metadata.date = photos[0].exif.dateTaken.split(' ')[0]; // Extract date part
+    const rawDate = photos[0].exif.dateTaken;
+    let dateStr;
+
+    if (rawDate instanceof Date) {
+      // Format Date object as YYYY-MM-DD
+      dateStr = rawDate.toISOString().slice(0, 10);
+    } else {
+      // Fallback: treat as string, split on space or 'T',
+      // and normalize "YYYY:MM:DD" to "YYYY-MM-DD"
+      const str = String(rawDate);
+      dateStr = str.split(/[ T]/)[0].replace(/:/g, '-');
+    }
+
+    metadata.date = dateStr;
   }
 
   const albumData = {
@@ -265,6 +308,82 @@ async function scan() {
   fs.writeFileSync(indexPath, JSON.stringify({ albums: albumsList }, null, 2));
 
   console.log(`\n✅ Generated albums.json with ${albumsList.length} album(s)`);
+
+  // Load album locations config for fallback coordinates
+  const albumLocationsPath = path.join(CONTENT_DIR, 'album-locations.json');
+  let albumLocations = {};
+  if (fs.existsSync(albumLocationsPath)) {
+    try {
+      albumLocations = JSON.parse(fs.readFileSync(albumLocationsPath, 'utf-8'));
+      console.log('✓ Loaded album-locations.json');
+    } catch (err) {
+      console.warn('⚠ Could not parse album-locations.json:', err.message);
+    }
+  } else {
+    console.warn('⚠ album-locations.json not found. Run "npm run init-locations" to create it.');
+  }
+
+  // Build map index with geotagged photos
+  console.log('\n📍 Building map index with location fallbacks...');
+  const geoPhotos = [];
+  let exifGpsCount = 0;
+  let albumDefaultCount = 0;
+  let skippedCount = 0;
+
+  for (const album of albumsList) {
+    const albumJsonPath = path.join(CONTENT_DIR, 'albums', `${album.slug}.json`);
+    try {
+      const albumData = JSON.parse(fs.readFileSync(albumJsonPath, 'utf-8'));
+      const photos = albumData.photos || [];
+      
+      for (const photo of photos) {
+        let lat = photo.lat;
+        let lng = photo.lng;
+        let accuracy = null;
+
+        // Step 1: Try EXIF GPS data
+        if (typeof lat === 'number' && typeof lng === 'number') {
+          accuracy = 'exif';
+          exifGpsCount++;
+        }
+        // Step 2: Fallback to album default location
+        else if (albumLocations[album.slug]?.defaultLocation?.lat !== null && 
+                 albumLocations[album.slug]?.defaultLocation?.lng !== null) {
+          lat = albumLocations[album.slug].defaultLocation.lat;
+          lng = albumLocations[album.slug].defaultLocation.lng;
+          accuracy = 'album-default';
+          albumDefaultCount++;
+        }
+        // Step 3: Skip photo if no GPS data available
+        else {
+          skippedCount++;
+          continue;
+        }
+
+        geoPhotos.push({
+          albumSlug: album.slug,
+          albumTitle: album.title,
+          filename: photo.filename,
+          path: photo.path,
+          lat: lat,
+          lng: lng,
+          accuracy: accuracy,
+          dateTaken: photo.exif?.dateTaken || null,
+          tags: album.tags || []
+        });
+      }
+    } catch (err) {
+      console.warn(`⚠ Could not read album JSON for geo index (${album.slug}):`, err.message);
+    }
+  }
+
+  const mapIndexPath = path.join(CONTENT_DIR, 'map.json');
+  fs.writeFileSync(mapIndexPath, JSON.stringify({ photos: geoPhotos }, null, 2));
+
+  console.log(`\n✅ Generated map.json with ${geoPhotos.length} geotagged photo(s):`);
+  console.log(`   ${exifGpsCount} from EXIF GPS`);
+  console.log(`   ${albumDefaultCount} from album default location`);
+  console.log(`   ${skippedCount} photo(s) skipped (no GPS, no album location)`);
   console.log(`\nDone! Run "npm run dev" to see your gallery.\n`);
 }
 

@@ -46,7 +46,7 @@ export default function Lightbox({ photos, initialIndex, onClose }) {
 
         <div className="lightbox-image-container">
           <img
-            src={currentPhoto.path}
+            src={`${import.meta.env.BASE_URL}${currentPhoto.path}`}
             alt={currentPhoto.exif?.description || currentPhoto.filename}
             className="lightbox-image"
           />

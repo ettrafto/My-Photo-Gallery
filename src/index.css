@@ -1,7 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+
 :root {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  --mono-ui: 'IBM Plex Mono', 'JetBrains Mono', 'SF Mono', Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  --mono-display: 'JetBrains Mono', 'IBM Plex Mono', 'SF Mono', Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+
+  font-family: var(--mono-ui);
   line-height: 1.5;
   font-weight: 400;
 
@@ -26,6 +32,7 @@ body {
   min-height: 100vh;
   background-color: #000000;
   color: rgba(255, 255, 255, 0.87);
+  font-family: var(--mono-ui);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -47,5 +54,5 @@ button {
 }
 
 code {
-  font-family: 'Monaco', 'Courier New', monospace;
+  font-family: var(--mono-display);
 }

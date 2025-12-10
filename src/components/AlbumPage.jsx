@@ -11,7 +11,7 @@ export default function AlbumPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch(`/content/albums/${slug}.json`)
+    fetch(`${import.meta.env.BASE_URL}content/albums/${slug}.json`)
       .then(res => res.json())
       .then(data => {
         setAlbum(data);
@@ -56,7 +56,10 @@ export default function AlbumPage() {
       </div>
 
       <div className="photo-grid">
-        {album.photos.map((photo, index) => (
+        {album.photos.map((photo, index) => {
+          // Build photo URL relative to Vite base
+          const photoUrl = `${import.meta.env.BASE_URL}${photo.path}`;
+          return (
           <div
             key={photo.filename}
             className="photo-item"
@@ -64,12 +67,13 @@ export default function AlbumPage() {
             onClick={() => setSelectedPhotoIndex(index)}
           >
             <img
-              src={photo.path}
+              src={photoUrl}
               alt={photo.exif?.description || photo.filename}
               loading="lazy"
             />
           </div>
-        ))}
+          );
+        })}
       </div>
 
       {selectedPhotoIndex !== null && (

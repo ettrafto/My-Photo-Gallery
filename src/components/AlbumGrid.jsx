@@ -8,7 +8,7 @@ export default function AlbumGrid() {
   const [selectedTag, setSelectedTag] = useState(null);
 
   useEffect(() => {
-    fetch('/content/albums.json')
+    fetch(`${import.meta.env.BASE_URL}content/albums.json`)
       .then(res => res.json())
       .then(data => {
         setAlbums(data.albums || []);
@@ -69,7 +69,10 @@ export default function AlbumGrid() {
       )}
 
       <div className="album-grid">
-        {filteredAlbums.map(album => (
+        {filteredAlbums.map(album => {
+          // Build cover image URL relative to Vite base
+          const coverUrl = `${import.meta.env.BASE_URL}${album.cover}`;
+          return (
           <Link 
             key={album.slug} 
             to={`/album/${album.slug}`}
@@ -80,7 +83,7 @@ export default function AlbumGrid() {
               style={{ aspectRatio: album.coverAspectRatio || 1.5 }}
             >
               <img 
-                src={album.cover}
+                src={coverUrl}
                 alt={album.title}
                 loading="lazy"
               />
@@ -103,7 +106,8 @@ export default function AlbumGrid() {
               )}
             </div>
           </Link>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

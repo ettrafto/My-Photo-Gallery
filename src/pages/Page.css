@@ -1,0 +1,70 @@
+.page-shell {
+  flex: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.page-block {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.page-label {
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 0.35rem;
+}
+
+.page-title {
+  font-family: var(--mono-display);
+  font-size: 1.6rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.page-subtitle {
+  font-family: var(--mono-display);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.page-body {
+  font-family: var(--mono-ui);
+  font-size: 0.95rem;
+  max-width: 52rem;
+  opacity: 0.85;
+  line-height: 1.6;
+}
+
+.tech-list {
+  font-family: var(--mono-ui);
+  font-size: 0.9rem;
+  opacity: 0.85;
+  line-height: 1.8;
+  list-style: none;
+  padding-left: 0;
+}
+
+.tech-list li {
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.tech-list li::before {
+  content: '>';
+  position: absolute;
+  left: 0.5rem;
+  opacity: 0.6;
+}
+
