@@ -27,9 +27,9 @@ content/*
 *.sln
 *.sw?
 
-./photos
-./creative
-./public/images/
+photos
+creative
+public/images/
 
 # Image files
 *.jpg
