@@ -15,7 +15,7 @@ export default function NavBar() {
       <div className="nav-inner">
         <div className="nav-brand">
           <span className="nav-brand-main">PHOTO.LOG</span>
-          <span className="nav-brand-sub">/ retro cam diary</span>
+          <span className="nav-brand-sub">/ Evan Trafton</span>
         </div>
         <nav className="nav-links">
           {links.map(link => (

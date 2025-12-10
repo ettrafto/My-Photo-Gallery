@@ -171,7 +171,8 @@ async function processAlbum(albumName) {
     tags: [],
     date: null,
     cover: null,
-    description: null
+    description: null,
+    isFavorite: false
   };
 
   if (fs.existsSync(metaPath)) {
@@ -224,15 +225,77 @@ async function processAlbum(albumName) {
     metadata.date = dateStr;
   }
 
+  // Compute startDate and endDate from photo EXIF dates
+  let startDate = null;
+  let endDate = null;
+  const photoDates = photos
+    .map(p => p.exif?.dateTaken)
+    .filter(Boolean)
+    .map(d => {
+      if (d instanceof Date) {
+        return d.toISOString().slice(0, 10);
+      } else {
+        const str = String(d);
+        return str.split(/[ T]/)[0].replace(/:/g, '-');
+      }
+    })
+    .filter(d => d && d.match(/^\d{4}-\d{2}-\d{2}$/));
+
+  if (photoDates.length > 0) {
+    photoDates.sort();
+    startDate = photoDates[0];
+    endDate = photoDates[photoDates.length - 1];
+  }
+
+  // Aggregate tags: manual tags + auto-tags from camera/lens
+  const autoTags = new Set();
+  photos.forEach(photo => {
+    if (photo.exif?.camera) {
+      // Extract camera brand
+      const cameraParts = photo.exif.camera.split(' ');
+      if (cameraParts[0]) autoTags.add(cameraParts[0]);
+    }
+  });
+  const allTags = [...new Set([...metadata.tags, ...Array.from(autoTags)])];
+
+  // Load album locations for primaryLocation
+  const albumLocationsPath = path.join(CONTENT_DIR, 'album-locations.json');
+  let primaryLocation = {
+    name: metadata.title,
+    lat: null,
+    lng: null
+  };
+  
+  if (fs.existsSync(albumLocationsPath)) {
+    try {
+      const albumLocations = JSON.parse(fs.readFileSync(albumLocationsPath, 'utf-8'));
+      const locationData = albumLocations[albumSlug];
+      if (locationData?.defaultLocation) {
+        primaryLocation = {
+          name: locationData.albumTitle || metadata.title,
+          lat: locationData.defaultLocation.lat,
+          lng: locationData.defaultLocation.lng
+        };
+      }
+    } catch (err) {
+      // Silently continue if album-locations.json can't be read
+    }
+  }
+
   const albumData = {
+    id: albumSlug,
     slug: albumSlug,
     title: metadata.title,
     description: metadata.description,
-    tags: metadata.tags,
+    tags: allTags,
     date: metadata.date,
+    startDate: startDate,
+    endDate: endDate,
     cover: coverPhoto.path,
     coverAspectRatio: coverPhoto.aspectRatio,
     count: photos.length,
+    isFavorite: metadata.isFavorite,
+    primaryLocation: primaryLocation,
     photos
   };
 
@@ -244,14 +307,19 @@ async function processAlbum(albumName) {
   console.log(`  ✓ Generated ${albumSlug}.json`);
 
   return {
+    id: albumSlug,
     slug: albumSlug,
     title: metadata.title,
     description: metadata.description,
-    tags: metadata.tags,
+    tags: allTags,
     date: metadata.date,
+    startDate: startDate,
+    endDate: endDate,
     cover: coverPhoto.path,
     coverAspectRatio: coverPhoto.aspectRatio,
-    count: photos.length
+    count: photos.length,
+    isFavorite: metadata.isFavorite,
+    primaryLocation: primaryLocation
   };
 }
 

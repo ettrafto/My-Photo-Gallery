@@ -35,9 +35,9 @@ export default function TripCard({ trip }) {
       }
 
       // Fallback: load first album's cover if requested
-      if (trip.useFirstAlbumCoverIfMissing && trip.albumSlugs && trip.albumSlugs.length > 0) {
+      if (trip.useFirstAlbumCoverIfMissing && trip.albumIds && trip.albumIds.length > 0) {
         try {
-          const firstAlbumSlug = trip.albumSlugs[0];
+          const firstAlbumSlug = trip.albumIds[0];
           const albumData = await fetch(`${import.meta.env.BASE_URL}content/albums/${firstAlbumSlug}.json`)
             .then(res => res.json());
           
@@ -90,7 +90,7 @@ export default function TripCard({ trip }) {
 
         <div className="trip-card-stats">
           <span className="trip-card-stat">{durationDays} days</span>
-          <span className="trip-card-stat">{trip.albumSlugs.length} albums</span>
+          <span className="trip-card-stat">{trip.albumIds.length} albums</span>
         </div>
       </div>
     </Link>

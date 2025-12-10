@@ -60,7 +60,7 @@
  * @property {string} [summary] - Trip summary/description
  * @property {string} [coverImage] - Path to cover image
  * @property {boolean} [useFirstAlbumCoverIfMissing] - Fallback to first album cover
- * @property {string[]} albumSlugs - Array of album slugs included in this trip
+ * @property {string[]} albumIds - Array of album IDs included in this trip
  * @property {TripMiscImage[]} [miscImages] - Additional non-album images
  * @property {TripRoute} [route] - Route/path information
  * @property {TripHighlight[]} [highlights] - Key moments/highlights

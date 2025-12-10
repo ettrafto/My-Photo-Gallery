@@ -1,0 +1,63 @@
+/* AlbumCard styles - extends AlbumGrid.css patterns */
+
+.album-card {
+  position: relative;
+}
+
+.album-cover {
+  position: relative;
+}
+
+/* Favorites indicator */
+.favorite-indicator {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  font-size: 1.2rem;
+  z-index: 2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+}
+
+/* Hover collage */
+.hover-collage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: #000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.album-card:hover .hover-collage {
+  opacity: 1;
+}
+
+.collage-image {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+}
+
+.collage-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Hide the main cover image when collage is shown */
+.album-card:hover .album-cover > img {
+  opacity: 0;
+}
+
+/* Keep the existing styles from AlbumGrid.css applied */
+/* This file only adds collage and favorites indicator functionality */
+

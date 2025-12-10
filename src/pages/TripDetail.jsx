@@ -58,7 +58,7 @@ export default function TripDetail() {
         const mapData = await mapResponse.json();
 
         // Filter photos that belong to this trip's albums
-        const tripAlbumSlugs = new Set(tripData.albumSlugs);
+        const tripAlbumSlugs = new Set(tripData.albumIds);
         const filteredPhotos = mapData.photos.filter(photo => 
           tripAlbumSlugs.has(photo.albumSlug) &&
           typeof photo.lat === 'number' && 
@@ -236,7 +236,7 @@ export default function TripDetail() {
     return {
       duration: durationDays,
       photoCount: tripPhotos.length,
-      albumCount: trip.albumSlugs.length,
+      albumCount: trip.albumIds.length,
       highlightCount: trip.highlights ? trip.highlights.length : 0
     };
   };
@@ -526,7 +526,7 @@ export default function TripDetail() {
 
               {/* Mode 3: All Photos - Organized by album */}
               {viewMode === 'all' && (
-                <TripGallery tripPhotos={tripPhotos} albumSlugs={trip.albumSlugs} />
+                <TripGallery tripPhotos={tripPhotos} albumSlugs={trip.albumIds} />
               )}
             </div>
           </section>
