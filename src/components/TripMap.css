@@ -1,0 +1,85 @@
+.trip-map-container {
+  width: 100%;
+  height: 500px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #050505;
+}
+
+.trip-map-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Trip map popup styling */
+.trip-map-popup {
+  display: flex;
+  gap: 0.75rem;
+  font-family: var(--mono-ui);
+  font-size: 0.8rem;
+  min-width: 200px;
+}
+
+.trip-map-popup-thumb {
+  width: 80px;
+  height: 60px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #000;
+  flex-shrink: 0;
+}
+
+.trip-map-popup-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.trip-map-popup-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  justify-content: center;
+}
+
+.trip-map-popup-album {
+  font-family: var(--mono-display);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 0.85rem;
+}
+
+.trip-map-popup-date {
+  opacity: 0.7;
+  font-size: 0.75rem;
+}
+
+/* Route label styling */
+.trip-route-label {
+  background: transparent !important;
+  border: none !important;
+}
+
+.trip-route-label-text {
+  background: rgba(0, 0, 0, 0.85);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--mono-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  white-space: nowrap;
+  text-align: center;
+  backdrop-filter: blur(4px);
+}
+
+@media (max-width: 768px) {
+  .trip-map-container {
+    height: 400px;
+  }
+}
+

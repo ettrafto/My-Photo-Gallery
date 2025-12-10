@@ -1,0 +1,31 @@
+.trips-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  padding: 0 1.25rem 2.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.trips-loading,
+.trips-error {
+  font-family: var(--mono-ui);
+  font-size: 0.9rem;
+  text-align: center;
+  opacity: 0.7;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.trips-error {
+  color: rgba(255, 100, 100, 0.9);
+}
+
+@media (max-width: 768px) {
+  .trips-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+    padding: 0 1rem 2rem;
+  }
+}
+
