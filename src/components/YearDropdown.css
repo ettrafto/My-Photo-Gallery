@@ -1,0 +1,115 @@
+.year-dropdown-container {
+  position: relative;
+}
+
+.year-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-family: var(--mono-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  min-width: 120px;
+}
+
+.year-dropdown-trigger:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+}
+
+.year-dropdown-trigger.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 1);
+  font-weight: 500;
+}
+
+.year-label {
+  opacity: 0.8;
+  font-size: 0.8rem;
+}
+
+.year-value {
+  flex: 1;
+  text-align: left;
+}
+
+.year-arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+  opacity: 0.6;
+}
+
+.year-arrow.open {
+  transform: rotate(180deg);
+}
+
+.year-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 0;
+  min-width: 180px;
+  background: rgba(15, 15, 15, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  overflow: hidden;
+  animation: yearDropdownFadeIn 0.2s ease;
+}
+
+@keyframes yearDropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.year-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  font-size: 0.9rem;
+  font-family: var(--mono-ui);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.year-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 1);
+}
+
+.year-option.selected {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 1);
+  font-weight: 500;
+}
+
+.year-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 0.25rem 0;
+}
+
+.check-mark {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+

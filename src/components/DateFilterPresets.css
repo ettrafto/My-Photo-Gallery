@@ -1,0 +1,35 @@
+.date-preset-chips {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.preset-chip {
+  padding: 0.45rem 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.85rem;
+  font-family: var(--mono-ui);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 400;
+}
+
+.preset-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+}
+
+.preset-chip.active {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 1);
+  font-weight: 500;
+}
+
