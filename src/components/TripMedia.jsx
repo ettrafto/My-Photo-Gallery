@@ -1,3 +1,4 @@
+import Photo from './Photo';
 import './TripMedia.css';
 
 /**
@@ -17,7 +18,12 @@ export default function TripMedia({ mediaItems }) {
       case 'map-image':
         return (
           <div key={index} className="trip-media-item trip-media-map-image">
-            <img src={`${baseUrl}${item.src}`} alt={item.caption || 'Route map'} />
+            <Photo 
+              src={`${baseUrl}${item.src}`} 
+              alt={item.caption || 'Route map'}
+              loading="lazy"
+              decoding="async"
+            />
             {item.caption && <p className="trip-media-caption">{item.caption}</p>}
           </div>
         );
@@ -59,7 +65,12 @@ export default function TripMedia({ mediaItems }) {
         return (
           <div key={index} className="trip-media-item trip-media-artifact">
             <div className="trip-media-artifact-image">
-              <img src={`${baseUrl}${item.src}`} alt={item.caption || 'Artifact'} />
+              <Photo 
+                src={`${baseUrl}${item.src}`} 
+                alt={item.caption || 'Artifact'}
+                loading="lazy"
+                decoding="async"
+              />
             </div>
             {item.caption && <p className="trip-media-caption">{item.caption}</p>}
           </div>
@@ -86,7 +97,12 @@ export default function TripMedia({ mediaItems }) {
       case 'collage':
         return (
           <div key={index} className="trip-media-item trip-media-collage">
-            <img src={`${baseUrl}${item.src}`} alt={item.caption || 'Photo collage'} />
+            <Photo 
+              src={`${baseUrl}${item.src}`} 
+              alt={item.caption || 'Photo collage'}
+              loading="lazy"
+              decoding="async"
+            />
             {item.caption && <p className="trip-media-caption">{item.caption}</p>}
           </div>
         );

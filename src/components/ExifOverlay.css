@@ -1,0 +1,110 @@
+/* Retro EXIF overlay - appears on image hover */
+.exif-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.9);
+  color: rgba(255, 255, 255, 0.95);
+  padding: 0.75rem 1rem;
+  font-family: var(--mono-ui), 'Courier New', monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+  pointer-events: none;
+  border-radius: 0 0 4px 4px;
+  z-index: 10;
+}
+
+/* Show on parent hover */
+.photo-item:hover .exif-overlay {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Header: filename and position */
+.exif-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.exif-filename {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.exif-position {
+  font-weight: 500;
+  opacity: 0.8;
+  font-size: 0.7rem;
+  font-family: var(--mono-ui), monospace;
+}
+
+/* EXIF details section */
+.exif-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.exif-line {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-family: var(--mono-ui), 'Courier New', monospace;
+  letter-spacing: 0.02em;
+}
+
+.exif-date {
+  opacity: 0.75;
+  font-size: 0.68rem;
+}
+
+.exif-camera {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.exif-settings {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.exif-fallback {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .exif-overlay {
+    font-size: 0.65rem;
+    padding: 0.6rem 0.8rem;
+  }
+  
+  .exif-filename,
+  .exif-position {
+    font-size: 0.65rem;
+  }
+  
+  .exif-line {
+    font-size: 0.62rem;
+  }
+}
+
+/* Touch devices: show on tap (optional enhancement) */
+@media (hover: none) and (pointer: coarse) {
+  .photo-item.tapped .exif-overlay {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

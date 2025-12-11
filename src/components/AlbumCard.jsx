@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import Photo from './Photo';
 import './AlbumCard.css';
 
 /**
@@ -39,10 +40,13 @@ export default function AlbumCard({ album }) {
         className="album-cover"
         style={{ aspectRatio: album.coverAspectRatio || 1.5 }}
       >
-        <img 
+        <Photo 
           src={coverUrl}
           alt={album.title}
+          aspectRatio={album.coverAspectRatio || 1.5}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           loading="lazy"
+          decoding="async"
         />
         
         {/* Hover collage overlay */}
@@ -50,10 +54,12 @@ export default function AlbumCard({ album }) {
           <div className="hover-collage">
             {collagePhotos.map((photo, idx) => (
               <div key={idx} className="collage-image">
-                <img 
+                <Photo 
                   src={`${import.meta.env.BASE_URL}${photo.path}`}
                   alt=""
+                  aspectRatio={photo.aspectRatio}
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
             ))}

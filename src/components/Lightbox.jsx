@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useImagePreload } from '../hooks/useImagePreload';
 import './Lightbox.css';
 
 export default function Lightbox({ photos, initialIndex, onClose }) {
@@ -6,6 +7,9 @@ export default function Lightbox({ photos, initialIndex, onClose }) {
   const [showExif, setShowExif] = useState(false);
 
   const currentPhoto = photos[currentIndex];
+  
+  // Preload adjacent images for smooth navigation
+  useImagePreload(photos, currentIndex, import.meta.env.BASE_URL, 1);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -49,6 +53,9 @@ export default function Lightbox({ photos, initialIndex, onClose }) {
             src={`${import.meta.env.BASE_URL}${currentPhoto.path}`}
             alt={currentPhoto.exif?.description || currentPhoto.filename}
             className="lightbox-image"
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
           />
         </div>
 

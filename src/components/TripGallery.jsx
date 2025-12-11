@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Lightbox from './Lightbox';
+import LazyImage from './LazyImage';
+import { getTripGallerySizes, buildPhotoProps } from '../utils/imageUtils';
 import './TripGallery.css';
 
 /**
@@ -85,17 +87,24 @@ export default function TripGallery({ tripPhotos, albumSlugs }) {
                 const photoUrl = `${import.meta.env.BASE_URL}${photo.path}`;
                 const dateStr = formatDate(photo.dateTaken);
 
+                // Generate responsive sizes and props
+                const sizes = getTripGallerySizes();
+                const photoProps = buildPhotoProps(photo, {
+                  baseUrl: import.meta.env.BASE_URL,
+                  sizes,
+                  className: 'trip-gallery-image',
+                });
+
                 return (
                   <div
                     key={photo.filename}
                     className="trip-gallery-item"
                     onClick={() => handlePhotoClick(album.photos, index)}
                   >
-                    <img
-                      src={photoUrl}
-                      alt={photo.filename}
-                      className="trip-gallery-image"
-                      loading="lazy"
+                    <LazyImage
+                      {...photoProps}
+                      threshold={0.01}
+                      rootMargin="100px"
                     />
                     <div className="trip-gallery-overlay">
                       <div className="trip-gallery-info">

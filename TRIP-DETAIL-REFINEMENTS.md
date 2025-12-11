@@ -313,3 +313,5 @@ The Trip detail page now provides a **destination-focused experience** where use
 
 The new system is **more intuitive** for understanding where photos were taken along the trip route, and provides **better context** by showing location-specific content rather than album-organized content.
 
+
+

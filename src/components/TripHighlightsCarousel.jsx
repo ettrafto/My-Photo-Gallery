@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import Photo from './Photo';
 import './TripHighlightsCarousel.css';
 
 /**
@@ -110,7 +111,13 @@ export default function TripHighlightsCarousel({
             >
               {highlight.image && (
                 <div className="highlights-slide-image">
-                  <img src={`${import.meta.env.BASE_URL}${highlight.image}`} alt={highlight.title} />
+                  <Photo 
+                    src={`${import.meta.env.BASE_URL}${highlight.image}`} 
+                    alt={highlight.title}
+                    loading="lazy"
+                    decoding="async"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 50vw"
+                  />
                 </div>
               )}
               {!highlight.image && (

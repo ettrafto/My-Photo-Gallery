@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import Photo from './Photo';
 import './TripCard.css';
 
 /**
@@ -60,14 +61,16 @@ export default function TripCard({ trip }) {
       <div className="trip-card-image-wrap">
         {loading ? (
           <div className="trip-card-image-placeholder">
-            <span>Loading...</span>
+            <div className="trip-card-skeleton" />
           </div>
         ) : coverImageUrl ? (
-          <img 
+          <Photo 
             src={coverImageUrl} 
             alt={trip.title} 
             className="trip-card-image"
             loading="lazy"
+            decoding="async"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         ) : (
           <div className="trip-card-image-placeholder">

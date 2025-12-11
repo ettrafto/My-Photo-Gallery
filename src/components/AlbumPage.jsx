@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import Lightbox from './Lightbox';
+import LayoutControls from './LayoutControls';
+import ExifOverlay from './ExifOverlay';
+import LazyImage from './LazyImage';
+import { getAlbumGridSizes, buildPhotoProps } from '../utils/imageUtils';
 import './AlbumPage.css';
 
 export default function AlbumPage() {
@@ -8,6 +12,8 @@ export default function AlbumPage() {
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+  const [imagesAcross, setImagesAcross] = useState(3);
+  const [layoutMode, setLayoutMode] = useState('grid');
 
   useEffect(() => {
     setLoading(true);
@@ -55,21 +61,58 @@ export default function AlbumPage() {
         )}
       </div>
 
-      <div className="photo-grid">
+      <LayoutControls
+        imagesAcross={imagesAcross}
+        layoutMode={layoutMode}
+        onImagesAcrossChange={setImagesAcross}
+        onLayoutModeChange={setLayoutMode}
+      />
+
+      <div 
+        className={`photo-grid ${layoutMode === 'masonry' ? 'masonry-layout' : ''}`}
+        style={{
+          gridTemplateColumns: layoutMode === 'grid' 
+            ? `repeat(${imagesAcross}, 1fr)` 
+            : undefined,
+          columnCount: layoutMode === 'masonry' ? imagesAcross : undefined
+        }}
+      >
         {album.photos.map((photo, index) => {
           // Build photo URL relative to Vite base
           const photoUrl = `${import.meta.env.BASE_URL}${photo.path}`;
+          
+          // Generate responsive sizes attribute based on grid columns
+          const sizes = getAlbumGridSizes(imagesAcross);
+          
+          // Build photo props for optimized loading
+          const photoProps = buildPhotoProps(photo, {
+            baseUrl: import.meta.env.BASE_URL,
+            sizes,
+            className: 'photo-item-image',
+          });
+          
           return (
           <div
             key={photo.filename}
             className="photo-item"
-            style={{ aspectRatio: photo.aspectRatio || 1.5 }}
+            style={{ 
+              // In grid mode: use aspect ratio to create uniform cells
+              // In masonry mode: no aspect ratio - let image determine height naturally
+              aspectRatio: layoutMode === 'grid' ? (photo.aspectRatio || 1.5) : undefined 
+            }}
             onClick={() => setSelectedPhotoIndex(index)}
           >
-            <img
-              src={photoUrl}
-              alt={photo.exif?.description || photo.filename}
-              loading="lazy"
+            <LazyImage
+              {...photoProps}
+              // Performance: Load first 6 images eagerly (likely above fold)
+              threshold={index < 6 ? 0 : 0.01}
+              rootMargin={index < 6 ? '0px' : '100px'}
+            />
+            {/* Retro EXIF overlay - appears on hover */}
+            <ExifOverlay 
+              photo={photo}
+              currentIndex={index + 1}
+              totalImages={album.photos.length}
             />
           </div>
           );

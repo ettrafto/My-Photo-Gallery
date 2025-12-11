@@ -65,33 +65,81 @@
 
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 1rem;
 }
 
+/* Masonry layout using CSS columns */
+.photo-grid.masonry-layout {
+  display: block;
+  column-gap: 1rem;
+}
+
 .photo-item {
+  position: relative; /* For absolute positioning of ExifOverlay */
   cursor: pointer;
   overflow: hidden;
   background: #000;
   border-radius: 4px;
   transition: transform 0.2s;
+  break-inside: avoid;
+  page-break-inside: avoid;
 }
 
 .photo-item:hover {
   transform: scale(1.02);
 }
 
-.photo-item img {
+/* Masonry-specific styling */
+.masonry-layout .photo-item {
+  display: inline-block;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+/* Grid mode: fill container with cropped image */
+.photo-grid:not(.masonry-layout) .photo-item img,
+.photo-grid:not(.masonry-layout) .photo-item .lazy-image-wrapper {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
+/* Masonry mode: use natural image dimensions (no crop) */
+.masonry-layout .photo-item img,
+.masonry-layout .photo-item .lazy-image-wrapper {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+}
+
+/* Ensure LazyImage wrapper fills photo-item */
+.photo-item .lazy-image-wrapper {
+  border-radius: inherit;
+}
+
+/* Image inside LazyImage in grid mode */
+.photo-grid:not(.masonry-layout) .lazy-image-photo {
+  object-fit: cover;
+}
+
+/* Image inside LazyImage in masonry mode */
+.masonry-layout .lazy-image-photo {
+  object-fit: contain;
+}
+
 @media (min-width: 768px) {
   .photo-grid {
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
+  }
+  
+  .masonry-layout {
+    column-gap: 1.5rem;
+  }
+  
+  .masonry-layout .photo-item {
+    margin-bottom: 1.5rem;
   }
 }
 

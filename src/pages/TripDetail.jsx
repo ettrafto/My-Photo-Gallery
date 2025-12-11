@@ -5,6 +5,8 @@ import TripHighlightsCarousel from '../components/TripHighlightsCarousel';
 import TripTimeline from '../components/TripTimeline';
 import TripGallery from '../components/TripGallery';
 import TripMedia from '../components/TripMedia';
+import LazyImage from '../components/LazyImage';
+import { buildPhotoProps } from '../utils/imageUtils';
 import './TripDetail.css';
 
 /**
@@ -495,13 +497,19 @@ export default function TripDetail() {
                           photo.lng
                         );
 
+                        // Build photo props
+                        const photoProps = buildPhotoProps(photo, {
+                          baseUrl: import.meta.env.BASE_URL,
+                          sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+                          className: 'destination-photo-image',
+                        });
+
                         return (
                           <div key={photo.filename} className="destination-photo-item">
-                            <img
-                              src={photoUrl}
-                              alt={photo.filename}
-                              className="destination-photo-image"
-                              loading="lazy"
+                            <LazyImage
+                              {...photoProps}
+                              threshold={0.01}
+                              rootMargin="100px"
                             />
                             <div className="destination-photo-overlay">
                               <div className="destination-photo-info">
@@ -546,7 +554,13 @@ export default function TripDetail() {
             <div className="trip-misc-images">
               {trip.miscImages.map((img, index) => (
                 <div key={index} className="trip-misc-image">
-                  <img src={`${import.meta.env.BASE_URL}${img.src}`} alt={img.caption || ''} />
+                  <LazyImage 
+                    src={`${import.meta.env.BASE_URL}${img.src}`} 
+                    alt={img.caption || 'Behind the scenes'}
+                    className="trip-misc-image-photo"
+                    threshold={0.01}
+                    rootMargin="100px"
+                  />
                   {img.caption && <p className="trip-misc-caption">{img.caption}</p>}
                   {img.tags && img.tags.length > 0 && (
                     <div className="trip-misc-tags">

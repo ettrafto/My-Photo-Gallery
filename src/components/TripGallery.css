@@ -81,7 +81,8 @@
   z-index: 1;
 }
 
-.trip-gallery-image {
+.trip-gallery-image,
+.trip-gallery-item .lazy-image-wrapper {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -89,8 +90,18 @@
   transition: transform 0.3s ease-out;
 }
 
-.trip-gallery-item:hover .trip-gallery-image {
+.trip-gallery-item:hover .trip-gallery-image,
+.trip-gallery-item:hover .lazy-image-wrapper .lazy-image-photo {
   transform: scale(1.05);
+}
+
+/* Ensure LazyImage wrapper fills container */
+.trip-gallery-item .lazy-image-wrapper {
+  border-radius: inherit;
+}
+
+.trip-gallery-item .lazy-image-photo {
+  object-fit: cover;
 }
 
 .trip-gallery-overlay {
