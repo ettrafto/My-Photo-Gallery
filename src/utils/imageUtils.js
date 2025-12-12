@@ -250,10 +250,21 @@ export function buildPhotoProps(photo, options = {}) {
     useLazyImage = true,
   } = options;
 
-  const photoUrl = `${baseUrl}${photo.path}`;
+  const main = photo.pathLarge || photo.path || photo.src || '';
+  const small = photo.pathSmall || photo.path || main;
+  const blur = photo.pathBlur;
+  const large = photo.pathLarge || main;
+
+  const src = main ? `${baseUrl}${main}` : undefined;
+  const srcSmall = small ? `${baseUrl}${small}` : undefined;
+  const srcLarge = large ? `${baseUrl}${large}` : undefined;
+  const placeholderSrc = blur ? `${baseUrl}${blur}` : undefined;
   
   return {
-    src: photoUrl,
+    src,
+    srcSmall,
+    srcLarge,
+    placeholderSrc,
     alt: photo.exif?.description || photo.filename || 'Photo',
     width: photo.width,
     height: photo.height,

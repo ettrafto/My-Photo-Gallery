@@ -14,6 +14,24 @@
   padding: 4rem 2rem;
 }
 
+.hero-skeleton-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.04), transparent 40%),
+              rgba(0,0,0,0.65);
+  backdrop-filter: blur(4px);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.hero-skeleton-overlay:has(+ .hero-container) {
+  pointer-events: none;
+}
+
 /* Animated Grid Background - Extremely Subtle */
 .hero-grid-background {
   position: absolute;

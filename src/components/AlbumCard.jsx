@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
-import Photo from './Photo';
+import LazyImage from './LazyImage';
+import { buildPhotoProps } from '../utils/imageUtils';
 import './AlbumCard.css';
 
 /**
@@ -8,7 +9,19 @@ import './AlbumCard.css';
  * @param {Object} props.album - Album object
  */
 export default function AlbumCard({ album }) {
-  const coverUrl = `${import.meta.env.BASE_URL}${album.cover}`;
+  const coverPhoto = album.photos?.[0] || null;
+  const coverProps = coverPhoto
+    ? buildPhotoProps(coverPhoto, {
+        baseUrl: import.meta.env.BASE_URL,
+        sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+        className: "album-cover-image",
+      })
+    : {
+        src: `${import.meta.env.BASE_URL}${album.cover}`,
+        alt: album.title,
+        aspectRatio: album.coverAspectRatio || 1.5,
+        sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+      };
   
   // Get first 3 photos for collage (or first 3 available)
   const collagePhotos = album.photos?.slice(0, 3) || [];
@@ -40,13 +53,11 @@ export default function AlbumCard({ album }) {
         className="album-cover"
         style={{ aspectRatio: album.coverAspectRatio || 1.5 }}
       >
-        <Photo 
-          src={coverUrl}
-          alt={album.title}
+        <LazyImage 
+          {...coverProps}
           aspectRatio={album.coverAspectRatio || 1.5}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          loading="lazy"
-          decoding="async"
+          threshold={0}
+          rootMargin="0px"
         />
         
         {/* Hover collage overlay */}
@@ -54,12 +65,14 @@ export default function AlbumCard({ album }) {
           <div className="hover-collage">
             {collagePhotos.map((photo, idx) => (
               <div key={idx} className="collage-image">
-                <Photo 
-                  src={`${import.meta.env.BASE_URL}${photo.path}`}
-                  alt=""
-                  aspectRatio={photo.aspectRatio}
-                  loading="lazy"
-                  decoding="async"
+                <LazyImage 
+                  {...buildPhotoProps(photo, {
+                    baseUrl: import.meta.env.BASE_URL,
+                    sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+                    className: "album-cover-image",
+                  })}
+                  threshold={0}
+                  rootMargin="0px"
                 />
               </div>
             ))}

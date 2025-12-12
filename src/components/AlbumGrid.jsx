@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import SearchBar from './SearchBar';
 import FilterBar from './FilterBar';
 import AlbumCard from './AlbumCard';
+import SkeletonAlbumGrid from './skeleton/SkeletonAlbumGrid';
 import { filterAlbums, getUniqueYears, getUniqueLocations, getUniqueTags } from '../utils/albumFilters';
 import './AlbumGrid.css';
 
@@ -52,7 +53,11 @@ export default function AlbumGrid() {
   const filteredAlbums = filterAlbums(albums, filters);
 
   if (loading) {
-    return <div className="loading">Loading albums...</div>;
+    return (
+      <div className="album-grid-container">
+        <SkeletonAlbumGrid cards={9} />
+      </div>
+    );
   }
 
   if (albums.length === 0) {

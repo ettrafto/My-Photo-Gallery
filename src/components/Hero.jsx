@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import SkeletonHero from './skeleton/SkeletonHero';
 import './Hero.css';
 
 /**
@@ -18,6 +19,19 @@ export default function Hero({
 }) {
   const [hoveredImage, setHoveredImage] = useState(null);
   const [tappedImage, setTappedImage] = useState(null);
+  const [loadedCount, setLoadedCount] = useState(0);
+  const [showSkeleton, setShowSkeleton] = useState(true);
+
+  useEffect(() => {
+    if (loadedCount >= images.length) {
+      setShowSkeleton(false);
+    }
+  }, [loadedCount, images.length]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSkeleton(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Handle touch/tap for mobile devices
   const handleTap = (index) => {
@@ -70,6 +84,7 @@ export default function Hero({
                   loading="eager"
                   decoding="async"
                   fetchPriority="high"
+                  onLoad={() => setLoadedCount(count => count + 1)}
                 />
                 
                 {/* Retro EXIF Overlay */}
@@ -81,6 +96,12 @@ export default function Hero({
           ))}
         </div>
       </div>
+
+      {showSkeleton && (
+        <div className="hero-skeleton-overlay" aria-hidden="true">
+          <SkeletonHero />
+        </div>
+      )}
     </section>
   );
 }

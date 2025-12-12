@@ -4,6 +4,9 @@ import Lightbox from './Lightbox';
 import LayoutControls from './LayoutControls';
 import ExifOverlay from './ExifOverlay';
 import LazyImage from './LazyImage';
+import SkeletonImageGrid from './skeleton/SkeletonImageGrid';
+import SkeletonBlock from './skeleton/SkeletonBlock';
+import SkeletonText from './skeleton/SkeletonText';
 import { getAlbumGridSizes, buildPhotoProps } from '../utils/imageUtils';
 import './AlbumPage.css';
 
@@ -30,7 +33,29 @@ export default function AlbumPage() {
   }, [slug]);
 
   if (loading) {
-    return <div className="loading">Loading album...</div>;
+    return (
+      <div className="album-page">
+        <div className="album-header">
+          <SkeletonBlock width="140px" height="1rem" variant="light" />
+          <SkeletonBlock width="320px" height="2.4rem" variant="light" />
+          <SkeletonText lines={2} />
+          <div className="album-meta">
+            <SkeletonBlock width="80px" height="0.9rem" />
+            <SkeletonBlock width="60px" height="0.9rem" />
+          </div>
+          <div className="album-tags">
+            <SkeletonBlock width="70px" height="1.6rem" rounded={999} />
+            <SkeletonBlock width="90px" height="1.6rem" rounded={999} />
+          </div>
+        </div>
+
+        <div style={{ marginBottom: '1rem' }}>
+          <SkeletonBlock width="200px" height="1.8rem" />
+        </div>
+
+        <SkeletonImageGrid count={12} layoutMode={layoutMode} imagesAcross={imagesAcross} />
+      </div>
+    );
   }
 
   if (!album) {
