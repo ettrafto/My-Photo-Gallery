@@ -744,3 +744,5 @@ function SmartGallery({ photos }) {
 
 **End of Implementation Summary**
 
+
+

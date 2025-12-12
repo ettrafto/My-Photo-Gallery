@@ -4,6 +4,10 @@ import { fileURLToPath } from 'url';
 import exifr from 'exifr';
 import slugify from 'slugify';
 
+// NOTE: This script is retained for legacy use. Prefer `npm run import:photos`
+// which processes originals, generates WebP variants, and writes album JSON in
+// one step.
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 

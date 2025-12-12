@@ -355,6 +355,21 @@ Components handle missing fields gracefully:
 
 ---
 
+## Pipeline (import:photos)
+
+- Command: `npm run import:photos`
+- Source: `photo-source/originals/<album>/<filename>.(jpg|jpeg|png|heic)`
+- Outputs (WebP) under `public/photos/<album-slug>/`:
+  - `<base>-large.webp` (primary / `path`, also `pathLarge`)
+  - `<base>-small.webp` (`pathSmall`)
+  - `<base>-blur.webp` (`pathBlur`)
+- Album JSON: `content/albums/<album-slug>.json` is regenerated on each run; missing files are removed.
+- Paths in JSON use the `photos/...` prefix so components can consume WebP variants directly.
+
+Run this after adding or updating photos; it generates optimized assets and rewrites the album JSON consumed by the frontend.
+
+---
+
 ## Performance Impact
 
 ### Data Transfer Comparison
@@ -606,4 +621,5 @@ All components already use the enhanced system:
 **Version**: 2.0.0  
 **Last Updated**: December 10, 2025  
 **Status**: ✅ **Complete with Low-Quality Mode**
+
 

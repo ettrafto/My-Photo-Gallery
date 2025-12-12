@@ -8,8 +8,9 @@
     "new-album": "node scripts/new-album.mjs",
     "init-locations": "node scripts/initAlbumLocations.mjs",
     "process:photos": "node scripts/processPhotos.mjs",
+    "import:photos": "node scripts/importPhotos.mjs",
     "dev": "vite",
-    "build": "npm run scan && vite build && node scripts/copy-content.mjs",
+    "build": "npm run import:photos && vite build && node scripts/copy-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

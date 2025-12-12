@@ -524,3 +524,5 @@ These use raw `<img>` and are **intentionally excluded**:
 **Optimization Status**: ✅ **Complete**  
 **Next Step**: Generate multiple image sizes via processing script
 
+
+

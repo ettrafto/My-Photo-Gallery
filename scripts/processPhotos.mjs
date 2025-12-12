@@ -33,6 +33,9 @@
  *   - Skips existing files unless --force is used
  *   - Does NOT modify any album JSON files
  *   - Handles EXIF orientation automatically
+ *
+ * Pipeline note: prefer `npm run import:photos` for the unified flow that also
+ * writes album JSON. This script remains for standalone processing only.
  */
 
 import fs from 'fs/promises';
@@ -361,4 +364,5 @@ main().catch((error) => {
   console.error('');
   process.exit(1);
 });
+
 
