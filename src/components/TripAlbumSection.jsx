@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Lightbox from './Lightbox';
 import LazyImage from './LazyImage';
+import ExifOverlay from './ExifOverlay';
 import { getTripGallerySizes, buildPhotoProps } from '../utils/imageUtils';
 import './TripAlbumSection.css';
 
@@ -10,9 +11,11 @@ import './TripAlbumSection.css';
  * @param {Object} props
  * @param {Object} props.album - Album object with { slug, title, photos }
  * @param {boolean} props.isActive - Whether this album is currently active
- * @param {Function} props.onPhotoClick - Optional callback for photo click (for lightbox)
+ * @param {Function} props.onPhotoClick - Callback for photo click (photo, indexInAlbum, indexInTrip)
+ * @param {number} props.startIndexInTrip - Starting index of this album's photos in the full trip photos array
+ * @param {number} props.totalTripPhotos - Total number of photos in the trip (for EXIF overlay)
  */
-export default function TripAlbumSection({ album, isActive, onPhotoClick }) {
+export default function TripAlbumSection({ album, isActive, onPhotoClick, startIndexInTrip = 0, totalTripPhotos = 0 }) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [lightboxPhotos, setLightboxPhotos] = useState([]);
@@ -41,12 +44,16 @@ export default function TripAlbumSection({ album, isActive, onPhotoClick }) {
     return dateA - dateB;
   });
 
-  const handlePhotoClick = (index) => {
-    setLightboxPhotos(sortedPhotos);
-    setLightboxIndex(index);
-    setLightboxOpen(true);
+  const handlePhotoClick = (indexInAlbum) => {
+    const indexInTrip = startIndexInTrip + indexInAlbum;
+    // If parent provides onPhotoClick, use it (for shared lightbox across all trip photos)
     if (onPhotoClick) {
-      onPhotoClick(sortedPhotos, index);
+      onPhotoClick(sortedPhotos[indexInAlbum], indexInAlbum, indexInTrip);
+    } else {
+      // Fallback: use local lightbox with just this album's photos
+      setLightboxPhotos(sortedPhotos);
+      setLightboxIndex(indexInAlbum);
+      setLightboxOpen(true);
     }
   };
 
@@ -95,6 +102,12 @@ export default function TripAlbumSection({ album, isActive, onPhotoClick }) {
                   {...photoProps}
                   threshold={0.01}
                   rootMargin="100px"
+                />
+                {/* EXIF overlay - appears on hover (like AlbumPage) */}
+                <ExifOverlay 
+                  photo={photo}
+                  currentIndex={startIndexInTrip + index + 1}
+                  totalImages={totalTripPhotos || sortedPhotos.length}
                 />
                 <div className="trip-album-overlay">
                   <div className="trip-album-info">

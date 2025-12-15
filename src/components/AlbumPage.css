@@ -97,8 +97,7 @@
 }
 
 /* Grid mode: fill container with cropped image */
-.photo-grid:not(.masonry-layout) .photo-item img,
-.photo-grid:not(.masonry-layout) .photo-item .lazy-image-wrapper {
+.photo-grid:not(.masonry-layout) .photo-item img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -106,26 +105,22 @@
 }
 
 /* Masonry mode: use natural image dimensions (no crop) */
-.masonry-layout .photo-item img,
-.masonry-layout .photo-item .lazy-image-wrapper {
+.masonry-layout .photo-item img {
   width: 100%;
   height: auto;
   display: block;
   object-fit: contain;
 }
 
-/* Ensure LazyImage wrapper fills photo-item */
-.photo-item .lazy-image-wrapper {
-  border-radius: inherit;
+/* Masonry mode: ensure LazyImage wrapper doesn't constrain height */
+.masonry-layout .photo-item .lazy-image-wrapper {
+  height: auto;
+  aspect-ratio: unset;
 }
 
-/* Image inside LazyImage in grid mode */
-.photo-grid:not(.masonry-layout) .lazy-image-photo {
-  object-fit: cover;
-}
-
-/* Image inside LazyImage in masonry mode */
-.masonry-layout .lazy-image-photo {
+/* Masonry mode: ensure LazyImage photo uses natural dimensions */
+.masonry-layout .photo-item .lazy-image-photo {
+  height: auto;
   object-fit: contain;
 }
 

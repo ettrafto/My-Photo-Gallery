@@ -110,11 +110,19 @@ export default function AlbumPage() {
           const sizes = getAlbumGridSizes(imagesAcross);
           
           // Build photo props for optimized loading
-          const photoProps = buildPhotoProps(photo, {
+          const basePhotoProps = buildPhotoProps(photo, {
             baseUrl: import.meta.env.BASE_URL,
             sizes,
             className: 'photo-item-image',
           });
+          
+          // In masonry mode, don't pass aspectRatio to allow natural image dimensions
+          const photoProps = layoutMode === 'masonry' 
+            ? (() => {
+                const { aspectRatio, ...rest } = basePhotoProps;
+                return rest;
+              })()
+            : basePhotoProps;
           
           return (
           <div

@@ -28,6 +28,7 @@ export default function TripsScrollWheelTimeline({
 }) {
   const [activeDestinationIndex, setActiveDestinationIndex] = useState(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
   const timelineRef = useRef(null);
   const itemRefs = useRef([]);
 
@@ -40,6 +41,38 @@ export default function TripsScrollWheelTimeline({
       day: 'numeric'
     });
   };
+
+  /**
+   * Detect when map section reaches top of viewport to trigger timeline entrance/exit
+   * Timeline appears when map's top edge reaches/passes viewport top
+   * Timeline disappears when scrolling back above map (map's top edge is above viewport top)
+   */
+  useEffect(() => {
+    const mapSection = sectionRefs.mapSectionRef?.current;
+    if (!mapSection) return;
+
+    // Check initial state
+    const checkVisibility = () => {
+      const rect = mapSection.getBoundingClientRect();
+      return rect.top <= 0;
+    };
+
+    // Set initial visibility
+    setIsVisible(checkVisibility());
+
+    // Use scroll listener to detect when map reaches/passes top
+    const handleScroll = () => {
+      const rect = mapSection.getBoundingClientRect();
+      // Timeline visible when map's top edge is at or below viewport top
+      setIsVisible(rect.top <= 0);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [sectionRefs]);
 
   /**
    * Calculate which destination should be active based on scroll position
@@ -118,7 +151,7 @@ export default function TripsScrollWheelTimeline({
   }
 
   return (
-    <aside className="trips-scrollwheel-timeline" ref={timelineRef}>
+    <aside className={`trips-scrollwheel-timeline ${isVisible ? 'trips-scrollwheel-timeline-visible' : ''}`} ref={timelineRef}>
       <div className="trips-scrollwheel-track">
         {destinations.map((destination, index) => {
           const isSelected = destination.id === selectedDestinationId;
@@ -127,18 +160,24 @@ export default function TripsScrollWheelTimeline({
           const isHighlight = destination.type === 'highlight';
 
           // Calculate scale based on distance from active index
-          let scale = 0.7; // Base scale for inactive items
-          let opacity = 0.5;
+          let scale = 0.6; // Base scale for inactive items (reduced for more compression)
+          let opacity = 0.4;
           
           if (isActive || isSelected) {
-            scale = 1.2;
+            // Exaggerated growth for active destination
+            scale = 1.8;
             opacity = 1;
-          } else {
-            // Gradual scaling based on distance from active
+          } else if (activeDestinationIndex !== null) {
             const distance = Math.abs(index - activeDestinationIndex);
-            if (activeDestinationIndex !== null) {
-              scale = Math.max(0.7, 1.2 - (distance * 0.15));
-              opacity = Math.max(0.3, 1 - (distance * 0.2));
+            
+            // Adjacent destinations (immediately before/after active) get slightly larger scale
+            if (distance === 1) {
+              scale = 0.85;
+              opacity = 0.65;
+            } else {
+              // Gradual scaling for other destinations based on distance
+              scale = Math.max(0.6, 0.85 - ((distance - 1) * 0.08));
+              opacity = Math.max(0.25, 0.65 - ((distance - 1) * 0.15));
             }
           }
 
@@ -166,38 +205,25 @@ export default function TripsScrollWheelTimeline({
                 }
               }}
             >
-              <div className="trips-scrollwheel-dot">
-                {isRoutePoint ? '📍' : '⭐'}
-              </div>
-              
-              {index < destinations.length - 1 && (
-                <div className="trips-scrollwheel-line" />
-              )}
-              
-              <div className="trips-scrollwheel-label">
-                {destination.label}
-              </div>
-              
-              {destination.date && (
-                <div className="trips-scrollwheel-date">
-                  {formatDate(destination.date)}
+              <div className="trips-scrollwheel-content">
+                <div className="trips-scrollwheel-name-row">
+                  <span className="trips-scrollwheel-emoji">
+                    {isRoutePoint ? '📍' : '⭐'}
+                  </span>
+                  <span className="trips-scrollwheel-label">
+                    {destination.label}
+                  </span>
                 </div>
-              )}
+                
+                {destination.date && (
+                  <div className="trips-scrollwheel-date">
+                    {formatDate(destination.date)}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Show Full Journey button */}
-      <div className="trips-scrollwheel-actions">
-        <button
-          className={`trips-scrollwheel-view-all-btn ${!activeAlbumSlug && !selectedDestinationId ? 'trips-scrollwheel-view-all-btn-active' : ''}`}
-          onClick={onShowAllClick}
-          title="Reset map and view all photos by album"
-        >
-          <span className="trips-scrollwheel-btn-icon">🗺️</span>
-          <span className="trips-scrollwheel-btn-text">Full Journey</span>
-        </button>
       </div>
     </aside>
   );

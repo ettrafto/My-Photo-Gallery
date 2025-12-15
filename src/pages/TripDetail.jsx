@@ -6,6 +6,7 @@ import TripsScrollWheelTimeline from '../components/TripsScrollWheelTimeline';
 import TripAlbumsSections from '../components/TripAlbumsSections';
 import TripMedia from '../components/TripMedia';
 import LazyImage from '../components/LazyImage';
+import Lightbox from '../components/Lightbox';
 import './TripDetail.css';
 
 /**
@@ -17,12 +18,13 @@ import './TripDetail.css';
  * - Active album transitions in/out based on scroll position
  * - Timeline shows route points (destinations) on right edge
  * - Timeline syncs with active album - clicking destination scrolls to album section
- * - Map pans to destination when album becomes active (from scroll)
+ * - Map displays full route statically (no transformations/panning)
  * - Map is non-interactive (no user dragging/zooming)
  */
 export default function TripDetail() {
   const { slug } = useParams();
   const mapRef = useRef(null);
+  const mapSectionRef = useRef(null);
   const carouselRef = useRef(null);
   const photosRef = useRef(null);
 
@@ -38,8 +40,8 @@ export default function TripDetail() {
   // Active album state - replaces viewMode/selectedDestinationId
   const [activeAlbumSlug, setActiveAlbumSlug] = useState(null);
   
-  // Track if map panning should be suppressed (to avoid double-pan on timeline click)
-  const suppressMapPanRef = useRef(false);
+  // Lightbox state for photo viewing (like AlbumPage)
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
 
   // Load trip data and photos
   useEffect(() => {
@@ -199,6 +201,32 @@ export default function TripDetail() {
   }, [trip, tripPhotos]);
 
   /**
+   * All trip photos sorted chronologically for lightbox navigation
+   */
+  const sortedTripPhotos = useMemo(() => {
+    if (!tripPhotos || tripPhotos.length === 0) return [];
+    return [...tripPhotos].sort((a, b) => {
+      const dateA = a.dateTaken ? new Date(a.dateTaken) : new Date(0);
+      const dateB = b.dateTaken ? new Date(b.dateTaken) : new Date(0);
+      return dateA - dateB;
+    });
+  }, [tripPhotos]);
+
+  /**
+   * Handle photo click - open lightbox with all trip photos
+   */
+  const handlePhotoClick = useCallback((photo, indexInAlbum, indexInTrip) => {
+    // Find the photo's index in the sorted trip photos array
+    const photoIndex = sortedTripPhotos.findIndex(p => p.filename === photo.filename);
+    if (photoIndex !== -1) {
+      setSelectedPhotoIndex(photoIndex);
+    } else {
+      // Fallback: use the provided indexInTrip if photo not found
+      setSelectedPhotoIndex(indexInTrip);
+    }
+  }, [sortedTripPhotos]);
+
+  /**
    * Map album slug to destination ID
    * Route points and albums have 1:1 correspondence by index
    */
@@ -231,25 +259,8 @@ export default function TripDetail() {
   }, [activeAlbumSlug, getDestinationIdForAlbum]);
 
   /**
-   * Pan map when album becomes active (from scroll)
-   * Only pans if not suppressed (to avoid double-pan on timeline click)
+   * Map transformations removed - map now shows full route statically
    */
-  useEffect(() => {
-    if (!activeAlbumSlug || suppressMapPanRef.current || !mapRef.current) return;
-    
-    const destinationId = getDestinationIdForAlbum(activeAlbumSlug);
-    if (!destinationId) return;
-    
-    const destination = destinations.find(d => d.id === destinationId);
-    if (destination && destination.lat && destination.lng) {
-      // Debounce map panning to avoid jittery movement
-      const timeoutId = setTimeout(() => {
-        mapRef.current.panToLocation(destination.lat, destination.lng, 6);
-      }, 300);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [activeAlbumSlug, destinations, getDestinationIdForAlbum]);
 
   // Calculate trip statistics
   const getTripStats = () => {
@@ -279,18 +290,12 @@ export default function TripDetail() {
 
   // Interaction handlers
   const handleHighlightHover = (highlight) => {
-    if (highlight.mapLat && highlight.mapLng && mapRef.current) {
-      // Pan map to highlight location on hover (regional view)
-      mapRef.current.panToLocation(highlight.mapLat, highlight.mapLng, 6);
-    }
+    // Map transformations removed - map shows full route statically
   };
 
   const handleHighlightClick = (highlight) => {
     setActiveHighlightId(highlight.id);
-    if (highlight.mapLat && highlight.mapLng && mapRef.current) {
-      // Pan map to highlight location on click (regional view)
-      mapRef.current.panToLocation(highlight.mapLat, highlight.mapLng, 6);
-    }
+    // Map transformations removed - map shows full route statically
   };
 
   /**
@@ -299,14 +304,11 @@ export default function TripDetail() {
    * When user clicks a destination in the timeline:
    * 1. Find corresponding album slug
    * 2. Set active album and scroll to section
-   * 3. Pan map to that location
+   * Map transformations removed - map shows full route statically
    */
   const handleDestinationClick = useCallback((destination) => {
     const albumSlug = getAlbumSlugForDestination(destination.id);
     if (!albumSlug) return;
-
-    // Suppress map panning from scroll-based activation temporarily
-    suppressMapPanRef.current = true;
     
     // Set active album
     setActiveAlbumSlug(albumSlug);
@@ -319,16 +321,6 @@ export default function TripDetail() {
         block: 'center' 
       });
     }
-    
-    // Pan map to destination with regional zoom (zoom level 6)
-    if (destination.lat && destination.lng && mapRef.current) {
-      mapRef.current.panToLocation(destination.lat, destination.lng, 6);
-    }
-
-    // Reset suppression after a delay
-    setTimeout(() => {
-      suppressMapPanRef.current = false;
-    }, 1000);
   }, [getAlbumSlugForDestination]);
 
   /**
@@ -336,23 +328,15 @@ export default function TripDetail() {
    * Called when scroll tracking detects a new active album
    */
   const handleAlbumActivate = useCallback((albumSlug) => {
-    // Only update if not suppressed (to avoid conflicts with timeline clicks)
-    if (!suppressMapPanRef.current) {
-      setActiveAlbumSlug(albumSlug);
-    }
+    setActiveAlbumSlug(albumSlug);
   }, []);
 
   /**
    * Show full journey - reset to show all albums equally
-   * Resets map to show full journey view
+   * Map transformations removed - map shows full route statically
    */
   const handleShowAllPhotos = useCallback(() => {
     setActiveAlbumSlug(null);
-    
-    // Reset map to show full journey
-    if (mapRef.current) {
-      mapRef.current.resetToFullView();
-    }
   }, []);
 
   // Determine cover image
@@ -462,7 +446,7 @@ export default function TripDetail() {
 
         {/* Map Section - Non-interactive, shows trip route and markers */}
         {tripPhotos.length > 0 && (
-          <section className="page-block">
+          <section className="page-block" ref={mapSectionRef}>
             <p className="page-label">route</p>
             <h2 className="page-title">Trip Map</h2>
             <TripMap
@@ -487,6 +471,8 @@ export default function TripDetail() {
                 albums={albums}
                 activeAlbumSlug={activeAlbumSlug}
                 onAlbumActivate={handleAlbumActivate}
+                onPhotoClick={handlePhotoClick}
+                totalTripPhotos={sortedTripPhotos.length}
               />
             </div>
           </section>
@@ -542,11 +528,21 @@ export default function TripDetail() {
             sectionRefs={{
               photosRef: photosRef,
               carouselRef: carouselRef,
-              mapRef: mapRef
+              mapRef: mapRef,
+              mapSectionRef: mapSectionRef
             }}
           />
         ) : null;
       })()}
+
+      {/* Lightbox for viewing photos (like AlbumPage) */}
+      {selectedPhotoIndex !== null && sortedTripPhotos.length > 0 && (
+        <Lightbox
+          photos={sortedTripPhotos}
+          initialIndex={selectedPhotoIndex}
+          onClose={() => setSelectedPhotoIndex(null)}
+        />
+      )}
     </main>
   );
 }
