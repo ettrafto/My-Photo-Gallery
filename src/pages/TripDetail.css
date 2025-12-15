@@ -106,6 +106,13 @@
   gap: 2rem;
 }
 
+/* Add padding on right for scroll wheel timeline (desktop only) */
+@media (min-width: 769px) {
+  .trip-detail-content {
+    padding-right: calc(1.25rem + 140px); /* Extra space for scroll wheel (100px + 40px margin) */
+  }
+}
+
 /* Summary Bar */
 .trip-summary-bar {
   display: flex;
@@ -218,7 +225,37 @@
   letter-spacing: 0.08em;
 }
 
-/* Destination Photos Gallery */
+/* Trip Albums Container */
+.trip-albums-container {
+  width: 100%;
+}
+
+.trip-albums-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.trip-albums-title {
+  font-family: var(--mono-display);
+  font-size: 1.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0;
+}
+
+.trip-albums-count {
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Destination Photos Gallery (legacy - may be removed) */
 .destination-photos {
   width: 100%;
 }

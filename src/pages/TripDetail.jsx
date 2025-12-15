@@ -1,28 +1,30 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import TripMap from '../components/TripMap';
 import TripHighlightsCarousel from '../components/TripHighlightsCarousel';
-import TripTimeline from '../components/TripTimeline';
-import TripGallery from '../components/TripGallery';
+import TripsScrollWheelTimeline from '../components/TripsScrollWheelTimeline';
+import TripAlbumsSections from '../components/TripAlbumsSections';
 import TripMedia from '../components/TripMedia';
 import LazyImage from '../components/LazyImage';
-import { buildPhotoProps } from '../utils/imageUtils';
 import './TripDetail.css';
 
 /**
  * TripDetail page - displays comprehensive information about a single trip
  * 
  * KEY BEHAVIORS:
- * - Section order: Hero → Summary → Highlights → Map → Timeline → Destination Photos → Media
- * - Timeline shows "destinations" (route points + highlights with GPS)
- * - Photos are filtered by selected destination (not by album)
+ * - Section order: Hero → Summary → Highlights → Map → Albums → Media
+ * - All albums displayed simultaneously with scroll-based activation
+ * - Active album transitions in/out based on scroll position
+ * - Timeline shows route points (destinations) on right edge
+ * - Timeline syncs with active album - clicking destination scrolls to album section
+ * - Map pans to destination when album becomes active (from scroll)
  * - Map is non-interactive (no user dragging/zooming)
- * - Timeline clicks pan the map and load destination photos
  */
 export default function TripDetail() {
   const { slug } = useParams();
   const mapRef = useRef(null);
   const carouselRef = useRef(null);
+  const photosRef = useRef(null);
 
   // Data state
   const [trip, setTrip] = useState(null);
@@ -33,13 +35,11 @@ export default function TripDetail() {
   // UI state for interactions
   const [activeHighlightId, setActiveHighlightId] = useState(null);
   
-  // NEW: Destination-based photo viewing
-  // When user clicks a timeline destination, we show only photos near that destination
-  const [selectedDestinationId, setSelectedDestinationId] = useState(null);
-  const [selectedDestinationPhotos, setSelectedDestinationPhotos] = useState([]);
+  // Active album state - replaces viewMode/selectedDestinationId
+  const [activeAlbumSlug, setActiveAlbumSlug] = useState(null);
   
-  // View mode: 'destination' (filtered) or 'all' (show all photos by album)
-  const [viewMode, setViewMode] = useState('prompt'); // 'prompt', 'destination', 'all'
+  // Track if map panning should be suppressed (to avoid double-pan on timeline click)
+  const suppressMapPanRef = useRef(false);
 
   // Load trip data and photos
   useEffect(() => {
@@ -171,61 +171,85 @@ export default function TripDetail() {
   const destinations = buildDestinations();
 
   /**
-   * Filter photos near a destination using haversine distance
-   * 
-   * PHOTO MATCHING LOGIC:
-   * 1. If highlight has albumSlug + photoFilename, match that specific photo
-   * 2. Otherwise, find all photos within DISTANCE_THRESHOLD of destination
-   * 
-   * Distance threshold: 10km (configurable)
+   * Build albums array from trip data
+   * Groups photos by album and maintains trip.albumIds order
    */
-  const DISTANCE_THRESHOLD_KM = 10;
+  const albums = useMemo(() => {
+    if (!trip || !tripPhotos || !trip.albumIds) return [];
 
-  const getDistanceKm = (lat1, lng1, lat2, lng2) => {
-    const R = 6371; // Earth radius in km
-    const dLat = ((lat2 - lat1) * Math.PI) / 180;
-    const dLng = ((lng2 - lng1) * Math.PI) / 180;
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  };
+    return trip.albumIds.map(albumSlug => {
+      const albumPhotos = tripPhotos.filter(photo => photo.albumSlug === albumSlug);
+      
+      // Sort photos by date taken
+      const sortedPhotos = albumPhotos.sort((a, b) => {
+        const dateA = a.dateTaken ? new Date(a.dateTaken) : new Date(0);
+        const dateB = b.dateTaken ? new Date(b.dateTaken) : new Date(0);
+        return dateA - dateB;
+      });
 
-  const getPhotosForDestination = (destination) => {
-    if (!destination || !tripPhotos) return [];
+      // Get album title from first photo
+      const albumTitle = albumPhotos[0]?.albumTitle || albumSlug;
 
-    // Strategy 1: Direct photo match (for highlights with specific photo references)
-    if (destination.type === 'highlight' && destination.albumSlug && destination.photoFilename) {
-      const directMatch = tripPhotos.find(
-        p => p.albumSlug === destination.albumSlug && p.filename === destination.photoFilename
-      );
-      if (directMatch) {
-        return [directMatch];
-      }
+      return {
+        slug: albumSlug,
+        title: albumTitle,
+        photos: sortedPhotos
+      };
+    });
+  }, [trip, tripPhotos]);
+
+  /**
+   * Map album slug to destination ID
+   * Route points and albums have 1:1 correspondence by index
+   */
+  const getDestinationIdForAlbum = useCallback((albumSlug) => {
+    if (!trip || !destinations) return null;
+    const albumIndex = trip.albumIds.indexOf(albumSlug);
+    if (albumIndex === -1) return null;
+    // Find route point destination at this index
+    const routePointDestinations = destinations.filter(d => d.type === 'route-point');
+    return routePointDestinations[albumIndex]?.id || null;
+  }, [trip, destinations]);
+
+  /**
+   * Map destination ID to album slug
+   */
+  const getAlbumSlugForDestination = useCallback((destinationId) => {
+    if (!trip || !destinations) return null;
+    const routePointDestinations = destinations.filter(d => d.type === 'route-point');
+    const destinationIndex = routePointDestinations.findIndex(d => d.id === destinationId);
+    if (destinationIndex === -1) return null;
+    return trip.albumIds[destinationIndex] || null;
+  }, [trip, destinations]);
+
+  /**
+   * Derived: active destination ID from active album
+   */
+  const activeDestinationId = useMemo(() => {
+    if (!activeAlbumSlug) return null;
+    return getDestinationIdForAlbum(activeAlbumSlug);
+  }, [activeAlbumSlug, getDestinationIdForAlbum]);
+
+  /**
+   * Pan map when album becomes active (from scroll)
+   * Only pans if not suppressed (to avoid double-pan on timeline click)
+   */
+  useEffect(() => {
+    if (!activeAlbumSlug || suppressMapPanRef.current || !mapRef.current) return;
+    
+    const destinationId = getDestinationIdForAlbum(activeAlbumSlug);
+    if (!destinationId) return;
+    
+    const destination = destinations.find(d => d.id === destinationId);
+    if (destination && destination.lat && destination.lng) {
+      // Debounce map panning to avoid jittery movement
+      const timeoutId = setTimeout(() => {
+        mapRef.current.panToLocation(destination.lat, destination.lng, 6);
+      }, 300);
+      
+      return () => clearTimeout(timeoutId);
     }
-
-    // Strategy 2: Geographic proximity search
-    const nearbyPhotos = tripPhotos.filter(photo => {
-      if (typeof photo.lat !== 'number' || typeof photo.lng !== 'number') return false;
-      const distance = getDistanceKm(destination.lat, destination.lng, photo.lat, photo.lng);
-      return distance <= DISTANCE_THRESHOLD_KM;
-    });
-
-    // Sort by distance (closest first)
-    return nearbyPhotos.sort((a, b) => {
-      const distA = getDistanceKm(destination.lat, destination.lng, a.lat, a.lng);
-      const distB = getDistanceKm(destination.lat, destination.lng, b.lat, b.lng);
-      return distA - distB;
-    });
-  };
-
-  // NOTE: We do NOT auto-select a destination on load
-  // The map shows the full journey overview until user clicks a timeline destination
-  // This gives users context of the entire trip before diving into specific locations
+  }, [activeAlbumSlug, destinations, getDestinationIdForAlbum]);
 
   // Calculate trip statistics
   const getTripStats = () => {
@@ -273,49 +297,63 @@ export default function TripDetail() {
    * Handle timeline destination click
    * 
    * When user clicks a destination in the timeline:
-   * 1. Pan the map to that location
-   * 2. Update selected destination state
-   * 3. Load photos for that destination
-   * 
-   * Zoom level 6 provides regional context (not too close)
+   * 1. Find corresponding album slug
+   * 2. Set active album and scroll to section
+   * 3. Pan map to that location
    */
-  const handleDestinationClick = (destination) => {
-    // Update selected destination
-    setSelectedDestinationId(destination.id);
-    setViewMode('destination');
+  const handleDestinationClick = useCallback((destination) => {
+    const albumSlug = getAlbumSlugForDestination(destination.id);
+    if (!albumSlug) return;
+
+    // Suppress map panning from scroll-based activation temporarily
+    suppressMapPanRef.current = true;
     
-    // Load photos for this destination
-    const photos = getPhotosForDestination(destination);
-    setSelectedDestinationPhotos(photos);
+    // Set active album
+    setActiveAlbumSlug(albumSlug);
+    
+    // Scroll to album section
+    const albumSection = document.querySelector(`[data-album-slug="${albumSlug}"]`);
+    if (albumSection) {
+      albumSection.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }
     
     // Pan map to destination with regional zoom (zoom level 6)
     if (destination.lat && destination.lng && mapRef.current) {
       mapRef.current.panToLocation(destination.lat, destination.lng, 6);
     }
 
-    // If this is a highlight destination, also sync the carousel
-    if (destination.type === 'highlight') {
-      setActiveHighlightId(destination.id);
-      if (carouselRef.current) {
-        carouselRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
-  };
+    // Reset suppression after a delay
+    setTimeout(() => {
+      suppressMapPanRef.current = false;
+    }, 1000);
+  }, [getAlbumSlugForDestination]);
 
   /**
-   * Show all photos organized by album
+   * Handle album activation from scroll
+   * Called when scroll tracking detects a new active album
+   */
+  const handleAlbumActivate = useCallback((albumSlug) => {
+    // Only update if not suppressed (to avoid conflicts with timeline clicks)
+    if (!suppressMapPanRef.current) {
+      setActiveAlbumSlug(albumSlug);
+    }
+  }, []);
+
+  /**
+   * Show full journey - reset to show all albums equally
    * Resets map to show full journey view
    */
-  const handleShowAllPhotos = () => {
-    setViewMode('all');
-    setSelectedDestinationId(null);
-    setSelectedDestinationPhotos([]);
+  const handleShowAllPhotos = useCallback(() => {
+    setActiveAlbumSlug(null);
     
     // Reset map to show full journey
     if (mapRef.current) {
       mapRef.current.resetToFullView();
     }
-  };
+  }, []);
 
   // Determine cover image
   const getCoverImage = () => {
@@ -435,107 +473,21 @@ export default function TripDetail() {
           </section>
         )}
 
-        {/* Timeline - Destinations (route points + highlights), directly under map */}
-        {destinations.length > 0 && (
-          <section className="page-block">
-            <TripTimeline
-              destinations={destinations}
-              onItemClick={handleDestinationClick}
-              selectedDestinationId={selectedDestinationId}
-              viewMode={viewMode}
-              onShowAllClick={handleShowAllPhotos}
-            />
-          </section>
-        )}
-
-        {/* Photos Section - Three modes: prompt, destination-filtered, or all by album */}
-        {destinations.length > 0 && (
-          <section className="page-block">
-            <div className="destination-photos">
-              {/* Mode 1: Prompt - No destination selected yet */}
-              {viewMode === 'prompt' && (
-                <div className="destination-photos-prompt">
-                  <div className="destination-photos-prompt-icon">📍</div>
-                  <h3 className="destination-photos-prompt-title">Select a Destination</h3>
-                  <p className="destination-photos-prompt-text">
-                    Click any destination in the timeline above to view photos from that location.
-                  </p>
-                  <div className="destination-photos-prompt-stats">
-                    <span>{destinations.length} destinations</span>
-                    <span>·</span>
-                    <span>{tripPhotos.length} total photos</span>
-                  </div>
-                  <button className="destination-photos-prompt-btn" onClick={handleShowAllPhotos}>
-                    Or view all photos by album →
-                  </button>
+        {/* Albums Section - All albums displayed with scroll-based activation */}
+        {albums.length > 0 && (
+          <section className="page-block" ref={photosRef}>
+            <div className="trip-albums-container">
+              <div className="trip-albums-header">
+                <h3 className="trip-albums-title">Trip Albums</h3>
+                <div className="trip-albums-count">
+                  {albums.length} album{albums.length !== 1 ? 's' : ''} · {tripPhotos.length} photo{tripPhotos.length !== 1 ? 's' : ''}
                 </div>
-              )}
-
-              {/* Mode 2: Destination - Filtered photos for selected destination */}
-              {viewMode === 'destination' && selectedDestinationId && (
-                <>
-                  <div className="destination-photos-header">
-                    <h3 className="destination-photos-title">
-                      Photos from {destinations.find(d => d.id === selectedDestinationId)?.label || 'this location'}
-                    </h3>
-                    <div className="destination-photos-count">
-                      {selectedDestinationPhotos.length} photo{selectedDestinationPhotos.length !== 1 ? 's' : ''}
-                      {selectedDestinationPhotos.length > 0 && (
-                        <span className="destination-photos-hint"> within {DISTANCE_THRESHOLD_KM}km</span>
-                      )}
-                    </div>
-                  </div>
-
-                  {selectedDestinationPhotos.length > 0 ? (
-                    <div className="destination-photos-grid">
-                      {selectedDestinationPhotos.map((photo) => {
-                        const photoUrl = `${import.meta.env.BASE_URL}${photo.path}`;
-                        const distance = getDistanceKm(
-                          destinations.find(d => d.id === selectedDestinationId)?.lat || 0,
-                          destinations.find(d => d.id === selectedDestinationId)?.lng || 0,
-                          photo.lat,
-                          photo.lng
-                        );
-
-                        // Build photo props
-                        const photoProps = buildPhotoProps(photo, {
-                          baseUrl: import.meta.env.BASE_URL,
-                          sizes: '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
-                          className: 'destination-photo-image',
-                        });
-
-                        return (
-                          <div key={photo.filename} className="destination-photo-item">
-                            <LazyImage
-                              {...photoProps}
-                              threshold={0.01}
-                              rootMargin="100px"
-                            />
-                            <div className="destination-photo-overlay">
-                              <div className="destination-photo-info">
-                                <span className="destination-photo-album">{photo.albumTitle}</span>
-                                <span className="destination-photo-distance">{distance.toFixed(1)}km away</span>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="destination-photos-empty">
-                      <p>No photos found within {DISTANCE_THRESHOLD_KM}km of this destination.</p>
-                      <p className="destination-photos-empty-hint">
-                        Try selecting a different destination from the timeline, or view all photos.
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Mode 3: All Photos - Organized by album */}
-              {viewMode === 'all' && (
-                <TripGallery tripPhotos={tripPhotos} albumSlugs={trip.albumIds} />
-              )}
+              </div>
+              <TripAlbumsSections
+                albums={albums}
+                activeAlbumSlug={activeAlbumSlug}
+                onAlbumActivate={handleAlbumActivate}
+              />
             </div>
           </section>
         )}
@@ -575,6 +527,26 @@ export default function TripDetail() {
           </section>
         )}
       </div>
+
+      {/* Scroll Wheel Timeline - Fixed on right edge */}
+      {/* Filter out highlights - only show route points */}
+      {destinations.length > 0 && (() => {
+        const routePointDestinations = destinations.filter(d => d.type === 'route-point');
+        return routePointDestinations.length > 0 ? (
+          <TripsScrollWheelTimeline
+            destinations={routePointDestinations}
+            onItemClick={handleDestinationClick}
+            selectedDestinationId={activeDestinationId}
+            activeAlbumSlug={activeAlbumSlug}
+            onShowAllClick={handleShowAllPhotos}
+            sectionRefs={{
+              photosRef: photosRef,
+              carouselRef: carouselRef,
+              mapRef: mapRef
+            }}
+          />
+        ) : null;
+      })()}
     </main>
   );
 }
