@@ -383,16 +383,20 @@ async function writeMapIndex(contentDir, albumsList) {
       if (typeof lat === 'number' && typeof lng === 'number') {
         accuracy = 'exif';
         exifGpsCount++;
-      } else if (
-        albumLocations[album.slug]?.defaultLocation?.lat !== null &&
-        albumLocations[album.slug]?.defaultLocation?.lng !== null
-      ) {
-        lat = albumLocations[album.slug].defaultLocation.lat;
-        lng = albumLocations[album.slug].defaultLocation.lng;
-        accuracy = 'album-default';
-        albumDefaultCount++;
       } else {
-        continue;
+        const locationData = albumLocations[album.slug]?.defaultLocation;
+        if (
+          locationData &&
+          typeof locationData.lat === 'number' &&
+          typeof locationData.lng === 'number'
+        ) {
+          lat = locationData.lat;
+          lng = locationData.lng;
+          accuracy = 'album-default';
+          albumDefaultCount++;
+        } else {
+          continue;
+        }
       }
 
       mapPhotos.push({
