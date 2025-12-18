@@ -96,13 +96,15 @@ Site-wide content (site info, navigation, social links, SEO defaults, hero secti
 - **Type**: String (enum)
 - **Purpose**: Theme identifier that applies a CSS class to the app root
 - **Fallback**: `"mono"` (if missing or invalid)
-- **Valid Values**: `"mono"` (currently the only supported theme)
-- **Example**: `"mono"`
+- **Valid Values**: `"mono"`, `"paper"`
+- **Example**: `"mono"` or `"paper"`
 - **Important**: 
-  - Theme support is **wired but visually inactive**. No styles change yet.
-  - The theme class (`theme-{name}`) is applied to the app root but has no CSS rules yet.
-  - Future themes will be enabled by adding CSS rules under `.theme-{name}` selectors in `src/styles/themes.css`.
-  - This does not conflict with `hero.layout` - they are independent systems.
+  - Theme classes (`theme-{name}`) are applied to the app root (`.app-shell`)
+  - Each theme has CSS rules defined in `src/styles/themes.css`
+  - This does not conflict with `hero.layout` - they are independent systems
+  - **Current themes**:
+    - `"mono"`: Dark theme (default) - black background, light text
+    - `"paper"`: Light theme - cream/paper background, dark text
 
 ---
 
@@ -451,20 +453,54 @@ After making changes, verify:
 
 ### Theme Configuration
 
-**Important**: Theme support is **wired but visually inactive**. No styles change yet.
+The theme class (`theme-{name}`) is applied to the app root (`.app-shell`). Each theme has CSS rules defined in `src/styles/themes.css`.
 
-The theme class (`theme-{name}`) is applied to the app root but currently has no CSS rules. Future themes will be enabled by adding CSS rules in `src/styles/themes.css`.
+**Available Themes**:
+- `"mono"`: Dark theme (default) - black background (`#000000`), light text
+- `"paper"`: Light theme - cream/paper background (`#f6f1e6`), dark text (`#1a1a1a`)
 
-To change theme (when themes are implemented):
+To change theme:
 ```json
 {
   "theme": {
-    "name": "mono"
+    "name": "paper"
   }
 }
 ```
 
-**Note**: Currently only `"mono"` is a valid theme name. Invalid values will log a warning and default to `"mono"`.
+**Note**: Invalid theme values will log a warning and default to `"mono"`.
+
+#### Testing Theme Switching
+
+**Manual Test Checklist**:
+
+1. **Set theme to "mono"**:
+   ```json
+   { "theme": { "name": "mono" } }
+   ```
+   - Expected: Dark background, light text (current default look)
+   - Verify: Root element has class `theme-mono`
+
+2. **Set theme to "paper"**:
+   ```json
+   { "theme": { "name": "paper" } }
+   ```
+   - Expected: Light cream background (`#f6f1e6`), dark text (`#1a1a1a`), dark blue links (`#0b3d91`)
+   - Verify: Root element has class `theme-paper`
+   - Verify: Page blocks have light backgrounds and dark borders
+   - Verify: Copyright notice has dark text
+
+3. **Set theme to invalid value**:
+   ```json
+   { "theme": { "name": "badvalue" } }
+   ```
+   - Expected: Console warning logged, theme falls back to "mono"
+   - Verify: Root element has class `theme-mono` (not `theme-badvalue`)
+
+4. **Verify hero.layout still works with paper theme**:
+   - Set `hero.layout` to different values while `theme.name` is "paper"
+   - Expected: Hero layout changes (if other layouts exist), but theme remains "paper"
+   - Verify: Both classes present: `theme-paper` and `hero-layout-{layout}`
 
 ### Removing Optional Fields
 

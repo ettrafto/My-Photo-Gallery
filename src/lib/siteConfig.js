@@ -60,8 +60,8 @@ export async function loadSiteConfig() {
       throw new Error('Site config is missing required "hero.headline" (string)');
     }
 
-    // Theme whitelist (only "mono" supported initially)
-    const VALID_THEMES = ['mono'];
+    // Theme whitelist
+    const VALID_THEMES = ['mono', 'paper'];
 
     // Optional fields with defaults
     const config = {

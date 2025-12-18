@@ -1,10 +1,8 @@
-/* Theme infrastructure only – no styles applied yet */
+/* Theme infrastructure */
 
 /* 
  * Theme classes are applied to the app root (.app-shell.theme-{name})
  * Future themes will be enabled by adding CSS rules under these selectors.
- * 
- * Currently, all theme classes are intentionally empty to ensure no visual changes.
  */
 
 .theme-mono {
@@ -14,10 +12,179 @@
   --theme-active: none;
 }
 
+/* Paper theme - light background with dark text */
+.theme-paper {
+  /* Light paper/cream background - app-shell fills viewport */
+  background-color: #f6f1e6;
+  color: #1a1a1a;
+}
+
+/* Override body background when paper theme is active (for areas outside app-shell) */
+body:has(.theme-paper) {
+  background-color: #f6f1e6;
+}
+
+.theme-paper a {
+  color: #0b3d91;
+}
+
+.theme-paper a:hover {
+  color: #0a2d6b;
+}
+
+.theme-paper .page-block {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .copyright-notice {
+  border-top-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-paper .copyright-link {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .copyright-link:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* NavBar styling for paper theme */
+.theme-paper .nav-shell {
+  background: rgba(246, 241, 230, 0.95);
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-paper .nav-brand-main {
+  color: #1a1a1a;
+}
+
+.theme-paper .nav-brand-sub {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-paper .nav-link {
+  color: rgba(0, 0, 0, 0.7);
+  background: rgba(0, 0, 0, 0.05);
+  border-color: transparent;
+}
+
+.theme-paper .nav-link:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .nav-link-active {
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+
+/* Hero styling for paper theme */
+.theme-paper .hero {
+  background-color: #f6f1e6;
+}
+
+.theme-paper .hero-headline {
+  color: #1a1a1a;
+}
+
+.theme-paper .hero-subheadline {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Hero grid background - dark grid lines for light theme */
+.theme-paper .hero-grid-background {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+/* Hero EXIF overlay - light background with dark text */
+.theme-paper .hero-exif-overlay {
+  background: rgba(255, 255, 255, 0.95);
+  color: rgba(0, 0, 0, 0.75);
+  background-image: 
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.02) 2px,
+      rgba(0, 0, 0, 0.02) 4px
+    );
+}
+
+/* Layout Controls styling for paper theme */
+.theme-paper .layout-controls {
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-paper .control-label {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .segmented-control {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .segment-btn {
+  color: rgba(0, 0, 0, 0.6);
+  border-right-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-paper .segment-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .segment-btn.active {
+  background: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+
+/* EXIF Overlay styling for paper theme */
+.theme-paper .exif-overlay {
+  background: rgba(255, 255, 255, 0.95);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .exif-header {
+  border-bottom-color: rgba(0, 0, 0, 0.2);
+}
+
+.theme-paper .exif-filename {
+  color: rgba(0, 0, 0, 0.95);
+}
+
+.theme-paper .exif-position {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .exif-line {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .exif-camera {
+  color: rgba(0, 0, 0, 0.95);
+}
+
+.theme-paper .exif-date {
+  color: rgba(0, 0, 0, 0.75);
+}
+
+.theme-paper .exif-settings {
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.theme-paper .exif-fallback {
+  color: rgba(0, 0, 0, 0.6);
+}
+
 /* Future themes (placeholders only) */
 /*
 .theme-retro {}
-.theme-paper {}
 .theme-neon {}
 */
 
