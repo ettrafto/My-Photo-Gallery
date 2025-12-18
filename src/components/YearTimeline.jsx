@@ -12,13 +12,6 @@ export default function YearTimeline({ selectedYear, availableYears = [], onYear
 
   return (
     <div className="year-timeline">
-      <button
-        className={`timeline-tick all-tick ${!selectedYear ? 'active' : ''}`}
-        onClick={() => onYearChange(null)}
-        title="All years"
-      >
-        All
-      </button>
       <div className="timeline-line">
         {availableYears.map((year, index) => (
           <button

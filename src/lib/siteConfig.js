@@ -246,6 +246,8 @@ export function getHeroGridItems() {
     .slice(0, 3) // Max 3 items
     .map(item => ({
       src: item.src,
+      srcSmall: item.srcSmall || null,
+      srcLarge: item.srcLarge || null,
       alt: item.alt || item.caption || 'Hero image',
       caption: item.caption || null,
       href: item.href || null,

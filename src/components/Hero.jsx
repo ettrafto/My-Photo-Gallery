@@ -7,6 +7,18 @@ import SkeletonHero from './skeleton/SkeletonHero';
 import './Hero.css';
 
 /**
+ * Normalize image path to ensure it's absolute and handles BASE_URL correctly
+ */
+function normalizeImagePath(path) {
+  if (!path) return '';
+  // Ensure path starts with /
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  // Combine with BASE_URL, removing any double slashes
+  const baseUrl = (import.meta.env.BASE_URL || '').replace(/\/$/, '');
+  return `${baseUrl}${normalizedPath}`;
+}
+
+/**
  * Hero - Full-width hero section blending Data-Driven Photographer and Dynamic Depth Grid styles
  * Features floating diagonal image cluster, animated grid background, and retro EXIF overlays
  * 
@@ -111,7 +123,9 @@ export default function Hero({
                 >
                   <div className="hero-image-inner">
                     <Photo
-                      src={`${import.meta.env.BASE_URL}${item.src}`}
+                      src={normalizeImagePath(item.src)}
+                      srcSmall={item.srcSmall ? normalizeImagePath(item.srcSmall) : undefined}
+                      srcLarge={item.srcLarge ? normalizeImagePath(item.srcLarge) : undefined}
                       alt={item.alt}
                       className="hero-image"
                       loading="eager"
@@ -119,6 +133,7 @@ export default function Hero({
                       fetchPriority="high"
                       onLoad={() => setLoadedCount(count => count + 1)}
                       aspectRatio={1.5}
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                     
                     {/* Caption overlay if present */}
@@ -172,14 +187,18 @@ export default function Hero({
                 onTap={() => handleTap(index)}
               >
                 <div className="hero-image-inner">
-                  <img 
-                    src={image.url} 
+                  <Photo
+                    src={normalizeImagePath(image.url)}
+                    srcSmall={normalizeImagePath(`/hero/hero-${index + 1}-small.webp`)}
+                    srcLarge={normalizeImagePath(`/hero/hero-${index + 1}-large.webp`)}
                     alt={image.alt}
                     className="hero-image"
                     loading="eager"
                     decoding="async"
                     fetchPriority="high"
                     onLoad={() => setLoadedCount(count => count + 1)}
+                    aspectRatio={1.5}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                   
                   {/* Retro EXIF Overlay */}
@@ -203,33 +222,34 @@ export default function Hero({
 }
 
 // Default featured images with mock EXIF data
+// Using WebP paths for efficiency (fallback when grid is disabled)
 const defaultImages = [
   {
-    url: '/hero/hero-1.JPG',
+    url: '/hero/hero-1-large.webp',
     exif: 'IMG_9281.JPG — 24mm • f/8.0 • 1/250s • ISO 100',
     alt: 'Desert landscape at golden hour',
     orientation: 'portrait'
   },
   {
-    url: '/hero/hero-2.JPG',
+    url: '/hero/hero-2-large.webp',
     exif: 'IMG_9049.JPG — 35mm • f/5.6 • 1/500s • ISO 200',
     alt: 'Desert arch formation',
     orientation: 'landscape'
   },
   {
-    url: '/hero/hero-3.JPG',
+    url: '/hero/hero-3-large.webp',
     exif: 'IMG_9158.JPG — 50mm • f/4.0 • 1/320s • ISO 100',
     alt: 'Canyon rock formations',
     orientation: 'square'
   },
   {
-    url: '/hero/hero-4.JPG',
+    url: '/hero/hero-4-large.webp',
     exif: 'IMG_9383.JPG — 85mm • f/2.8 • 1/640s • ISO 400',
     alt: 'Wildlife portrait',
     orientation: 'portrait'
   },
   {
-    url: '/hero/hero-5.JPG',
+    url: '/hero/hero-5-large.webp',
     exif: 'IMG_9439.JPG — 55mm • f/7.1 • 1/400s • ISO 100',
     alt: 'Mountain landscape',
     orientation: 'landscape'

@@ -35,20 +35,12 @@ export default function YearDropdown({ selectedYear, availableYears = [], onYear
         onClick={() => setIsOpen(!isOpen)}
       >
         <span className="year-label">Year:</span>
-        <span className="year-value">{selectedYear || 'All'}</span>
+        <span className="year-value">{selectedYear || 'Select'}</span>
         <span className={`year-arrow ${isOpen ? 'open' : ''}`}>▼</span>
       </button>
 
       {isOpen && (
         <div className="year-dropdown-menu">
-          <div
-            className={`year-option ${!selectedYear ? 'selected' : ''}`}
-            onClick={() => handleYearSelect(null)}
-          >
-            <span>All years</span>
-            {!selectedYear && <span className="check-mark">✓</span>}
-          </div>
-          <div className="year-divider" />
           {availableYears.map(year => (
             <div
               key={year}
