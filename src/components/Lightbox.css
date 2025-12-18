@@ -23,7 +23,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .lightbox-close {
@@ -40,10 +40,24 @@
   cursor: pointer;
   z-index: 10;
   transition: background 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
   line-height: 1;
+}
+
+.lightbox-close:focus {
+  outline: none;
+}
+
+.lightbox-close::after {
+  content: '×';
+  display: block;
+  line-height: 1;
+  transform: translateY(-2px);
 }
 
 .lightbox-close:hover {
@@ -53,7 +67,6 @@
 .lightbox-nav {
   position: absolute;
   top: 50%;
-  transform: translateY(-50%);
   background: rgba(255, 255, 255, 0.1);
   border: none;
   color: white;
@@ -64,10 +77,32 @@
   cursor: pointer;
   z-index: 10;
   transition: background 0.2s;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
   line-height: 1;
+  transform: translateY(-50%);
+}
+
+.lightbox-nav:focus {
+  outline: none;
+}
+
+.lightbox-prev::after {
+  content: '‹';
+  display: block;
+  line-height: 1;
+  transform: translateY(-4px);
+}
+
+.lightbox-next::after {
+  content: '›';
+  display: block;
+  line-height: 1;
+  transform: translateY(-4px);
 }
 
 .lightbox-nav:hover {
@@ -85,10 +120,11 @@
 .lightbox-image-container {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   overflow: hidden;
-  margin: 3rem 0 1rem;
+  margin: 0.5rem 0 0;
+  min-height: 0;
 }
 
 .lightbox-image-wrapper {
@@ -100,88 +136,77 @@
 }
 
 .lightbox-image {
-  max-width: 100%;
-  max-height: 100%;
+  max-width: 95%;
+  max-height: 95%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   user-select: none;
 }
 
-.lightbox-info {
-  background: rgba(0, 0, 0, 0.8);
-  padding: 1rem;
-  border-radius: 8px;
-  backdrop-filter: blur(10px);
+/* EXIF info section below image - styled similar to ExifOverlay */
+.lightbox-exif-info {
+  background: rgba(0, 0, 0, 0.9);
+  color: rgba(255, 255, 255, 0.95);
+  padding: 0.75rem 1rem;
+  font-family: var(--mono-ui), 'Courier New', monospace;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  border-radius: 0 0 4px 4px;
+  margin: 0 auto;
+  max-width: 95%;
 }
 
-.lightbox-header {
+.lightbox-exif-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.photo-filename {
+.lightbox-exif-filename {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.lightbox-exif-position {
   font-weight: 500;
-  margin-bottom: 0.25rem;
+  opacity: 0.8;
+  font-size: 0.7rem;
+  font-family: var(--mono-ui), monospace;
 }
 
-.photo-counter {
-  font-size: 0.9rem;
-  opacity: 0.6;
-}
-
-.exif-toggle {
-  padding: 0.5rem 1rem;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.exif-toggle:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.exif-toggle.active {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-}
-
-.exif-data {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+.lightbox-exif-details {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.25rem;
 }
 
-.exif-row {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  font-size: 0.9rem;
+.lightbox-exif-line {
+  font-size: 0.7rem;
+  opacity: 0.9;
+  font-family: var(--mono-ui), 'Courier New', monospace;
+  letter-spacing: 0.02em;
 }
 
-.exif-label {
-  opacity: 0.6;
-  min-width: 100px;
+.lightbox-exif-date {
+  opacity: 0.75;
+  font-size: 0.68rem;
 }
 
-.exif-value {
-  flex: 1;
+.lightbox-exif-camera {
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.exif-setting {
-  padding: 0.25rem 0.5rem;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  font-size: 0.85rem;
-  font-family: monospace;
+.lightbox-exif-settings {
+  font-weight: 400;
+  opacity: 0.85;
 }
 
 .lightbox-help {
@@ -206,8 +231,18 @@
     right: 0.5rem;
   }
 
-  .exif-label {
-    min-width: 80px;
+  .lightbox-exif-info {
+    font-size: 0.65rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .lightbox-exif-filename,
+  .lightbox-exif-position {
+    font-size: 0.65rem;
+  }
+
+  .lightbox-exif-line {
+    font-size: 0.62rem;
   }
 
   .lightbox-help {

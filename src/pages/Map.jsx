@@ -196,7 +196,7 @@ export default function MapPage() {
     : `${photos.length} GEOTAGGED FRAME${photos.length === 1 ? '' : 'S'} LOADED`;
 
   return (
-    <main className="page-shell">
+    <main className="page-shell map-page-shell">
       <section className="page-block">
         <p className="page-label">map</p>
         <h1 className="page-title">Geo index</h1>
@@ -206,61 +206,70 @@ export default function MapPage() {
         </p>
       </section>
 
-      <section className="page-block">
-        <div className="map-container">
-          <div ref={mapRef} className="map-canvas" />
+      <section className="page-block map-layout-container">
+        <div className="map-layout-left">
+          <div className="map-container">
+            <div ref={mapRef} className="map-canvas" />
+          </div>
+          <div className="map-status">{statusText}</div>
         </div>
-        <div className="map-status">{statusText}</div>
+        
+        <div className="map-layout-right">
+          {/* Album Proximity Panel - shows albums sorted by distance from map center */}
+          {mapCenter && albumsByProximity.length > 0 && (
+            <div className="albums-panel">
+              <p className="page-label">nearby albums</p>
+              <h2 className="page-title">Albums in view</h2>
+              <p className="page-body proximity-coords">
+                Map center: {mapCenter.lat.toFixed(3)}°, {mapCenter.lng.toFixed(3)}°
+              </p>
+              
+              <ul className="album-proximity-list">
+                {albumsByProximity.map((album) => (
+                  <li key={album.albumSlug} className="proximity-album-item">
+                    <a href={`/album/${album.albumSlug}`} className="proximity-album-link">
+                      <div className="proximity-album-header">
+                        <span className="proximity-album-title">{album.albumTitle}</span>
+                        <span className="proximity-album-distance">
+                          {album.minDistance < 1 
+                            ? `${(album.minDistance * 1000).toFixed(0)}m` 
+                            : `${album.minDistance.toFixed(1)}km`}
+                        </span>
+                      </div>
+                      <div className="proximity-album-meta">
+                        <span className="proximity-photo-count">
+                          {album.visiblePhotoCount} photo{album.visiblePhotoCount !== 1 ? 's' : ''} visible
+                        </span>
+                        <span className="proximity-album-slug">/{album.albumSlug}</span>
+                      </div>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {mapCenter && albumsByProximity.length === 0 && !loading && photos.length > 0 && (
+            <div className="albums-panel">
+              <p className="page-label">nearby albums</p>
+              <h2 className="page-title">No albums in view</h2>
+              <p className="page-body">
+                Pan or zoom the map to show photo markers, and nearby albums will appear here.
+              </p>
+            </div>
+          )}
+
+          {!mapCenter && !loading && (
+            <div className="albums-panel">
+              <p className="page-label">nearby albums</p>
+              <h2 className="page-title">Albums in view</h2>
+              <p className="page-body">
+                The map is loading. Albums visible in the current view will appear here.
+              </p>
+            </div>
+          )}
+        </div>
       </section>
-
-      {/* Debug info */}
-      <section className="page-block" style={{fontSize: '0.8rem', opacity: 0.5}}>
-        Debug: mapCenter={mapCenter ? 'yes' : 'no'}, albums={albumsByProximity.length}
-      </section>
-
-      {/* Album Proximity Panel - shows albums sorted by distance from map center */}
-      {mapCenter && albumsByProximity.length > 0 && (
-        <section className="page-block">
-          <p className="page-label">nearby albums</p>
-          <h2 className="page-title">Albums in view</h2>
-          <p className="page-body proximity-coords">
-            Map center: {mapCenter.lat.toFixed(3)}°, {mapCenter.lng.toFixed(3)}°
-          </p>
-          
-          <ul className="album-proximity-list">
-            {albumsByProximity.map((album) => (
-              <li key={album.albumSlug} className="proximity-album-item">
-                <a href={`/album/${album.albumSlug}`} className="proximity-album-link">
-                  <div className="proximity-album-header">
-                    <span className="proximity-album-title">{album.albumTitle}</span>
-                    <span className="proximity-album-distance">
-                      {album.minDistance < 1 
-                        ? `${(album.minDistance * 1000).toFixed(0)}m` 
-                        : `${album.minDistance.toFixed(1)}km`}
-                    </span>
-                  </div>
-                  <div className="proximity-album-meta">
-                    <span className="proximity-photo-count">
-                      {album.visiblePhotoCount} photo{album.visiblePhotoCount !== 1 ? 's' : ''} visible
-                    </span>
-                    <span className="proximity-album-slug">/{album.albumSlug}</span>
-                  </div>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
-
-      {mapCenter && albumsByProximity.length === 0 && !loading && photos.length > 0 && (
-        <section className="page-block">
-          <p className="page-label">nearby albums</p>
-          <h2 className="page-title">No albums in view</h2>
-          <p className="page-body">
-            Pan or zoom the map to show photo markers, and nearby albums will appear here.
-          </p>
-        </section>
-      )}
     </main>
   );
 }
