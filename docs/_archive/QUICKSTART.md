@@ -1,3 +1,9 @@
+**⚠️ ARCHIVED on 2025-01-XX**  
+**Superseded by**: `README.md` and `docs/DEVELOPMENT.md`  
+**Reason**: Content merged into canonical documentation
+
+---
+
 # 🚀 Quick Start Guide
 
 Your static photo gallery with EXIF metadata is ready! Here's how to use it:

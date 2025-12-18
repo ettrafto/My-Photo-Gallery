@@ -17,11 +17,16 @@
   /* Light paper/cream background - app-shell fills viewport */
   background-color: #f6f1e6;
   color: #1a1a1a;
+  /* Paper theme uses serif fonts for a classic, readable feel */
+  --mono-ui: 'Crimson Pro', Georgia, 'Times New Roman', serif;
+  --mono-display: 'Playfair Display', 'Crimson Pro', Georgia, serif;
+  font-family: var(--mono-ui);
 }
 
-/* Override body background when paper theme is active (for areas outside app-shell) */
+/* Override body background and font when paper theme is active */
 body:has(.theme-paper) {
   background-color: #f6f1e6;
+  font-family: 'Crimson Pro', Georgia, 'Times New Roman', serif;
 }
 
 .theme-paper a {
@@ -180,6 +185,215 @@ body:has(.theme-paper) {
 
 .theme-paper .exif-fallback {
   color: rgba(0, 0, 0, 0.6);
+}
+
+/* Filter Bar styling for paper theme */
+.theme-paper .filter-separator {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .filter-btn {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .filter-btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.theme-paper .filter-btn.active {
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  border-color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .filter-dropdown {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .filter-dropdown:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
+.theme-paper .filter-dropdown option {
+  background: #f6f1e6;
+  color: #1a1a1a;
+}
+
+.theme-paper .dropdown-menu {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.theme-paper .dropdown-search {
+  background: rgba(0, 0, 0, 0.05);
+  border-bottom-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.9);
+}
+
+.theme-paper .dropdown-search::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.theme-paper .dropdown-search:focus {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.theme-paper .dropdown-option {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .dropdown-option:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.theme-paper .dropdown-option.active {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .dropdown-checkbox {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .dropdown-checkbox:hover {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.theme-paper .filter-chip {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .filter-chip:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .clear-all-btn {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-paper .clear-all-btn:hover {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Date Filter Presets styling for paper theme */
+.theme-paper .preset-chip {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .preset-chip:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.theme-paper .preset-chip.active {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.3);
+  color: #1a1a1a;
+}
+
+/* Year Dropdown styling for paper theme */
+.theme-paper .year-dropdown-trigger {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.theme-paper .year-dropdown-trigger:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.theme-paper .year-dropdown-trigger.active {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.3);
+  color: #1a1a1a;
+}
+
+.theme-paper .year-dropdown-menu {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.theme-paper .year-option {
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .year-option:hover {
+  background: rgba(0, 0, 0, 0.08);
+  color: #1a1a1a;
+}
+
+.theme-paper .year-option.selected {
+  background: rgba(0, 0, 0, 0.15);
+  color: #1a1a1a;
+}
+
+.theme-paper .year-divider {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.theme-paper .check-mark {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+/* Year Timeline styling for paper theme */
+.theme-paper .all-tick {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.theme-paper .all-tick:hover {
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(0, 0, 0, 0.25);
+  color: rgba(0, 0, 0, 0.8);
+}
+
+.theme-paper .all-tick.active {
+  background: rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.3);
+  color: #1a1a1a;
+}
+
+.theme-paper .timeline-line::before {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.theme-paper .tick-mark {
+  background: rgba(0, 0, 0, 0.3);
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.theme-paper .timeline-tick:hover .tick-mark {
+  background: rgba(0, 0, 0, 0.5);
+  border-color: rgba(0, 0, 0, 0.4);
+}
+
+.theme-paper .timeline-tick.active .tick-mark {
+  background: rgba(0, 0, 0, 0.9);
+  border-color: rgba(0, 0, 0, 0.8);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.theme-paper .tick-label {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.theme-paper .timeline-tick:hover .tick-label,
+.theme-paper .timeline-tick.active .tick-label {
+  color: rgba(0, 0, 0, 0.8);
 }
 
 /* Future themes (placeholders only) */

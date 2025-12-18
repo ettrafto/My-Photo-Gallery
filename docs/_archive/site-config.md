@@ -1,3 +1,9 @@
+**⚠️ ARCHIVED on 2025-01-XX**  
+**Superseded by**: `docs/CONFIGURATION.md`  
+**Reason**: Consolidated into canonical configuration guide (code as source of truth)
+
+---
+
 # Site Configuration
 
 **Date**: December 2025  
