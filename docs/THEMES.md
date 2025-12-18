@@ -152,6 +152,13 @@ This checklist is based on the actual selectors used in the codebase. Each theme
 | `.exif-settings` | Camera settings | `color` | Aperture/shutter/ISO |
 | `.exif-fallback` | Fallback message | `color` | "No EXIF data" message |
 
+### Album Card Hover Collage
+
+| Selector | Purpose | Required Properties | Notes |
+|----------|---------|-------------------|-------|
+| `.hover-collage` | Album hover collage container | `background` | Background behind 3-photo grid on hover |
+| `.collage-image` | Individual collage image cell | `background` | Background for each photo cell in the grid |
+
 ### Filter Bar Components
 
 | Selector | Purpose | Required Properties | Notes |
@@ -422,6 +429,15 @@ body:has(.theme-{name}) {
 
 .theme-{name} .exif-fallback {
   color: rgba(R, G, B, A);
+}
+
+/* Album Card Hover Collage */
+.theme-{name} .hover-collage {
+  background: #YOUR_COLOR;
+}
+
+.theme-{name} .collage-image {
+  background: #YOUR_COLOR;
 }
 
 /* Filter Bar */
@@ -733,6 +749,7 @@ When creating a new theme, verify:
 - [ ] Footer/copyright styled
 - [ ] Layout controls styled (if used)
 - [ ] EXIF overlay styled (hover over images)
+- [ ] Album card hover collage styled (background colors)
 - [ ] Filter components styled (buttons, dropdowns, chips)
 - [ ] Date presets styled
 - [ ] Year dropdown styled

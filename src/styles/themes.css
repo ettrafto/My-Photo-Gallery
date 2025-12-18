@@ -396,6 +396,15 @@ body:has(.theme-paper) {
   color: rgba(0, 0, 0, 0.8);
 }
 
+/* Album Card Hover Collage styling for paper theme */
+.theme-paper .hover-collage {
+  background: #f6f1e6;
+}
+
+.theme-paper .collage-image {
+  background: #f6f1e6;
+}
+
 /* Future themes (placeholders only) */
 /*
 .theme-retro {}
