@@ -44,9 +44,20 @@
   height: 100%;
   overflow: hidden;
   background: #000;
+  position: relative;
 }
 
-.collage-image img {
+/* Override LazyImage wrapper to fill container, ignoring aspect ratio */
+.collage-image .lazy-image-wrapper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: unset !important;
+}
+
+/* Ensure the photo inside fills the wrapper */
+.collage-image .lazy-image-photo {
   width: 100%;
   height: 100%;
   object-fit: cover;
