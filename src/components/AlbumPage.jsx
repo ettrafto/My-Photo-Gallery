@@ -4,6 +4,8 @@ import Lightbox from './Lightbox';
 import LayoutControls from './LayoutControls';
 import ExifOverlay from './ExifOverlay';
 import LazyImage from './LazyImage';
+import NoDownloadImageWrapper from './NoDownloadImageWrapper';
+import CopyrightNotice from './CopyrightNotice';
 import SkeletonImageGrid from './skeleton/SkeletonImageGrid';
 import SkeletonBlock from './skeleton/SkeletonBlock';
 import SkeletonText from './skeleton/SkeletonText';
@@ -135,12 +137,14 @@ export default function AlbumPage() {
             }}
             onClick={() => setSelectedPhotoIndex(index)}
           >
-            <LazyImage
-              {...photoProps}
-              // Performance: Load first 6 images eagerly (likely above fold)
-              threshold={index < 6 ? 0 : 0.01}
-              rootMargin={index < 6 ? '0px' : '100px'}
-            />
+            <NoDownloadImageWrapper>
+              <LazyImage
+                {...photoProps}
+                // Performance: Load first 6 images eagerly (likely above fold)
+                threshold={index < 6 ? 0 : 0.01}
+                rootMargin={index < 6 ? '0px' : '100px'}
+              />
+            </NoDownloadImageWrapper>
             {/* Retro EXIF overlay - appears on hover */}
             <ExifOverlay 
               photo={photo}
@@ -151,6 +155,8 @@ export default function AlbumPage() {
           );
         })}
       </div>
+
+      <CopyrightNotice />
 
       {selectedPhotoIndex !== null && (
         <Lightbox

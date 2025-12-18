@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import Lightbox from './Lightbox';
 import LazyImage from './LazyImage';
+import NoDownloadImageWrapper from './NoDownloadImageWrapper';
+import CopyrightNotice from './CopyrightNotice';
 import { getTripGallerySizes, buildPhotoProps } from '../utils/imageUtils';
 import './TripGallery.css';
 
@@ -101,11 +103,13 @@ export default function TripGallery({ tripPhotos, albumSlugs }) {
                     className="trip-gallery-item"
                     onClick={() => handlePhotoClick(album.photos, index)}
                   >
-                    <LazyImage
-                      {...photoProps}
-                      threshold={0.01}
-                      rootMargin="100px"
-                    />
+                    <NoDownloadImageWrapper>
+                      <LazyImage
+                        {...photoProps}
+                        threshold={0.01}
+                        rootMargin="100px"
+                      />
+                    </NoDownloadImageWrapper>
                     <div className="trip-gallery-overlay">
                       <div className="trip-gallery-info">
                         {dateStr && <span className="trip-gallery-date">{dateStr}</span>}
@@ -118,6 +122,8 @@ export default function TripGallery({ tripPhotos, albumSlugs }) {
           </div>
         ))}
       </div>
+
+      <CopyrightNotice />
 
       {lightboxOpen && (
         <Lightbox

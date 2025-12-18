@@ -7,6 +7,7 @@ import TripAlbumsSections from '../components/TripAlbumsSections';
 import TripMedia from '../components/TripMedia';
 import LazyImage from '../components/LazyImage';
 import Lightbox from '../components/Lightbox';
+import CopyrightNotice from '../components/CopyrightNotice';
 import './TripDetail.css';
 
 /**
@@ -475,6 +476,7 @@ export default function TripDetail() {
                 totalTripPhotos={sortedTripPhotos.length}
               />
             </div>
+            <CopyrightNotice />
           </section>
         )}
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useImagePreload } from '../hooks/useImagePreload';
+import NoDownloadImageWrapper from './NoDownloadImageWrapper';
 import './Lightbox.css';
 
 export default function Lightbox({ photos, initialIndex, onClose }) {
@@ -49,14 +50,16 @@ export default function Lightbox({ photos, initialIndex, onClose }) {
         <button className="lightbox-nav lightbox-next" onClick={goToNext}>›</button>
 
         <div className="lightbox-image-container">
-          <img
-            src={`${import.meta.env.BASE_URL}${currentPhoto.path}`}
-            alt={currentPhoto.exif?.description || currentPhoto.filename}
-            className="lightbox-image"
-            loading="eager"
-            decoding="async"
-            fetchPriority="high"
-          />
+          <NoDownloadImageWrapper className="lightbox-image-wrapper">
+            <img
+              src={`${import.meta.env.BASE_URL}${currentPhoto.path}`}
+              alt={currentPhoto.exif?.description || currentPhoto.filename}
+              className="lightbox-image"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
+          </NoDownloadImageWrapper>
         </div>
 
         <div className="lightbox-info">

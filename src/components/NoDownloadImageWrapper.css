@@ -1,0 +1,41 @@
+/* NoDownloadImageWrapper - Deterrent styling */
+
+.no-download-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Ensure wrapper doesn't break layout */
+  display: block;
+}
+
+/* Transparent overlay that sits on top of images */
+.no-download-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  /* Transparent but blocks right-click context menu */
+  background: transparent;
+  /* Allow clicks to pass through to wrapper */
+  pointer-events: auto;
+  /* Prevent text selection on overlay */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  /* Ensure clicks work */
+  cursor: inherit;
+}
+
+/* Ensure images inside are not draggable */
+.no-download-wrapper img {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+

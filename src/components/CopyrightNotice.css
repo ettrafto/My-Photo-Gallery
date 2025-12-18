@@ -1,0 +1,35 @@
+/* CopyrightNotice - Minimal, tasteful copyright notice */
+
+.copyright-notice {
+  margin: 2rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.copyright-text {
+  margin: 0 0 0.5rem 0;
+}
+
+.copyright-contact {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.copyright-link {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.3);
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.copyright-link:hover {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration-color: rgba(255, 255, 255, 0.6);
+}
+

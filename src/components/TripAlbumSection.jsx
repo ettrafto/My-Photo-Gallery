@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Lightbox from './Lightbox';
 import LazyImage from './LazyImage';
 import ExifOverlay from './ExifOverlay';
+import NoDownloadImageWrapper from './NoDownloadImageWrapper';
 import { getTripGallerySizes, buildPhotoProps } from '../utils/imageUtils';
 import './TripAlbumSection.css';
 
@@ -98,11 +99,13 @@ export default function TripAlbumSection({ album, isActive, onPhotoClick, startI
                 className="trip-album-item"
                 onClick={() => handlePhotoClick(index)}
               >
-                <LazyImage
-                  {...photoProps}
-                  threshold={0.01}
-                  rootMargin="100px"
-                />
+                <NoDownloadImageWrapper>
+                  <LazyImage
+                    {...photoProps}
+                    threshold={0.01}
+                    rootMargin="100px"
+                  />
+                </NoDownloadImageWrapper>
                 {/* EXIF overlay - appears on hover (like AlbumPage) */}
                 <ExifOverlay 
                   photo={photo}
