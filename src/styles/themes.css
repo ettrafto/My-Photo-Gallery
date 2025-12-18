@@ -552,6 +552,23 @@ body:has(.theme-paper) {
   background: rgba(0, 0, 0, 0.1) !important;
 }
 
+/* Albums panel scrollbar styling for paper theme */
+.theme-paper .albums-panel::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.theme-paper .albums-panel::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.theme-paper .albums-panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.theme-paper .albums-panel {
+  scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}
+
 /* Future themes (placeholders only) */
 /*
 .theme-retro {}
