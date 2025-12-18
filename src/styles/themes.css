@@ -396,13 +396,46 @@ body:has(.theme-paper) {
   color: rgba(0, 0, 0, 0.8);
 }
 
+/* Album Card styling for paper theme */
+.theme-paper .album-cover {
+  border-radius: 8px; /* All corners rounded to match card */
+  overflow: hidden; /* Ensure child elements respect border-radius */
+}
+
+.theme-paper .album-cover .lazy-image-wrapper {
+  border-radius: 8px; /* Match cover border-radius on all corners */
+}
+
+.theme-paper .album-cover .lazy-image-photo {
+  border-radius: 8px; /* Ensure the actual image has rounded corners */
+}
+
+.theme-paper .album-info {
+  border-radius: 0 0 8px 8px; /* Bottom corners rounded to match card */
+}
+
 /* Album Card Hover Collage styling for paper theme */
 .theme-paper .hover-collage {
   background: #f6f1e6;
+  border-radius: 8px; /* Match cover border-radius on all corners */
 }
 
 .theme-paper .collage-image {
   background: #f6f1e6;
+}
+
+/* Album Page Photo Items styling for paper theme */
+.theme-paper .photo-item {
+  background: #f6f1e6; /* Match theme background instead of black */
+}
+
+.theme-paper .photo-item .lazy-image-wrapper {
+  border-radius: 4px; /* Match photo-item border-radius (4px) */
+  overflow: hidden; /* Ensure child elements respect border-radius */
+}
+
+.theme-paper .photo-item .lazy-image-photo {
+  border-radius: 4px; /* Match photo-item border-radius to prevent black corners */
 }
 
 /* Future themes (placeholders only) */

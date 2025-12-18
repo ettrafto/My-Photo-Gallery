@@ -152,12 +152,29 @@ This checklist is based on the actual selectors used in the codebase. Each theme
 | `.exif-settings` | Camera settings | `color` | Aperture/shutter/ISO |
 | `.exif-fallback` | Fallback message | `color` | "No EXIF data" message |
 
+### Album Card
+
+| Selector | Purpose | Required Properties | Notes |
+|----------|---------|-------------------|-------|
+| `.album-cover` | Album cover image container | `border-radius`, `overflow` | All corners should match card border-radius (typically `8px`). Use `overflow: hidden` to ensure child elements respect border-radius |
+| `.album-cover .lazy-image-wrapper` | Image wrapper inside cover | `border-radius` | Should match cover border-radius on all corners (typically `8px`) |
+| `.album-cover .lazy-image-photo` | Actual image element | `border-radius` | Should match cover border-radius on all corners (typically `8px`) to ensure the image itself has rounded corners |
+| `.album-info` | Album info section | `border-radius` | Bottom corners should match card border-radius (typically `0 0 8px 8px`) |
+
 ### Album Card Hover Collage
 
 | Selector | Purpose | Required Properties | Notes |
 |----------|---------|-------------------|-------|
-| `.hover-collage` | Album hover collage container | `background` | Background behind 3-photo grid on hover |
+| `.hover-collage` | Album hover collage container | `background`, `border-radius` | Background behind 3-photo grid on hover, should match cover border-radius |
 | `.collage-image` | Individual collage image cell | `background` | Background for each photo cell in the grid |
+
+### Album Page Photo Items
+
+| Selector | Purpose | Required Properties | Notes |
+|----------|---------|-------------------|-------|
+| `.photo-item` | Individual photo container | `background` | Should match theme background (typically same as theme background color) to prevent black corners |
+| `.photo-item .lazy-image-wrapper` | Image wrapper inside photo item | `border-radius`, `overflow` | Should match photo-item border-radius (typically `4px`). Use `overflow: hidden` to ensure child elements respect border-radius |
+| `.photo-item .lazy-image-photo` | Actual image element | `border-radius` | Should match photo-item border-radius (typically `4px`) to prevent black corners from showing |
 
 ### Filter Bar Components
 
@@ -431,13 +448,46 @@ body:has(.theme-{name}) {
   color: rgba(R, G, B, A);
 }
 
+/* Album Card */
+.theme-{name} .album-cover {
+  border-radius: 8px; /* All corners rounded to match card */
+  overflow: hidden; /* Ensure child elements respect border-radius */
+}
+
+.theme-{name} .album-cover .lazy-image-wrapper {
+  border-radius: 8px; /* Match cover border-radius on all corners */
+}
+
+.theme-{name} .album-cover .lazy-image-photo {
+  border-radius: 8px; /* Ensure the actual image has rounded corners */
+}
+
+.theme-{name} .album-info {
+  border-radius: 0 0 8px 8px; /* Bottom corners rounded to match card */
+}
+
 /* Album Card Hover Collage */
 .theme-{name} .hover-collage {
   background: #YOUR_COLOR;
+  border-radius: 8px 8px 0 0; /* Match cover border-radius */
 }
 
 .theme-{name} .collage-image {
   background: #YOUR_COLOR;
+}
+
+/* Album Page Photo Items */
+.theme-{name} .photo-item {
+  background: #YOUR_COLOR; /* Match theme background instead of default black */
+}
+
+.theme-{name} .photo-item .lazy-image-wrapper {
+  border-radius: 4px; /* Match photo-item border-radius (4px) */
+  overflow: hidden; /* Ensure child elements respect border-radius */
+}
+
+.theme-{name} .photo-item .lazy-image-photo {
+  border-radius: 4px; /* Match photo-item border-radius to prevent black corners */
 }
 
 /* Filter Bar */
@@ -750,6 +800,7 @@ When creating a new theme, verify:
 - [ ] Layout controls styled (if used)
 - [ ] EXIF overlay styled (hover over images)
 - [ ] Album card hover collage styled (background colors)
+- [ ] Album page photo items styled (background, border-radius)
 - [ ] Filter components styled (buttons, dropdowns, chips)
 - [ ] Date presets styled
 - [ ] Year dropdown styled
