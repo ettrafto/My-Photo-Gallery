@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { loadSiteConfig } from './lib/siteConfig';
+import { loadSiteConfig, getThemeName } from './lib/siteConfig';
 import { useSEO } from './hooks/useSEO';
 import NavBar from './components/NavBar';
 import AlbumPage from './components/AlbumPage';
@@ -19,13 +20,21 @@ function SEOWrapper({ children }) {
 }
 
 function App() {
-  // Load config on mount
-  loadSiteConfig();
+  const [themeName, setThemeName] = useState('mono'); // Fallback
+
+  // Load config and theme on mount
+  useEffect(() => {
+    async function initConfig() {
+      await loadSiteConfig();
+      setThemeName(getThemeName());
+    }
+    initConfig();
+  }, []);
 
   return (
     <Router>
       <SEOWrapper>
-        <div className="app-shell">
+        <div className={`app-shell theme-${themeName}`}>
           <NavBar />
           <Routes>
             <Route path="/" element={<Home />} />

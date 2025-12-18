@@ -44,6 +44,9 @@ Site-wide content (site info, navigation, social links, SEO defaults, hero secti
       { "label": "GitHub", "href": "https://github.com/USERNAME", "icon": "github", "enabled": true }
     ]
   },
+  "theme": {
+    "name": "mono"
+  },
   "hero": {
     "layout": "default",
     "headline": "Photography & Trips",
@@ -84,6 +87,22 @@ Site-wide content (site info, navigation, social links, SEO defaults, hero secti
 - **Purpose**: Site tagline/subtitle (currently stored but not displayed)
 - **Fallback**: Empty string
 - **Example**: `"Photography / Trips / Experiments"`
+
+---
+
+### Theme Section
+
+#### `theme.name` (optional)
+- **Type**: String (enum)
+- **Purpose**: Theme identifier that applies a CSS class to the app root
+- **Fallback**: `"mono"` (if missing or invalid)
+- **Valid Values**: `"mono"` (currently the only supported theme)
+- **Example**: `"mono"`
+- **Important**: 
+  - Theme support is **wired but visually inactive**. No styles change yet.
+  - The theme class (`theme-{name}`) is applied to the app root but has no CSS rules yet.
+  - Future themes will be enabled by adding CSS rules under `.theme-{name}` selectors in `src/styles/themes.css`.
+  - This does not conflict with `hero.layout` - they are independent systems.
 
 ---
 
@@ -318,6 +337,7 @@ To update the owner name in copyright and nav:
 - `getNavItems()` - Returns enabled nav items only (filters invalid items)
 - `getSocialItems()` - Returns enabled social items only (filters invalid items)
 - `getHeroGridItems()` - Returns enabled hero grid items only (max 3, filters invalid items)
+- `getThemeName()` - Returns theme name from config (defaults to "mono")
 
 ### Validation
 
@@ -380,8 +400,11 @@ If the config file is missing or invalid:
 
 ### App Component
 - **File**: `src/App.jsx`
-- **Uses**: `site.title`
-- **Display**: Sets `document.title` to `site.title`
+- **Uses**: `site.title`, `theme.name`
+- **Display**: 
+  - Sets `document.title` to `site.title` (via SEO hook)
+  - Applies `theme-{name}` class to app root (`.app-shell`)
+  - Theme class is currently a no-op (no visual changes)
 
 ---
 
@@ -426,6 +449,23 @@ After making changes, verify:
 - Missing `ogImage` → No OG image set
 - **Fix**: Provide full URLs and image paths for proper social sharing
 
+### Theme Configuration
+
+**Important**: Theme support is **wired but visually inactive**. No styles change yet.
+
+The theme class (`theme-{name}`) is applied to the app root but currently has no CSS rules. Future themes will be enabled by adding CSS rules in `src/styles/themes.css`.
+
+To change theme (when themes are implemented):
+```json
+{
+  "theme": {
+    "name": "mono"
+  }
+}
+```
+
+**Note**: Currently only `"mono"` is a valid theme name. Invalid values will log a warning and default to `"mono"`.
+
 ### Removing Optional Fields
 
 To test fallback behavior:
@@ -434,6 +474,7 @@ To test fallback behavior:
 - Remove `hero.grid` → Falls back to default images
 - Set `nav.items[].enabled: false` → Item hidden from nav
 - Set `social.items[].enabled: false` → Item hidden from social links
+- Set `theme.name` to invalid value → Logs warning and defaults to "mono"
 - Remove `site.title` → Should see console error and fallback to "PHOTO.LOG"
 
 ---

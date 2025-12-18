@@ -1,0 +1,23 @@
+/* Theme infrastructure only – no styles applied yet */
+
+/* 
+ * Theme classes are applied to the app root (.app-shell.theme-{name})
+ * Future themes will be enabled by adding CSS rules under these selectors.
+ * 
+ * Currently, all theme classes are intentionally empty to ensure no visual changes.
+ */
+
+.theme-mono {
+  /* Intentionally empty - no styles applied yet */
+  /* This class is applied to app root but has no visual effect */
+  /* Using a no-op property to satisfy linter */
+  --theme-active: none;
+}
+
+/* Future themes (placeholders only) */
+/*
+.theme-retro {}
+.theme-paper {}
+.theme-neon {}
+*/
+

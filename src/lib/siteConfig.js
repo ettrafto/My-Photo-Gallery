@@ -9,11 +9,13 @@
  * - Navigation items
  * - Social links
  * - SEO defaults
+ * - Theme configuration
  * 
  * @example
- * import { getSiteConfig, getNavItems } from '../lib/siteConfig';
+ * import { getSiteConfig, getNavItems, getThemeName } from '../lib/siteConfig';
  * const config = getSiteConfig();
  * const navItems = getNavItems();
+ * const theme = getThemeName();
  */
 
 let cachedConfig = null;
@@ -58,12 +60,18 @@ export async function loadSiteConfig() {
       throw new Error('Site config is missing required "hero.headline" (string)');
     }
 
+    // Theme whitelist (only "mono" supported initially)
+    const VALID_THEMES = ['mono'];
+
     // Optional fields with defaults
     const config = {
       site: {
         title: data.site.title,
         ownerName: data.site.ownerName,
         tagline: data.site.tagline || '',
+      },
+      theme: {
+        name: data.theme?.name || 'mono',
       },
       seo: {
         defaultTitle: data.seo?.defaultTitle || data.site.title,
@@ -90,6 +98,12 @@ export async function loadSiteConfig() {
         },
       },
     };
+
+    // Validate theme name
+    if (config.theme.name && !VALID_THEMES.includes(config.theme.name)) {
+      console.warn(`Site config: Invalid theme name "${config.theme.name}". Valid themes: ${VALID_THEMES.join(', ')}. Defaulting to "mono".`);
+      config.theme.name = 'mono';
+    }
 
     // Validate layout if present
     if (config.hero.layout && typeof config.hero.layout !== 'string') {
@@ -123,6 +137,9 @@ export async function loadSiteConfig() {
       social: {
         items: [],
       },
+      theme: {
+        name: 'mono',
+      },
       hero: {
         headline: 'Welcome',
         subheadline: '',
@@ -134,6 +151,15 @@ export async function loadSiteConfig() {
       },
     };
   }
+}
+
+/**
+ * Get theme name from site config
+ * @returns {string} Theme name (defaults to "mono")
+ */
+export function getThemeName() {
+  const config = getSiteConfig();
+  return config?.theme?.name || 'mono';
 }
 
 /**
