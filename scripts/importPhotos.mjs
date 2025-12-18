@@ -294,9 +294,27 @@ async function processAlbum({ albumName, options, albumLocations }) {
   });
   const allTags = [...new Set([...(metadata.tags || []), ...Array.from(autoTags)])];
 
-  // Location fallback
+  // Location fallback - preserve existing coordinates from albums.json if they exist
+  const existingAlbumsPath = path.join(options.contentDir, 'albums.json');
+  let existingPrimaryLocation = null;
+  if (existsSync(existingAlbumsPath)) {
+    try {
+      const existingAlbums = JSON.parse(fs.readFileSync(existingAlbumsPath, 'utf-8'));
+      const existingAlbum = existingAlbums.albums?.find(a => a.slug === albumSlug);
+      if (existingAlbum?.primaryLocation && 
+          typeof existingAlbum.primaryLocation.lat === 'number' && 
+          typeof existingAlbum.primaryLocation.lng === 'number') {
+        existingPrimaryLocation = existingAlbum.primaryLocation;
+      }
+    } catch (err) {
+      // Silently continue if albums.json can't be read
+    }
+  }
+
   const locationData = albumLocations[albumSlug];
-  const primaryLocation = locationData?.defaultLocation
+  const primaryLocation = existingPrimaryLocation
+    ? existingPrimaryLocation // Preserve existing coordinates
+    : locationData?.defaultLocation
     ? {
         name: locationData.albumTitle || metadata.title,
         lat: locationData.defaultLocation.lat,
@@ -384,6 +402,7 @@ async function writeMapIndex(contentDir, albumsList) {
         accuracy = 'exif';
         exifGpsCount++;
       } else {
+        // Try albumLocations.json first
         const locationData = albumLocations[album.slug]?.defaultLocation;
         if (
           locationData &&
@@ -393,6 +412,16 @@ async function writeMapIndex(contentDir, albumsList) {
           lat = locationData.lat;
           lng = locationData.lng;
           accuracy = 'album-default';
+          albumDefaultCount++;
+        } else if (
+          album.primaryLocation &&
+          typeof album.primaryLocation.lat === 'number' &&
+          typeof album.primaryLocation.lng === 'number'
+        ) {
+          // Fall back to primaryLocation from albums.json
+          lat = album.primaryLocation.lat;
+          lng = album.primaryLocation.lng;
+          accuracy = 'album-primary';
           albumDefaultCount++;
         } else {
           continue;
