@@ -18,7 +18,7 @@ export default function AlbumPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [imagesAcross, setImagesAcross] = useState(3);
-  const [layoutMode, setLayoutMode] = useState('grid');
+  const [layoutMode, setLayoutMode] = useState('masonry');
 
   useEffect(() => {
     setLoading(true);
