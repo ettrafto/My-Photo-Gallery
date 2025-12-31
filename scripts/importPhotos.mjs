@@ -73,6 +73,101 @@ async function ensureDir(dirPath) {
   await fsp.mkdir(dirPath, { recursive: true });
 }
 
+function slugToTitle(slug) {
+  return String(slug)
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+async function readJsonFile(filePath) {
+  const raw = await fsp.readFile(filePath, 'utf-8');
+  return JSON.parse(raw);
+}
+
+async function writeJsonFile(filePath, data) {
+  await ensureDir(path.dirname(filePath));
+  await fsp.writeFile(filePath, JSON.stringify(data, null, 2));
+}
+
+async function writeJsonFileIfMissing(filePath, data) {
+  await ensureDir(path.dirname(filePath));
+  try {
+    await fsp.writeFile(filePath, JSON.stringify(data, null, 2), { flag: 'wx' });
+    return { created: true };
+  } catch (err) {
+    if (err?.code === 'EEXIST') return { created: false };
+    throw err;
+  }
+}
+
+/**
+ * Ensure album locations config exists and includes entries for albums discovered by this run.
+ * - Never overwrites existing entries (preserves manually-entered coordinates).
+ * - Only adds missing album slugs with null lat/lng placeholders.
+ */
+async function ensureAlbumLocationsConfig(contentDir, albumsList) {
+  const albumLocationsPath = path.join(contentDir, 'album-locations.json');
+
+  const desiredEntries = {};
+  for (const album of albumsList) {
+    const slug = album?.slug || album?.id;
+    if (!slug) continue;
+    desiredEntries[slug] = {
+      albumSlug: slug,
+      albumTitle: album?.title || slugToTitle(slug),
+      defaultLocation: {
+        lat: null,
+        lng: null,
+        accuracy: 'album-default'
+      }
+    };
+  }
+
+  // If the file doesn't exist, create it.
+  if (!existsSync(albumLocationsPath)) {
+    const { created } = await writeJsonFileIfMissing(albumLocationsPath, desiredEntries);
+    if (created) {
+      console.log(`\n✅ Created album-locations.json (${Object.keys(desiredEntries).length} album(s))`);
+    } else {
+      console.log(`\nℹ album-locations.json already exists (skipped create)`);
+    }
+    return;
+  }
+
+  // If it exists, merge in any missing albums (preserving existing entries).
+  let existing;
+  try {
+    existing = await readJsonFile(albumLocationsPath);
+  } catch (err) {
+    console.error(`\n❌ Could not parse album-locations.json at: ${albumLocationsPath}`);
+    console.error('   Fix the JSON (or move the file aside) and re-run import.');
+    throw err;
+  }
+
+  if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+    console.error(`\n❌ album-locations.json must be a JSON object keyed by album slug: ${albumLocationsPath}`);
+    console.error('   Fix the file shape (or move the file aside) and re-run import.');
+    throw new Error('Invalid album-locations.json shape');
+  }
+
+  const merged = { ...existing };
+  let added = 0;
+  for (const [slug, entry] of Object.entries(desiredEntries)) {
+    if (merged[slug]) continue;
+    merged[slug] = entry;
+    added++;
+  }
+
+  if (added > 0) {
+    await writeJsonFile(albumLocationsPath, merged);
+    console.log(`\n✅ Updated album-locations.json (+${added} new album(s), preserved existing)`);
+  } else {
+    console.log(`\n✓ album-locations.json up to date (no new albums)`);
+  }
+}
+
 function getAlbumFolders(inputDir) {
   if (!existsSync(inputDir)) return [];
   return fs
@@ -470,6 +565,8 @@ async function main() {
 
   await ensureDir(options.outputDir);
   await ensureDir(path.join(options.contentDir, 'albums'));
+  await ensureDir(path.join(options.contentDir, 'site'));
+  await ensureDir(path.join(options.contentDir, 'trips'));
 
   const albumFolders = getAlbumFolders(options.inputDir);
   if (albumFolders.length === 0) {
@@ -497,6 +594,9 @@ async function main() {
     if (b.date) return 1;
     return a.title.localeCompare(b.title);
   });
+
+  // Ensure supporting config exists (preserve user edits)
+  await ensureAlbumLocationsConfig(options.contentDir, albumsList);
 
   await writeAlbumsIndex(options.contentDir, albumsList);
   await writeMapIndex(options.contentDir, albumsList);

@@ -1,0 +1,25 @@
+{
+  "albums": [
+    {
+      "id": "test-album",
+      "slug": "test-album",
+      "title": "Test Album",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-07-05",
+      "startDate": "2025-07-05",
+      "endDate": "2025-07-05",
+      "cover": "photos/test-album/hero-1-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 1,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Test Album",
+        "lat": null,
+        "lng": null
+      }
+    }
+  ]
+}

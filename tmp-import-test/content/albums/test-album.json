@@ -1,0 +1,47 @@
+{
+  "id": "test-album",
+  "slug": "test-album",
+  "title": "Test Album",
+  "description": null,
+  "tags": [
+    "Canon"
+  ],
+  "date": "2025-07-05",
+  "startDate": "2025-07-05",
+  "endDate": "2025-07-05",
+  "cover": "photos/test-album/hero-1-large.webp",
+  "coverAspectRatio": 1.5,
+  "count": 1,
+  "isFavorite": false,
+  "primaryLocation": {
+    "name": "Test Album",
+    "lat": null,
+    "lng": null
+  },
+  "photos": [
+    {
+      "filename": "hero-1.JPG",
+      "path": "photos/test-album/hero-1-large.webp",
+      "pathLarge": "photos/test-album/hero-1-large.webp",
+      "pathSmall": "photos/test-album/hero-1-small.webp",
+      "pathBlur": "photos/test-album/hero-1-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/8",
+        "shutterSpeed": "1/400s",
+        "iso": 100,
+        "focalLength": "55mm",
+        "dateTaken": "2025-07-05T23:11:13.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    }
+  ]
+}

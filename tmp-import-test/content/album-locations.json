@@ -1,0 +1,11 @@
+{
+  "test-album": {
+    "albumSlug": "test-album",
+    "albumTitle": "Test Album",
+    "defaultLocation": {
+      "lat": null,
+      "lng": null,
+      "accuracy": "album-default"
+    }
+  }
+}
