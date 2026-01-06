@@ -132,7 +132,7 @@ Photo Log is a static React application that generates JSON manifests from photo
 
 **Consumed by**:
 - `NavBar.jsx` - site title, owner name, nav items
-- `Hero.jsx` - headline, subheadline, layout, grid items
+- `Hero.jsx` - headline, subheadline, layout, hero images
 - `SocialLinks.jsx` - social items
 - `CopyrightNotice.jsx` - owner name
 - `useSEO.js` - SEO defaults

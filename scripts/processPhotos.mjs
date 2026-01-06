@@ -42,6 +42,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { existsSync } from 'fs';
 import sharp from 'sharp';
+import heicConvert from 'heic-convert';
 
 // ============================================================================
 // Configuration
@@ -183,6 +184,35 @@ async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+function isHeicLike(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return ext === '.heic' || ext === '.heif';
+}
+
+/**
+ * Return a Sharp-readable input.
+ * If Sharp can't decode HEIC/HEIF on this system, convert to JPEG in-memory.
+ *
+ * @param {{fullPath: string}} imageFile
+ * @returns {Promise<string|Buffer>}
+ */
+async function getSharpInput(imageFile) {
+  const imagePath = imageFile.fullPath;
+  if (!isHeicLike(imagePath)) return imagePath;
+
+  const heicBuffer = await fs.readFile(imagePath);
+  try {
+    // Force a tiny decode to confirm Sharp can actually decode HEIC/HEIF on this system.
+    await sharp(heicBuffer)
+      .rotate()
+      .resize(1, 1, { fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+    return heicBuffer;
+  } catch {
+    return await heicConvert({ buffer: heicBuffer, format: 'JPEG', quality: 1 });
+  }
+}
+
 // ============================================================================
 // Image Processing
 // ============================================================================
@@ -193,6 +223,7 @@ async function ensureDir(dir) {
 async function processImage(imageFile, outputDir, force = false) {
   const { fullPath, relativePath, name } = imageFile;
   const outputFolder = path.join(outputDir, path.dirname(relativePath));
+  const sharpInput = await getSharpInput(imageFile);
   
   // Check if outputs already exist (unless force is enabled)
   if (!force && await checkOutputsExist(outputDir, relativePath, name)) {
@@ -207,7 +238,7 @@ async function processImage(imageFile, outputDir, force = false) {
     console.log(`  🔄 PROCESS: ${relativePath}`);
     
     // Load the source image once
-    const image = sharp(fullPath);
+    const image = sharp(sharpInput);
     
     // Get metadata to preserve orientation
     const metadata = await image.metadata();
@@ -219,7 +250,7 @@ async function processImage(imageFile, outputDir, force = false) {
         
         try {
           // Clone the image pipeline for this variant
-          await sharp(fullPath)
+          await sharp(sharpInput)
             .rotate() // Auto-rotate based on EXIF orientation
             .resize(config.maxSize, config.maxSize, {
               fit: 'inside',

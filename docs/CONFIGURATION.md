@@ -73,17 +73,14 @@ The site configuration is loaded by `src/lib/siteConfig.js` via the `loadSiteCon
     "layout": "default",
     "headline": "Photography & Trips",
     "subheadline": "A minimal archive of places, light, and time.",
-    "grid": {
-      "enabled": false,
-      "items": [
-        {
-          "src": "/hero/hero-1.JPG",
-          "alt": "Feature image 1",
-          "caption": "Costa Brava",
-          "href": "/trips/costa-brava"
-        }
-      ]
-    }
+    "images": [
+      {
+        "src": "/hero/hero-1.JPG",
+        "alt": "Feature image 1",
+        "caption": "Costa Brava",
+        "href": "/trips/costa-brava"
+      }
+    ]
   }
 }
 ```
@@ -333,38 +330,36 @@ useSEO({
 - **Note**: Currently only `"default"` layout is implemented
 - **Code Reference**: `src/lib/siteConfig.js:94`, `src/components/Hero.jsx:90`
 
-#### `hero.grid.enabled` (OPTIONAL)
+#### `hero.images` (OPTIONAL)
 
-- **Type**: `boolean`
-- **Purpose**: Whether to use hero grid items instead of default image cluster
-- **Default**: `false`
-- **Used in**: `Hero.jsx` component - determines if grid items are rendered
-- **Code Reference**: `src/lib/siteConfig.js:96`
-
-#### `hero.grid.items` (OPTIONAL)
-
-- **Type**: `array` of grid item objects
-- **Purpose**: Array of hero grid images (max 3 displayed)
+- **Type**: `array` of hero image objects
+- **Purpose**: Hero images rendered in the home hero cluster
 - **Default**: `[]` (empty array)
-- **Used in**: `Hero.jsx` component via `getHeroGridItems()` function
-- **Limit**: Maximum 3 items are displayed (`.slice(0, 3)`)
+- **Used in**: `Hero.jsx` component via `getHeroImages()` function
+- **Note**: The CSS layout is positioned for 1–5 images (`.hero-image-1` through `.hero-image-5`). More than 5 will render, but won’t have custom positioning.
 
-**Hero Grid Item Schema:**
+**Hero Image Schema (minimal):**
 
 Each item must have:
 
 - `src` (required, string): Image path (relative to public root or absolute URL)
 - `alt` (optional, string): Alt text for image (falls back to `caption` or `"Hero image"`)
 - `caption` (optional, string): Caption text displayed with image
-- `href` (optional, string): Link destination (if provided, image becomes clickable)
+
+**Optimization workflow (recommended):**
+
+- Put originals in `public/hero/` (JPG/PNG/HEIC are fine)
+- Set `hero.images[].src` to the original, e.g. `"/hero/IMG_9416.JPG"`
+- Run `npm run process:hero`
+  - This generates `public/hero/IMG_9416-small.webp` + `IMG_9416-large.webp` + `IMG_9416-blur.webp`
+  - The app automatically prefers the WebP variants for speed, and falls back to the original if needed.
 
 **Validation Behavior:**
 
 - Items missing `src` are skipped (warning logged to console)
-- Maximum 3 items are displayed (additional items are ignored)
-- Items are only used if `hero.grid.enabled === true`
+- If `hero.images` is missing/empty, the component falls back to its built-in defaults
 
-**Code Reference**: `src/lib/siteConfig.js:228-253` - `getHeroGridItems()` function
+**Code Reference**: `src/lib/siteConfig.js` - `getHeroImages()` function
 
 **Example:**
 
@@ -374,23 +369,20 @@ Each item must have:
     "layout": "default",
     "headline": "Photography & Trips",
     "subheadline": "A minimal archive of places, light, and time.",
-    "grid": {
-      "enabled": true,
-      "items": [
-        {
-          "src": "/hero/hero-1.JPG",
-          "alt": "Feature image 1",
-          "caption": "Costa Brava",
-          "href": "/trips/costa-brava"
-        },
-        {
-          "src": "/hero/hero-2.JPG",
-          "alt": "Feature image 2",
-          "caption": "Utah",
-          "href": "/trips/utah"
-        }
-      ]
-    }
+    "images": [
+      {
+        "src": "/hero/hero-1.JPG",
+        "alt": "Feature image 1",
+        "caption": "Costa Brava",
+        "href": "/trips/costa-brava"
+      },
+      {
+        "src": "/hero/hero-2.JPG",
+        "alt": "Feature image 2",
+        "caption": "Utah",
+        "href": "/trips/utah"
+      }
+    ]
   }
 }
 ```
@@ -429,10 +421,7 @@ If `content/site/site.json` fails to load, the following fallback configuration 
     "headline": "Welcome",
     "subheadline": "",
     "layout": "default",
-    "grid": {
-      "enabled": false,
-      "items": []
-    }
+    "images": []
   }
 }
 ```
@@ -533,24 +522,21 @@ Edit `content/site/site.json`:
 
 Refresh the app.
 
-### Configure Hero Grid
+### Configure Hero Images
 
 Edit `content/site/site.json`:
 
 ```json
 {
   "hero": {
-    "grid": {
-      "enabled": true,
-      "items": [
-        {
-          "src": "/hero/image1.jpg",
-          "alt": "Description",
-          "caption": "Caption text",
-          "href": "/albums/album-slug"
-        }
-      ]
-    }
+    "images": [
+      {
+        "src": "/hero/image1.jpg",
+        "alt": "Description",
+        "caption": "Caption text",
+        "href": "/albums/album-slug"
+      }
+    ]
   }
 }
 ```
@@ -570,8 +556,7 @@ Refresh the app.
 | `hero.headline` | ✅ Yes | - | Must be non-empty string |
 | `hero.subheadline` | ❌ No | `""` | - |
 | `hero.layout` | ❌ No | `"default"` | Must be string (warns if invalid) |
-| `hero.grid.enabled` | ❌ No | `false` | - |
-| `hero.grid.items` | ❌ No | `[]` | Max 3 items displayed |
+| `hero.images` | ❌ No | `[]` | If empty, Hero falls back to defaults |
 | `nav.items` | ❌ No | `[]` | Items filtered by `enabled` and validated |
 | `social.items` | ❌ No | `[]` | Items filtered by `enabled` and validated |
 | `seo.*` | ❌ No | Various | See SEO section above |
@@ -612,10 +597,9 @@ Components that consume configuration:
 - Verify theme name is `"mono"` or `"paper"` (check console for warnings)
 - Ensure CSS theme files exist for the selected theme
 
-### Hero grid not displaying?
+### Hero images not displaying?
 
-- Set `hero.grid.enabled: true`
-- Ensure at least one item in `hero.grid.items` has a valid `src`
+- Ensure `hero.images` exists and has at least one item with a valid `src`
 - Check browser console for validation warnings
 
 ---

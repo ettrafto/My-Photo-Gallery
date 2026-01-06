@@ -15,7 +15,7 @@ const ROOT = path.resolve(__dirname, '..');
 const IMAGES_DIR = path.join(ROOT, 'public', 'images');
 const CONTENT_DIR = path.join(ROOT, 'content');
 
-const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif'];
+const IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp', '.avif', '.heic', '.heif'];
 
 /**
  * Check if a file is an image based on extension

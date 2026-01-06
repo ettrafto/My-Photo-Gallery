@@ -12,7 +12,7 @@
  *   npm run process:hero -- --force         # Reprocess all (overwrite existing)
  * 
  * CONFIGURATION:
- *   Hero photos are configured in content/site/site.json under hero.grid.items
+ *   Hero photos are configured in content/site/site.json under hero.images
  *   Each item should have a "src" field pointing to the source photo.
  *   Source photos can be:
  *     - Paths in photo-source/originals (e.g., "Cascades/IMG_9437.JPG")
@@ -20,12 +20,15 @@
  *     - Absolute paths to original files
  * 
  * OUTPUT:
- *   - Processes photos to public/hero/ with naming: hero-{index}-{variant}.webp
- *   - Updates site.json with processed webp paths (src, srcSmall, srcLarge)
+ *   - Processes photos to public/hero/ using the configured src base name:
+ *       {base}-large.webp, {base}-small.webp, {base}-blur.webp
+ *     Where {base} is derived from the configured src filename (without extension),
+ *     with any trailing "-large/-small/-blur" stripped.
+ *   - Keeps site.json minimal (src, alt, caption only). Does not rewrite src.
  * 
  * NOTES:
  *   - Safe to run repeatedly (idempotent)
- *   - Preserves existing hero.grid.items configuration
+ *   - Preserves existing hero.images configuration
  *   - Only processes photos that are referenced in site.json
  */
 
@@ -34,6 +37,7 @@ import path from 'path';
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import sharp from 'sharp';
+import heicConvert from 'heic-convert';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -121,27 +125,36 @@ EXAMPLES:
  * Find source photo file from various possible locations
  */
 async function findSourcePhoto(srcPath) {
+  const normalizedSrcPath = typeof srcPath === 'string' ? srcPath.trim() : '';
+  const srcNoLeadingSlash = normalizedSrcPath.replace(/^\/+/, '');
+
   // Extract base filename for searching
-  const filename = path.basename(srcPath);
+  const filename = path.basename(normalizedSrcPath);
   const baseName = path.parse(filename).name;
+  const baseNameStripped = baseName.replace(/-(large|small|blur)$/i, '');
   const ext = path.extname(filename).toLowerCase();
   
   // Try multiple possible locations
   const searchPaths = [
     // Direct path in originals (e.g., "Cascades/IMG_9437.JPG")
-    path.join(ROOT, CONFIG.ORIGINALS_DIR, srcPath),
+    path.join(ROOT, CONFIG.ORIGINALS_DIR, srcNoLeadingSlash),
     // Path relative to originals root (just filename)
     path.join(ROOT, CONFIG.ORIGINALS_DIR, filename),
+    // Vite public URL mappings
+    // - "/hero/..." -> "public/hero/..."
+    // - "/photos/..." -> "public/photos/..."
+    // - "/images/..." -> "public/images/..."
+    path.join(ROOT, 'public', srcNoLeadingSlash),
     // Absolute path
-    srcPath,
+    normalizedSrcPath,
     // Relative to root
-    path.join(ROOT, srcPath)
+    path.join(ROOT, srcNoLeadingSlash)
   ];
 
   // If srcPath looks like a processed photo path (photos/album/photo-large.webp),
   // try to find the original
-  if (srcPath.includes('/photos/')) {
-    const parts = srcPath.split('/');
+  if (normalizedSrcPath.includes('/photos/')) {
+    const parts = normalizedSrcPath.split('/');
     const albumSlug = parts[1];
     const processedFilename = parts[2];
     const processedBaseName = processedFilename.replace(/-(large|small|blur)\.webp$/, '');
@@ -174,17 +187,35 @@ async function findSourcePhoto(srcPath) {
     }
   }
 
+  // If we're pointing at a derived hero webp that doesn't exist (e.g. /hero/hero-2-large.webp),
+  // fall back to the corresponding original asset in public/hero (hero-2.JPG/png/heic/etc).
+  if (normalizedSrcPath.startsWith('/hero/') && baseNameStripped !== baseName) {
+    const candidates = [];
+    for (const ext of ['.JPG', '.jpg', '.JPEG', '.jpeg', '.PNG', '.png', '.HEIC', '.heic', '.HEIF', '.heif', '.webp']) {
+      candidates.push(path.join(ROOT, 'public', 'hero', `${baseNameStripped}${ext}`));
+    }
+    for (const c of candidates) {
+      if (existsSync(c) && (await fs.stat(c)).isFile()) return c;
+    }
+  }
+
   // If not found, try searching recursively in originals
   try {
     const originalsPath = path.join(ROOT, CONFIG.ORIGINALS_DIR);
     if (existsSync(originalsPath)) {
       const filename = path.basename(srcPath);
       const baseName = path.parse(filename).name;
+      const baseNameStripped = baseName.replace(/-(large|small|blur)$/i, '');
       
       // Search recursively
       const found = await findFileRecursive(originalsPath, baseName);
       if (found) {
         return found;
+      }
+      // Try again with the stripped base name (handles references to *-large.webp etc)
+      if (baseNameStripped !== baseName) {
+        const found2 = await findFileRecursive(originalsPath, baseNameStripped);
+        if (found2) return found2;
       }
     }
   } catch (err) {
@@ -231,6 +262,42 @@ async function ensureDir(dir) {
   await fs.mkdir(dir, { recursive: true });
 }
 
+function isHeicLike(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return ext === '.heic' || ext === '.heif';
+}
+
+/**
+ * Return a Sharp-readable input for a given source path.
+ * - If Sharp can decode HEIC/HEIF on this system, it will use the original buffer.
+ * - Otherwise, converts HEIC/HEIF -> JPEG buffer in-memory.
+ *
+ * @param {string} sourcePath
+ * @returns {Promise<string|Buffer>}
+ */
+async function getSharpInput(sourcePath) {
+  // If the source is already a webp file, read it as a buffer so we can safely
+  // overwrite the same filepath during processing (Sharp disallows input==output
+  // when both are file paths).
+  if (path.extname(sourcePath).toLowerCase() === '.webp') {
+    return await fs.readFile(sourcePath);
+  }
+
+  if (!isHeicLike(sourcePath)) return sourcePath;
+
+  const heicBuffer = await fs.readFile(sourcePath);
+  try {
+    // Force a tiny decode to confirm Sharp can actually decode HEIC/HEIF on this system.
+    await sharp(heicBuffer)
+      .rotate()
+      .resize(1, 1, { fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+    return heicBuffer;
+  } catch {
+    return await heicConvert({ buffer: heicBuffer, format: 'JPEG', quality: 1 });
+  }
+}
+
 // ============================================================================
 // Image Processing
 // ============================================================================
@@ -257,6 +324,9 @@ async function processHeroPhoto(sourcePath, outputBaseName, outputDir, force = f
     
     // If source is already a webp, we can use it directly or convert from it
     const sourceExt = path.extname(sourcePath).toLowerCase();
+
+    // Prepare a Sharp-readable input (handles HEIC/HEIF fallback conversion and safe overwrite for webp).
+    const sharpInput = await getSharpInput(sourcePath);
     
     // Process each variant
     const results = await Promise.all(
@@ -264,7 +334,7 @@ async function processHeroPhoto(sourcePath, outputBaseName, outputDir, force = f
         const outputPath = path.join(outputDir, `${outputBaseName}${config.suffix}.webp`);
         
         try {
-          let image = sharp(sourcePath);
+          let image = sharp(sharpInput);
           
           // If source is already webp and we want a different size, we need to resize
           // Otherwise, sharp will handle the conversion
@@ -300,6 +370,13 @@ async function processHeroPhoto(sourcePath, outputBaseName, outputDir, force = f
     console.error(`    ❌ ERROR processing ${path.basename(sourcePath)}: ${error.message}`);
     return { status: 'error', error };
   }
+}
+
+function deriveOutputBaseNameFromSrc(srcPath) {
+  const normalizedSrcPath = typeof srcPath === 'string' ? srcPath.trim() : '';
+  const filename = path.basename(normalizedSrcPath);
+  const baseName = path.parse(filename).name;
+  return baseName.replace(/-(large|small|blur)$/i, '');
 }
 
 // ============================================================================
@@ -354,23 +431,23 @@ async function main() {
     process.exit(1);
   }
 
-  // Check if hero grid is enabled and has items
-  if (!siteConfig.hero || !siteConfig.hero.grid || !siteConfig.hero.grid.items) {
-    console.log('⚠️  No hero grid items found in site.json');
-    console.log('   Add items to hero.grid.items to process hero photos');
+  // Check if hero images exist
+  if (!siteConfig.hero || !siteConfig.hero.images) {
+    console.log('⚠️  No hero images found in site.json');
+    console.log('   Add items to hero.images to process hero photos');
     console.log('');
     process.exit(0);
   }
 
-  const heroItems = siteConfig.hero.grid.items;
+  const heroItems = siteConfig.hero.images;
   
   if (heroItems.length === 0) {
-    console.log('⚠️  Hero grid items array is empty');
+    console.log('⚠️  hero.images array is empty');
     console.log('');
     process.exit(0);
   }
 
-  console.log(`🔍 Found ${heroItems.length} hero grid item(s)`);
+  console.log(`🔍 Found ${heroItems.length} hero image(s)`);
   console.log('');
 
   // Ensure output directory exists
@@ -406,7 +483,8 @@ async function main() {
     
     if (!sourcePhoto) {
       console.error(`  ❌ Could not find source photo for: ${srcPath}`);
-      console.error(`     Searched in: ${CONFIG.ORIGINALS_DIR}, ${CONFIG.PROCESSED_DIR}`);
+      console.error(`     Searched in: ${CONFIG.ORIGINALS_DIR}, ${CONFIG.PROCESSED_DIR}, public/`);
+      console.error('     Tip: Set hero.images[].src to the ORIGINAL file you placed in public/hero (e.g. "/hero/IMG_9416.JPG" or "/hero/IMG_4212.HEIC").');
       updatedItems.push(item); // Keep original item
       results.errors++;
       continue;
@@ -414,8 +492,10 @@ async function main() {
 
     console.log(`  ✓ Found source: ${path.relative(ROOT, sourcePhoto)}`);
 
-    // Generate output base name (hero-1, hero-2, etc.)
-    const outputBaseName = `hero-${i + 1}`;
+    // Generate output base name from the configured src filename
+    // e.g. "/hero/IMG_9416.JPG" -> "IMG_9416"
+    // e.g. "/hero/hero-2-large.webp" -> "hero-2"
+    const outputBaseName = deriveOutputBaseNameFromSrc(srcPath);
     const outputDir = path.join(ROOT, CONFIG.OUTPUT_DIR);
 
     // Process the photo
@@ -432,11 +512,11 @@ async function main() {
     }
 
     // Update item with processed paths
+    // Keep site.json minimal: only src, alt, caption. Do not rewrite src.
     const updatedItem = {
-      ...item,
-      src: `/hero/${outputBaseName}-large.webp`,
-      srcSmall: `/hero/${outputBaseName}-small.webp`,
-      srcLarge: `/hero/${outputBaseName}-large.webp`
+      src: item.src,
+      alt: item.alt || '',
+      caption: item.caption || null,
     };
 
     updatedItems.push(updatedItem);
@@ -444,7 +524,7 @@ async function main() {
   }
 
   // Update site config with processed paths
-  siteConfig.hero.grid.items = updatedItems;
+  siteConfig.hero.images = updatedItems;
   
   try {
     await saveSiteConfig(siteConfig);

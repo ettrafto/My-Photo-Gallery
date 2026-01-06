@@ -29,6 +29,7 @@ import { existsSync } from 'fs';
 import sharp from 'sharp';
 import exifr from 'exifr';
 import slugify from 'slugify';
+import heicConvert from 'heic-convert';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -67,6 +68,46 @@ function parseArgs() {
 
 function toWebPath(p) {
   return p.replace(/\\/g, '/');
+}
+
+function isHeicLike(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  return ext === '.heic' || ext === '.heif';
+}
+
+/**
+ * Return a Sharp-readable input for a given image path.
+ * - If Sharp can decode the source (including HEIC when supported), use the original file.
+ * - If the source is HEIC/HEIF and Sharp cannot decode it, convert to JPEG in-memory.
+ *
+ * @param {string} imagePath
+ * @returns {Promise<{ input: string | Buffer, source: 'path'|'buffer', note?: string }>}
+ */
+async function getSharpInput(imagePath) {
+  if (!isHeicLike(imagePath)) {
+    return { input: imagePath, source: 'path' };
+  }
+
+  const heicBuffer = await fsp.readFile(imagePath);
+
+  // Try Sharp directly first (works when libvips has HEIF support)
+  try {
+    // Note: on some builds, `.metadata()` may not fail even if decode later fails.
+    // Force a tiny decode to confirm support.
+    await sharp(heicBuffer)
+      .rotate()
+      .resize(1, 1, { fit: 'inside', withoutEnlargement: true })
+      .toBuffer();
+    return { input: heicBuffer, source: 'buffer', note: 'heic:sharp-native' };
+  } catch {
+    // Fall back to converting HEIC/HEIF -> JPEG buffer
+    const jpegBuffer = await heicConvert({
+      buffer: heicBuffer,
+      format: 'JPEG',
+      quality: 1,
+    });
+    return { input: jpegBuffer, source: 'buffer', note: 'heic:converted-to-jpeg' };
+  }
 }
 
 async function ensureDir(dirPath) {
@@ -212,9 +253,11 @@ async function processImageFile({ albumSlug, albumOutputDir, imagePath, filename
   const baseName = path.parse(filename).name;
   const outputBase = path.join(albumOutputDir, `${baseName}`);
 
+  const { input: sharpInput } = await getSharpInput(imagePath);
+
   // Gather metadata first (width/height + EXIF)
   const [sharpMeta, exif] = await Promise.all([
-    sharp(imagePath).metadata(),
+    sharp(sharpInput).metadata(),
     exifr.parse(imagePath, {
       pick: [
         'Make',
@@ -271,7 +314,7 @@ async function processImageFile({ albumSlug, albumOutputDir, imagePath, filename
     if (!force && existsSync(outPath)) continue;
 
     try {
-      await sharp(imagePath)
+      await sharp(sharpInput)
         .rotate()
         .resize(cfg.maxSize, cfg.maxSize, { fit: 'inside', withoutEnlargement: true })
         .webp({ quality: cfg.quality })

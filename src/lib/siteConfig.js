@@ -5,7 +5,7 @@
  * Provides a single source of truth for site-wide content like:
  * - Site title (header/nav)
  * - Owner name (copyright)
- * - Hero content (headline, subheadline, layout, grid)
+ * - Hero content (headline, subheadline, layout, images)
  * - Navigation items
  * - Social links
  * - SEO defaults
@@ -92,10 +92,7 @@ export async function loadSiteConfig() {
         headline: data.hero.headline,
         subheadline: data.hero.subheadline || '',
         layout: data.hero.layout || 'default', // Layout identifier for hero photo arrangement
-        grid: {
-          enabled: data.hero.grid?.enabled !== undefined ? data.hero.grid.enabled : false,
-          items: data.hero.grid?.items || [],
-        },
+        images: Array.isArray(data.hero.images) ? data.hero.images : [],
       },
     };
 
@@ -144,10 +141,7 @@ export async function loadSiteConfig() {
         headline: 'Welcome',
         subheadline: '',
         layout: 'default',
-        grid: {
-          enabled: false,
-          items: [],
-        },
+        images: [],
       },
     };
   }
@@ -222,35 +216,26 @@ export function getSocialItems() {
 }
 
 /**
- * Get enabled hero grid items only (max 3)
- * @returns {Array} Array of enabled hero grid items with valid src and alt
+ * Get hero images from site config
+ * @returns {Array} Array of hero images with valid src
  */
-export function getHeroGridItems() {
+export function getHeroImages() {
   const config = getSiteConfig();
-  if (!config || !config.hero || !config.hero.grid || !config.hero.grid.enabled) {
-    return [];
-  }
+  const images = config?.hero?.images;
+  if (!Array.isArray(images)) return [];
 
-  if (!config.hero.grid.items || !Array.isArray(config.hero.grid.items)) {
-    return [];
-  }
-
-  return config.hero.grid.items
-    .filter(item => {
-      if (!item.src || typeof item.src !== 'string') {
-        console.warn('Site config: Skipping hero grid item with invalid src:', item);
+  return images
+    .filter((item) => {
+      if (!item?.src || typeof item.src !== 'string') {
+        console.warn('Site config: Skipping hero image with invalid src:', item);
         return false;
       }
       return true;
     })
-    .slice(0, 3) // Max 3 items
-    .map(item => ({
+    .map((item) => ({
       src: item.src,
-      srcSmall: item.srcSmall || null,
-      srcLarge: item.srcLarge || null,
       alt: item.alt || item.caption || 'Hero image',
       caption: item.caption || null,
-      href: item.href || null,
     }));
 }
 

@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { loadSiteConfig, getHeroGridItems } from '../lib/siteConfig';
+import { loadSiteConfig, getHeroImages } from '../lib/siteConfig';
 import Photo from './Photo';
 import SkeletonHero from './skeleton/SkeletonHero';
 import './Hero.css';
@@ -22,12 +21,13 @@ function normalizeImagePath(path) {
  * Hero - Full-width hero section blending Data-Driven Photographer and Dynamic Depth Grid styles
  * Features floating diagonal image cluster, animated grid background, and retro EXIF overlays
  * 
- * Content (headline, subheadline, layout, grid) is loaded from content/site/site.json
+ * Content (headline, subheadline, layout, images) is loaded from content/site/site.json
  * Layout determines which photo arrangement to use (currently only "default" is implemented)
- * Grid items can be configured via hero.grid (enabled + items array)
+ * Hero images can be configured via hero.images (array)
  * 
  * @param {Object} props
- * @param {Array<{url: string, exif: string, alt: string, orientation: 'portrait'|'landscape'|'square'}>} props.images - Array of 5 feature images (fallback if grid disabled)
+ * @param {Array<{src: string, srcSmall?: string, srcLarge?: string, alt: string, caption?: string, href?: string}>} props.images
+ *   - Fallback hero images (used only if hero.images is missing/empty)
  */
 export default function Hero({ 
   images = defaultImages
@@ -36,8 +36,8 @@ export default function Hero({
   const [headline, setHeadline] = useState('Welcome'); // Fallback
   const [subheadline, setSubheadline] = useState(''); // Fallback
   const [layout, setLayout] = useState('default'); // Layout identifier
-  const [gridItems, setGridItems] = useState([]); // Hero grid items from JSON
-  const [useGrid, setUseGrid] = useState(false); // Whether to use grid items
+  const [heroImages, setHeroImages] = useState([]); // Hero images from JSON
+  const [variantFallback, setVariantFallback] = useState(() => ({})); // { [index]: true } if webp variants 404
   const [hoveredImage, setHoveredImage] = useState(null);
   const [tappedImage, setTappedImage] = useState(null);
   const [loadedCount, setLoadedCount] = useState(0);
@@ -52,24 +52,19 @@ export default function Hero({
       setSubheadline(config.hero.subheadline || '');
       setLayout(config.hero.layout || 'default');
       
-      // Load grid items if enabled
-      const items = getHeroGridItems();
-      if (items.length > 0) {
-        setGridItems(items);
-        setUseGrid(true);
-      } else {
-        setUseGrid(false);
-      }
+      // Load hero images from JSON (fallback to defaults if none configured)
+      const items = getHeroImages();
+      setHeroImages(items.length > 0 ? items : images);
     }
     fetchConfig();
   }, []);
 
   useEffect(() => {
-    const imageCount = useGrid ? gridItems.length : images.length;
+    const imageCount = (heroImages?.length || images.length);
     if (loadedCount >= imageCount) {
       setShowSkeleton(false);
     }
-  }, [loadedCount, images.length, gridItems.length, useGrid]);
+  }, [loadedCount, images.length, heroImages.length]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSkeleton(false), 1200);
@@ -100,115 +95,89 @@ export default function Hero({
 
         {/* Right Image Cluster - Layout: {layout} */}
         <div className={`hero-images hero-layout-${layout}`}>
-          {useGrid ? (
-            // Render grid items from JSON
-            gridItems.map((item, index) => {
-              const imageWrapper = (
-                <motion.div
-                  className={`hero-image-wrapper hero-image-${index + 1} ${tappedImage === index ? 'tapped' : ''}`}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ 
-                    duration: 0.6, 
-                    delay: index * 0.15,
-                    ease: 'easeOut' 
-                  }}
-                  whileHover={{ 
-                    y: -12, 
-                    transition: { duration: 0.3, ease: 'easeOut' }
-                  }}
-                  onHoverStart={() => setHoveredImage(index)}
-                  onHoverEnd={() => setHoveredImage(null)}
-                  onTap={() => handleTap(index)}
-                >
-                  <div className="hero-image-inner">
-                    <Photo
-                      src={normalizeImagePath(item.src)}
-                      srcSmall={item.srcSmall ? normalizeImagePath(item.srcSmall) : undefined}
-                      srcLarge={item.srcLarge ? normalizeImagePath(item.srcLarge) : undefined}
-                      alt={item.alt}
-                      className="hero-image"
-                      loading="eager"
-                      decoding="async"
-                      fetchPriority="high"
-                      onLoad={() => setLoadedCount(count => count + 1)}
-                      aspectRatio={1.5}
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    />
-                    
-                    {/* Caption overlay if present */}
-                    {item.caption && (
-                      <div className={`hero-exif-overlay ${hoveredImage === index || tappedImage === index ? 'active' : ''}`}>
-                        <span className="hero-exif-text">{item.caption}</span>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              );
+          {(heroImages.length > 0 ? heroImages : images).map((item, index) => {
+            const rawSrc = item.src || '';
+            const prefersOriginal = !!variantFallback[index];
 
-              // Wrap with link if href provided
-              if (item.href) {
-                const isInternal = item.href.startsWith('/');
-                if (isInternal) {
-                  return (
-                    <Link key={index} to={item.href} className="hero-grid-link">
-                      {imageWrapper}
-                    </Link>
-                  );
-                } else {
-                  return (
-                    <a key={index} href={item.href} className="hero-grid-link" target="_blank" rel="noopener noreferrer">
-                      {imageWrapper}
-                    </a>
-                  );
-                }
-              }
-              return <div key={index}>{imageWrapper}</div>;
-            })
-          ) : (
-            // Render default images (fallback)
-            images.map((image, index) => (
-              <motion.div
-                key={index}
-                className={`hero-image-wrapper hero-image-${index + 1} hero-image-${image.orientation} ${tappedImage === index ? 'tapped' : ''}`}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: 0.6, 
-                  delay: index * 0.15,
-                  ease: 'easeOut' 
-                }}
-                whileHover={{ 
-                  y: -12, 
-                  transition: { duration: 0.3, ease: 'easeOut' }
-                }}
-                onHoverStart={() => setHoveredImage(index)}
-                onHoverEnd={() => setHoveredImage(null)}
-                onTap={() => handleTap(index)}
-              >
-                <div className="hero-image-inner">
-                  <Photo
-                    src={normalizeImagePath(image.url)}
-                    srcSmall={normalizeImagePath(`/hero/hero-${index + 1}-small.webp`)}
-                    srcLarge={normalizeImagePath(`/hero/hero-${index + 1}-large.webp`)}
-                    alt={image.alt}
-                    className="hero-image"
-                    loading="eager"
-                    decoding="async"
-                    fetchPriority="high"
-                    onLoad={() => setLoadedCount(count => count + 1)}
-                    aspectRatio={1.5}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                  
-                  {/* Retro EXIF Overlay */}
+            // Derive responsive variants automatically from `src`:
+            // - If src is already "*-large.webp": small is "*-small.webp"
+            // - If src is an original (jpg/png/heic/etc): variants are "<base>-{small|large}.webp"
+            const withoutExt = rawSrc.replace(/\.[^/.]+$/i, '');
+            const isLargeWebp = rawSrc.toLowerCase().endsWith('-large.webp');
+            const isSmallWebp = rawSrc.toLowerCase().endsWith('-small.webp');
+            const isAnyWebp = rawSrc.toLowerCase().endsWith('.webp');
+
+            const derivedLarge = isSmallWebp
+              ? rawSrc.replace(/-small\.webp$/i, '-large.webp')
+              : isLargeWebp
+              ? rawSrc
+              : `${withoutExt}-large.webp`;
+
+            const derivedSmall = isLargeWebp
+              ? rawSrc.replace(/-large\.webp$/i, '-small.webp')
+              : isSmallWebp
+              ? rawSrc
+              : `${withoutExt}-small.webp`;
+
+            // Performance:
+            // - Prefer webp variants when possible (after running process:hero)
+            // - If variants 404, fall back to the original src
+            const effectiveSrc = prefersOriginal ? rawSrc : derivedLarge;
+            const effectiveSrcSmall = prefersOriginal ? undefined : derivedSmall;
+            const effectiveSrcLarge = prefersOriginal ? undefined : derivedLarge;
+
+            const sharedProps = {
+              className: `hero-image-wrapper hero-image-${index + 1} ${tappedImage === index ? 'tapped' : ''}`,
+              // Keep the default state free of transform so CSS hover lift works reliably.
+              initial: { opacity: 0 },
+              animate: { opacity: 1 },
+              transition: {
+                duration: 0.6,
+                delay: index * 0.15,
+                ease: 'easeOut',
+              },
+              onHoverStart: () => setHoveredImage(index),
+              onHoverEnd: () => setHoveredImage(null),
+              onTap: () => handleTap(index),
+            };
+
+            const content = (
+              <div className="hero-image-inner">
+                <Photo
+                  src={normalizeImagePath(effectiveSrc)}
+                  srcSmall={effectiveSrcSmall ? normalizeImagePath(effectiveSrcSmall) : undefined}
+                  srcLarge={effectiveSrcLarge ? normalizeImagePath(effectiveSrcLarge) : undefined}
+                  alt={item.alt}
+                  className="hero-image"
+                  loading={index < 2 ? 'eager' : 'lazy'}
+                  decoding="async"
+                  fetchPriority={index < 2 ? 'high' : 'auto'}
+                  onLoad={() => setLoadedCount((count) => count + 1)}
+                  onError={() => {
+                    // If we were trying derived webp variants, fall back to the original src.
+                    if (!prefersOriginal && !isAnyWebp) {
+                      setVariantFallback((prev) => (prev[index] ? prev : { ...prev, [index]: true }));
+                    }
+                  }}
+                  aspectRatio={1.5}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+
+                {/* Caption overlay if present */}
+                {item.caption && (
                   <div className={`hero-exif-overlay ${hoveredImage === index || tappedImage === index ? 'active' : ''}`}>
-                    <span className="hero-exif-text">{image.exif}</span>
+                    <span className="hero-exif-text">{item.caption}</span>
                   </div>
-                </div>
+                )}
+              </div>
+            );
+
+            return (
+              <motion.div key={index} {...sharedProps}>
+                {content}
               </motion.div>
-            ))
-          )}
+            );
+          })}
         </div>
       </div>
 
@@ -221,38 +190,33 @@ export default function Hero({
   );
 }
 
-// Default featured images with mock EXIF data
-// Using WebP paths for efficiency (fallback when grid is disabled)
+// Default featured images (fallback if config has no hero.images)
+// Using WebP paths for efficiency
 const defaultImages = [
   {
-    url: '/hero/hero-1-large.webp',
-    exif: 'IMG_9281.JPG — 24mm • f/8.0 • 1/250s • ISO 100',
+    src: '/hero/hero-1-large.webp',
+    caption: 'IMG_9281.JPG — 24mm • f/8.0 • 1/250s • ISO 100',
     alt: 'Desert landscape at golden hour',
-    orientation: 'portrait'
   },
   {
-    url: '/hero/hero-2-large.webp',
-    exif: 'IMG_9049.JPG — 35mm • f/5.6 • 1/500s • ISO 200',
+    src: '/hero/hero-2-large.webp',
+    caption: 'IMG_9049.JPG — 35mm • f/5.6 • 1/500s • ISO 200',
     alt: 'Desert arch formation',
-    orientation: 'landscape'
   },
   {
-    url: '/hero/hero-3-large.webp',
-    exif: 'IMG_9158.JPG — 50mm • f/4.0 • 1/320s • ISO 100',
+    src: '/hero/hero-3-large.webp',
+    caption: 'IMG_9158.JPG — 50mm • f/4.0 • 1/320s • ISO 100',
     alt: 'Canyon rock formations',
-    orientation: 'square'
   },
   {
-    url: '/hero/hero-4-large.webp',
-    exif: 'IMG_9383.JPG — 85mm • f/2.8 • 1/640s • ISO 400',
+    src: '/hero/hero-4-large.webp',
+    caption: 'IMG_9383.JPG — 85mm • f/2.8 • 1/640s • ISO 400',
     alt: 'Wildlife portrait',
-    orientation: 'portrait'
   },
   {
-    url: '/hero/hero-5-large.webp',
-    exif: 'IMG_9439.JPG — 55mm • f/7.1 • 1/400s • ISO 100',
+    src: '/hero/hero-5-large.webp',
+    caption: 'IMG_9439.JPG — 55mm • f/7.1 • 1/400s • ISO 100',
     alt: 'Mountain landscape',
-    orientation: 'landscape'
   }
 ];
 

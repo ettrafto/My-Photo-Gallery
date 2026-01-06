@@ -10,6 +10,7 @@
     "process:photos": "node scripts/processPhotos.mjs",
     "process:hero": "node scripts/processHero.mjs",
     "import:photos": "node scripts/importPhotos.mjs",
+    "reset:gallery": "node scripts/resetGallery.mjs",
     "dev": "vite",
     "build": "npm run import:photos && vite build && node scripts/copy-content.mjs",
     "lint": "eslint .",
@@ -34,6 +35,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
+    "heic-convert": "^2.1.0",
     "sharp": "^0.34.5",
     "vite": "^7.1.6"
   }
