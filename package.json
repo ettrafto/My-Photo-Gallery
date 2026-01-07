@@ -13,7 +13,7 @@
     "import:photos": "node scripts/importPhotos.mjs",
     "reset:gallery": "node scripts/resetGallery.mjs",
     "dev": "vite",
-    "build": "npm run import:photos && vite build && node scripts/copy-content.mjs",
+    "build": "npm run import:photos && npm run process:hero && npm run process:showcase && vite build && node scripts/copy-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -35,12 +35,15 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.2",
+    "autoprefixer": "^10.4.23",
     "eslint": "^9.35.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
     "heic-convert": "^2.1.0",
+    "postcss": "^8.5.6",
     "sharp": "^0.34.5",
+    "tailwindcss": "^4.1.18",
     "vite": "^7.1.6"
   }
 }

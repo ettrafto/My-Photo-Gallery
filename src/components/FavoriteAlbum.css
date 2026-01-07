@@ -1,33 +1,187 @@
 .favorite-album {
   flex: 1;
-  min-height: 300px;
-  padding: 2rem;
+  min-height: 400px;
   border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(10px);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+.favorite-album:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.favorite-album-cover {
+  width: 100%;
+  aspect-ratio: 1.5;
+  overflow: hidden;
+  position: relative;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.favorite-album-cover-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.favorite-album:hover .favorite-album-cover-image {
+  transform: scale(1.05);
 }
 
 .favorite-album-content {
+  padding: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+  gap: 0.75rem;
+}
+
+.favorite-album-label {
+  font-family: var(--mono-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 0.25rem;
 }
 
 .favorite-album-title {
   font-family: var(--mono-display);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  font-weight: 500;
+  margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.favorite-album-placeholder {
+.favorite-album-description {
   font-family: var(--mono-ui);
-  font-size: 0.95rem;
-  opacity: 0.6;
-  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
+.favorite-album-meta {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  font-family: var(--mono-ui);
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.favorite-album-date,
+.favorite-album-count {
+  display: flex;
+  align-items: center;
+}
+
+.favorite-album-error {
+  font-family: var(--mono-ui);
+  font-size: 0.9rem;
+  color: rgba(255, 100, 100, 0.8);
+  text-align: center;
+  padding: 2rem;
+}
+
+/* Skeleton loading state */
+.favorite-album-skeleton {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.favorite-album-skeleton-image {
+  width: 100%;
+  aspect-ratio: 1.5;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+.favorite-album-skeleton-content {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.favorite-album-skeleton-title {
+  height: 1.75rem;
+  width: 60%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+.favorite-album-skeleton-text {
+  height: 0.9rem;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 2px;
+}
+
+.favorite-album-skeleton-text:last-of-type {
+  width: 80%;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .favorite-album {
+    min-height: 350px;
+  }
+
+  .favorite-album-content {
+    padding: 1.5rem;
+  }
+
+  .favorite-album-title {
+    font-size: 1.5rem;
+  }
+
+  .favorite-album-description {
+    font-size: 0.85rem;
+    -webkit-line-clamp: 2;
+  }
+}

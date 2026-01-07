@@ -1,8 +1,8 @@
 .globe {
   width: 100vw;
   min-height: 500px;
-  margin: 2rem calc(-50vw + 50%);
-  padding: 3rem 2rem;
+  margin: 1.2rem calc(-50vw + 50%);
+  padding: 0 2rem;
   background: transparent;
 }
 
@@ -12,6 +12,29 @@
   max-width: 40vw;
   margin: 0 auto;
   aspect-ratio: 1;
+}
+
+.globe-spin-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-family: var(--mono-ui, monospace);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.6);
+  opacity: 0.7;
+}
+
+.globe-spin-text {
+  font-size: 0.75rem;
+}
+
+.globe-spin-arrow {
+  font-size: 0.85rem;
+  opacity: 0.8;
 }
 
 .globe-svg {
@@ -164,11 +187,25 @@
 @media (max-width: 768px) {
   .globe {
     min-height: 400px;
-    padding: 2rem 1rem;
+    padding: 0 1rem;
   }
 
   .globe-wrapper {
     max-width: 100%;
+  }
+
+  .globe-spin-label {
+    font-size: 0.65rem;
+    margin-top: 0.75rem;
+    gap: 0.4rem;
+  }
+
+  .globe-spin-text {
+    font-size: 0.65rem;
+  }
+
+  .globe-spin-arrow {
+    font-size: 0.75rem;
   }
 
   .globe-debug {

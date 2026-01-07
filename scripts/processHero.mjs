@@ -1,84 +1,53 @@
 #!/usr/bin/env node
 
 /**
- * Hero Photo Processing Script
- * 
- * Processes hero photos specified in content/site/site.json and generates
- * optimized WebP variants in public/hero/ following the same efficiency
- * protocols as regular photos (large, small, blur variants).
- * 
- * USAGE:
- *   npm run process:hero                    # Process hero photos
- *   npm run process:hero -- --force         # Reprocess all (overwrite existing)
- * 
- * CONFIGURATION:
- *   Hero photos are configured in content/site/site.json under hero.images
- *   Each item should have a "src" field pointing to the source photo.
- *   Source photos can be:
- *     - Paths in photo-source/originals (e.g., "Cascades/IMG_9437.JPG")
- *     - Paths in public/photos (e.g., "photos/cascades/IMG_9437-large.webp")
- *     - Absolute paths to original files
- * 
- * OUTPUT:
- *   - Processes photos to public/hero/ using the configured src base name:
- *       {base}-large.webp, {base}-small.webp, {base}-blur.webp
- *     Where {base} is derived from the configured src filename (without extension),
- *     with any trailing "-large/-small/-blur" stripped.
- *   - Keeps site.json minimal (src, alt, caption only). Does not rewrite src.
- * 
- * NOTES:
- *   - Safe to run repeatedly (idempotent)
- *   - Preserves existing hero.images configuration
- *   - Only processes photos that are referenced in site.json
+ * Hero Photo Processing Pipeline
+ *
+ * Usage:
+ *   npm run process:hero            # Process hero images
+ *   npm run process:hero -- --force  # Reprocess all images
+ *
+ * What it does:
+ *   1) Reads originals from photo-source/hero/
+ *   2) Generates WebP variants to public/hero/:
+ *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
+ *   3) Builds/updates content/site/site.json with:
+ *        - Processed image paths in hero.images array
+ *        - Preserves alt text and captions from metadata or EXIF
+ *
+ * Notes:
+ *   - Processes all images found in photo-source/hero/
+ *   - Automatically updates site.json with processed paths
+ *   - Preserves existing alt text and captions
+ *   - Callouts can be configured via _hero.json metadata file
  */
 
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsp from 'fs/promises';
 import path from 'path';
-import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
+import { existsSync } from 'fs';
 import sharp from 'sharp';
+import exifr from 'exifr';
 import heicConvert from 'heic-convert';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
-// ============================================================================
-// Configuration
-// ============================================================================
-
 const CONFIG = {
-  SITE_CONFIG_PATH: 'content/site/site.json',
+  INPUT_DIR: 'photo-source/hero',
   OUTPUT_DIR: 'public/hero',
-  ORIGINALS_DIR: 'photo-source/originals',
-  PROCESSED_DIR: 'public/photos',
-  
-  // Supported input formats
-  SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif', '.webp'],
-  
-  // Output variants (matching processPhotos.mjs)
+  CONTENT_DIR: 'content',
+  SITE_CONFIG: 'content/site/site.json',
+  METADATA_FILE: 'photo-source/hero/_hero.json',
+  SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
-    large: {
-      maxSize: 1800,
-      quality: 80,
-      suffix: '-large'
-    },
-    small: {
-      maxSize: 800,
-      quality: 80,
-      suffix: '-small'
-    },
-    blur: {
-      maxSize: 40,
-      quality: 40,
-      suffix: '-blur'
-    }
+    large: { maxSize: 1800, quality: 80, suffix: '-large' },
+    small: { maxSize: 800, quality: 80, suffix: '-small' },
+    blur: { maxSize: 40, quality: 40, suffix: '-blur' }
   }
 };
-
-// ============================================================================
-// CLI Argument Parsing
-// ============================================================================
 
 function parseArgs() {
   const args = process.argv.slice(2);
@@ -87,179 +56,14 @@ function parseArgs() {
   };
 
   for (const arg of args) {
-    if (arg === '--force') {
-      options.force = true;
-    } else if (arg === '--help' || arg === '-h') {
-      printHelp();
-      process.exit(0);
-    } else {
-      console.warn(`⚠️  Unknown argument: ${arg}`);
-    }
+    if (arg === '--force') options.force = true;
   }
 
   return options;
 }
 
-function printHelp() {
-  console.log(`
-📸 Hero Photo Processing Script
-
-USAGE:
-  npm run process:hero [OPTIONS]
-
-OPTIONS:
-  --force              Reprocess all images (overwrite existing)
-  --help, -h           Show this help message
-
-EXAMPLES:
-  npm run process:hero
-  npm run process:hero -- --force
-`);
-}
-
-// ============================================================================
-// File System Utilities
-// ============================================================================
-
-/**
- * Find source photo file from various possible locations
- */
-async function findSourcePhoto(srcPath) {
-  const normalizedSrcPath = typeof srcPath === 'string' ? srcPath.trim() : '';
-  const srcNoLeadingSlash = normalizedSrcPath.replace(/^\/+/, '');
-
-  // Extract base filename for searching
-  const filename = path.basename(normalizedSrcPath);
-  const baseName = path.parse(filename).name;
-  const baseNameStripped = baseName.replace(/-(large|small|blur)$/i, '');
-  const ext = path.extname(filename).toLowerCase();
-  
-  // Try multiple possible locations
-  const searchPaths = [
-    // Direct path in originals (e.g., "Cascades/IMG_9437.JPG")
-    path.join(ROOT, CONFIG.ORIGINALS_DIR, srcNoLeadingSlash),
-    // Path relative to originals root (just filename)
-    path.join(ROOT, CONFIG.ORIGINALS_DIR, filename),
-    // Vite public URL mappings
-    // - "/hero/..." -> "public/hero/..."
-    // - "/photos/..." -> "public/photos/..."
-    // - "/images/..." -> "public/images/..."
-    path.join(ROOT, 'public', srcNoLeadingSlash),
-    // Absolute path
-    normalizedSrcPath,
-    // Relative to root
-    path.join(ROOT, srcNoLeadingSlash)
-  ];
-
-  // If srcPath looks like a processed photo path (photos/album/photo-large.webp),
-  // try to find the original
-  if (normalizedSrcPath.includes('/photos/')) {
-    const parts = normalizedSrcPath.split('/');
-    const albumSlug = parts[1];
-    const processedFilename = parts[2];
-    const processedBaseName = processedFilename.replace(/-(large|small|blur)\.webp$/, '');
-    
-    // Try to find original in originals by album slug
-    const originalsPath = path.join(ROOT, CONFIG.ORIGINALS_DIR);
-    if (existsSync(originalsPath)) {
-      const albumDirs = await fs.readdir(originalsPath, { withFileTypes: true }).catch(() => []);
-      for (const entry of albumDirs) {
-        if (entry.isDirectory()) {
-          // Try common extensions
-          for (const ext of ['.JPG', '.jpg', '.JPEG', '.jpeg', '.PNG', '.png']) {
-            const possiblePath = path.join(originalsPath, entry.name, processedBaseName + ext);
-            if (existsSync(possiblePath)) {
-              searchPaths.unshift(possiblePath);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Search for the file
-  for (const searchPath of searchPaths) {
-    if (existsSync(searchPath) && (await fs.stat(searchPath)).isFile()) {
-      const ext = path.extname(searchPath).toLowerCase();
-      if (CONFIG.SUPPORTED_FORMATS.includes(ext) || ext === '.webp') {
-        return searchPath;
-      }
-    }
-  }
-
-  // If we're pointing at a derived hero webp that doesn't exist (e.g. /hero/hero-2-large.webp),
-  // fall back to the corresponding original asset in public/hero (hero-2.JPG/png/heic/etc).
-  if (normalizedSrcPath.startsWith('/hero/') && baseNameStripped !== baseName) {
-    const candidates = [];
-    for (const ext of ['.JPG', '.jpg', '.JPEG', '.jpeg', '.PNG', '.png', '.HEIC', '.heic', '.HEIF', '.heif', '.webp']) {
-      candidates.push(path.join(ROOT, 'public', 'hero', `${baseNameStripped}${ext}`));
-    }
-    for (const c of candidates) {
-      if (existsSync(c) && (await fs.stat(c)).isFile()) return c;
-    }
-  }
-
-  // If not found, try searching recursively in originals
-  try {
-    const originalsPath = path.join(ROOT, CONFIG.ORIGINALS_DIR);
-    if (existsSync(originalsPath)) {
-      const filename = path.basename(srcPath);
-      const baseName = path.parse(filename).name;
-      const baseNameStripped = baseName.replace(/-(large|small|blur)$/i, '');
-      
-      // Search recursively
-      const found = await findFileRecursive(originalsPath, baseName);
-      if (found) {
-        return found;
-      }
-      // Try again with the stripped base name (handles references to *-large.webp etc)
-      if (baseNameStripped !== baseName) {
-        const found2 = await findFileRecursive(originalsPath, baseNameStripped);
-        if (found2) return found2;
-      }
-    }
-  } catch (err) {
-    // Ignore errors
-  }
-
-  return null;
-}
-
-/**
- * Recursively search for a file by base name
- */
-async function findFileRecursive(dir, baseName) {
-  try {
-    const entries = await fs.readdir(dir, { withFileTypes: true });
-    
-    for (const entry of entries) {
-      const fullPath = path.join(dir, entry.name);
-      
-      if (entry.isDirectory()) {
-        const found = await findFileRecursive(fullPath, baseName);
-        if (found) return found;
-      } else if (entry.isFile()) {
-        const entryBaseName = path.parse(entry.name).name;
-        const ext = path.extname(entry.name).toLowerCase();
-        
-        if (entryBaseName.toLowerCase() === baseName.toLowerCase() && 
-            CONFIG.SUPPORTED_FORMATS.includes(ext)) {
-          return fullPath;
-        }
-      }
-    }
-  } catch (err) {
-    // Ignore errors
-  }
-  
-  return null;
-}
-
-/**
- * Ensure output directory exists
- */
-async function ensureDir(dir) {
-  await fs.mkdir(dir, { recursive: true });
+function toWebPath(p) {
+  return p.replace(/\\/g, '/');
 }
 
 function isHeicLike(filePath) {
@@ -267,314 +71,380 @@ function isHeicLike(filePath) {
   return ext === '.heic' || ext === '.heif';
 }
 
-/**
- * Return a Sharp-readable input for a given source path.
- * - If Sharp can decode HEIC/HEIF on this system, it will use the original buffer.
- * - Otherwise, converts HEIC/HEIF -> JPEG buffer in-memory.
- *
- * @param {string} sourcePath
- * @returns {Promise<string|Buffer>}
- */
-async function getSharpInput(sourcePath) {
-  // If the source is already a webp file, read it as a buffer so we can safely
-  // overwrite the same filepath during processing (Sharp disallows input==output
-  // when both are file paths).
-  if (path.extname(sourcePath).toLowerCase() === '.webp') {
-    return await fs.readFile(sourcePath);
+async function getSharpInput(imagePath) {
+  if (!isHeicLike(imagePath)) {
+    return { input: imagePath, source: 'path' };
   }
 
-  if (!isHeicLike(sourcePath)) return sourcePath;
-
-  const heicBuffer = await fs.readFile(sourcePath);
+  const heicBuffer = await fsp.readFile(imagePath);
   try {
-    // Force a tiny decode to confirm Sharp can actually decode HEIC/HEIF on this system.
     await sharp(heicBuffer)
       .rotate()
       .resize(1, 1, { fit: 'inside', withoutEnlargement: true })
       .toBuffer();
-    return heicBuffer;
+    return { input: heicBuffer, source: 'buffer' };
   } catch {
-    return await heicConvert({ buffer: heicBuffer, format: 'JPEG', quality: 1 });
+    const jpegBuffer = await heicConvert({
+      buffer: heicBuffer,
+      format: 'JPEG',
+      quality: 1.0
+    });
+    return { input: jpegBuffer, source: 'buffer', note: 'converted from HEIC' };
   }
 }
 
-// ============================================================================
-// Image Processing
-// ============================================================================
+/**
+ * Get image metadata (dimensions and EXIF) efficiently
+ * Returns both dimensions and EXIF data in one pass
+ * Reuses Sharp input to avoid duplicate file reads (important for HEIC files)
+ */
+async function getImageMetadata(imagePath) {
+  try {
+    const sharpInput = await getSharpInput(imagePath);
+    const image = sharp(sharpInput.input);
+    
+    // Get dimensions and EXIF in parallel for efficiency
+    const [metadata, exifData] = await Promise.all([
+      image.metadata(),
+      exifr.parse(imagePath, {
+        pick: ['ImageDescription', 'DateTimeOriginal', 'Make', 'Model', 'FNumber', 'ExposureTime', 'ISO', 'FocalLength']
+      }).catch(() => ({})) // Ignore EXIF errors gracefully
+    ]);
+
+    if (!metadata.width || !metadata.height) {
+      throw new Error('Invalid image dimensions');
+    }
+
+    return {
+      width: metadata.width,
+      height: metadata.height,
+      aspectRatio: metadata.width / metadata.height,
+      sharpInput, // Return the input for reuse in processing
+      exif: exifData
+    };
+  } catch (error) {
+    console.error(`  ⚠️  Could not read metadata for ${path.basename(imagePath)}: ${error.message}`);
+    return {
+      width: 1600,
+      height: 900,
+      aspectRatio: 16/9,
+      sharpInput: null,
+      exif: {}
+    };
+  }
+}
 
 /**
- * Process a single hero photo and generate all variants
+ * Format EXIF data into a caption string
  */
-async function processHeroPhoto(sourcePath, outputBaseName, outputDir, force = false) {
-  // Check if outputs already exist (unless force is enabled)
-  if (!force) {
-    const allExist = Object.values(CONFIG.VARIANTS).every(variant => {
-      const outputPath = path.join(outputDir, `${outputBaseName}${variant.suffix}.webp`);
-      return existsSync(outputPath);
-    });
-    
-    if (allExist) {
-      console.log(`  ⏭️  SKIP (exists): ${path.basename(sourcePath)}`);
-      return { status: 'skipped' };
+function formatExifCaption(exif) {
+  if (!exif || Object.keys(exif).length === 0) return null;
+  
+  const parts = [];
+  
+  // Focal length
+  if (exif.FocalLength) {
+    parts.push(`${Math.round(exif.FocalLength)}mm`);
+  }
+  
+  // Aperture
+  if (exif.FNumber) {
+    parts.push(`f/${exif.FNumber}`);
+  }
+  
+  // Shutter speed
+  if (exif.ExposureTime) {
+    if (exif.ExposureTime >= 1) {
+      parts.push(`${exif.ExposureTime}s`);
+    } else {
+      const denominator = Math.round(1 / exif.ExposureTime);
+      parts.push(`1/${denominator}s`);
     }
   }
+  
+  // ISO
+  if (exif.ISO) {
+    parts.push(`ISO ${exif.ISO}`);
+  }
+  
+  return parts.length > 0 ? parts.join(' • ') : null;
+}
+
+/**
+ * Process a single hero image efficiently
+ * Reuses Sharp input to avoid duplicate file reads
+ */
+async function processHeroImage(imageFile, index, metadata, force = false) {
+  const inputPath = path.join(ROOT, CONFIG.INPUT_DIR, imageFile);
+  const outputDir = path.join(ROOT, CONFIG.OUTPUT_DIR);
+  
+  if (!existsSync(inputPath)) {
+    console.error(`  ❌ Source file not found: ${imageFile}`);
+    return null;
+  }
+
+  await fsp.mkdir(outputDir, { recursive: true });
+
+  const baseName = path.parse(imageFile).name;
 
   try {
-    console.log(`  🔄 PROCESS: ${path.basename(sourcePath)}`);
-    
-    // If source is already a webp, we can use it directly or convert from it
-    const sourceExt = path.extname(sourcePath).toLowerCase();
+    console.log(`  🔄 Processing: ${imageFile}`);
 
-    // Prepare a Sharp-readable input (handles HEIC/HEIF fallback conversion and safe overwrite for webp).
-    const sharpInput = await getSharpInput(sourcePath);
+    // Get metadata (dimensions + EXIF) and Sharp input in one pass
+    const imageMetadata = await getImageMetadata(inputPath);
     
-    // Process each variant
-    const results = await Promise.all(
-      Object.entries(CONFIG.VARIANTS).map(async ([variantName, config]) => {
-        const outputPath = path.join(outputDir, `${outputBaseName}${config.suffix}.webp`);
-        
+    if (!imageMetadata.sharpInput) {
+      throw new Error('Failed to load image input');
+    }
+
+    const { width, height, aspectRatio, sharpInput, exif } = imageMetadata;
+
+    // Check which variants need processing (skip existing unless force)
+    const variantsToProcess = [];
+    for (const [variantName, config] of Object.entries(CONFIG.VARIANTS)) {
+      const outputPath = path.join(outputDir, `${baseName}${config.suffix}.webp`);
+      if (force || !existsSync(outputPath)) {
+        variantsToProcess.push({ variantName, config, outputPath });
+      }
+    }
+
+    // Process all variants in parallel
+    const variantResults = await Promise.all(
+      variantsToProcess.map(async ({ variantName, config, outputPath }) => {
         try {
-          let image = sharp(sharpInput);
-          
-          // If source is already webp and we want a different size, we need to resize
-          // Otherwise, sharp will handle the conversion
-          await image
-            .rotate() // Auto-rotate based on EXIF orientation
+          // Use the cached Sharp input
+          await sharp(sharpInput.input)
+            .rotate() // Auto-rotate based on EXIF
             .resize(config.maxSize, config.maxSize, {
               fit: 'inside',
               withoutEnlargement: true
             })
-            .webp({ quality: config.quality })
+            .webp({ 
+              quality: config.quality,
+              effort: 4 // Balance between quality and speed (0-6, 4 is good default)
+            })
             .toFile(outputPath);
           
-          return { variant: variantName, success: true };
+          return { variant: variantName, success: true, skipped: false };
         } catch (error) {
-          console.error(`    ❌ Failed to create ${variantName}: ${error.message}`);
+          console.error(`    ❌ Failed ${variantName}: ${error.message}`);
           return { variant: variantName, success: false, error };
         }
       })
     );
 
-    // Check if all variants succeeded
-    const allSucceeded = results.every(r => r.success);
+    // Check results
+    const allSucceeded = variantResults.length === 0 || variantResults.every(r => r.success);
+    const skippedCount = Object.keys(CONFIG.VARIANTS).length - variantsToProcess.length;
     
     if (allSucceeded) {
-      console.log(`    ✅ Created: ${outputBaseName}-[large|small|blur].webp`);
-      return { status: 'processed' };
-    } else {
-      console.warn(`    ⚠️  Partial success for ${path.basename(sourcePath)}`);
-      return { status: 'partial' };
+      if (skippedCount > 0) {
+        console.log(`    ✅ Variants ready (${skippedCount} skipped, ${variantsToProcess.length} created)`);
+      } else {
+        console.log(`    ✅ Created all variants for ${baseName}`);
+      }
     }
 
+    // Get alt text and caption from metadata or EXIF
+    const metadataItem = metadata?.images?.find(img => 
+      img.filename === imageFile || img.filename === baseName
+    );
+    
+    const altText = metadataItem?.alt || exif?.ImageDescription || `Hero image ${index + 1}`;
+    const caption = metadataItem?.caption || formatExifCaption(exif) || null;
+
+    return {
+      src: `/hero/${baseName}-large.webp`,
+      alt: altText,
+      caption: caption
+    };
   } catch (error) {
-    console.error(`    ❌ ERROR processing ${path.basename(sourcePath)}: ${error.message}`);
-    return { status: 'error', error };
+    console.error(`  ❌ ERROR processing ${imageFile}: ${error.message}`);
+    return null;
   }
 }
 
-function deriveOutputBaseNameFromSrc(srcPath) {
-  const normalizedSrcPath = typeof srcPath === 'string' ? srcPath.trim() : '';
-  const filename = path.basename(normalizedSrcPath);
-  const baseName = path.parse(filename).name;
-  return baseName.replace(/-(large|small|blur)$/i, '');
+/**
+ * Load metadata file if it exists
+ */
+async function loadMetadata() {
+  const metadataPath = path.join(ROOT, CONFIG.METADATA_FILE);
+  if (!existsSync(metadataPath)) {
+    return { images: null };
+  }
+
+  try {
+    const content = await fsp.readFile(metadataPath, 'utf-8');
+    const metadata = JSON.parse(content);
+    return metadata;
+  } catch (error) {
+    console.warn(`  ⚠️  Could not load metadata file: ${error.message}`);
+    return { images: null };
+  }
 }
 
-// ============================================================================
-// Site Config Processing
-// ============================================================================
-
 /**
- * Load site config
+ * Load existing site config
  */
 async function loadSiteConfig() {
-  const configPath = path.join(ROOT, CONFIG.SITE_CONFIG_PATH);
-  
+  const configPath = path.join(ROOT, CONFIG.SITE_CONFIG);
   if (!existsSync(configPath)) {
     throw new Error(`Site config not found: ${configPath}`);
   }
-  
-  const content = await fs.readFile(configPath, 'utf-8');
-  return JSON.parse(content);
+
+  try {
+    const content = await fsp.readFile(configPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    throw new Error(`Failed to parse site config: ${error.message}`);
+  }
 }
 
 /**
- * Save site config
+ * Write updated site.json with processed hero images
  */
-async function saveSiteConfig(config) {
-  const configPath = path.join(ROOT, CONFIG.SITE_CONFIG_PATH);
-  await fs.writeFile(configPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+async function writeSiteConfig(siteConfig, heroImages) {
+  const configPath = path.join(ROOT, CONFIG.SITE_CONFIG);
+  const configDir = path.dirname(configPath);
+  
+  await fsp.mkdir(configDir, { recursive: true });
+
+  // Update hero.images in site config
+  if (!siteConfig.hero) {
+    siteConfig.hero = {
+      layout: 'default',
+      headline: 'Photography & Trips',
+      subheadline: 'A minimal archive of places, light, and time.',
+      images: []
+    };
+  }
+
+  siteConfig.hero.images = heroImages.filter(img => img !== null);
+
+  await fsp.writeFile(configPath, JSON.stringify(siteConfig, null, 2));
+  console.log(`  ✅ Updated ${configPath}`);
 }
 
-// ============================================================================
-// Main Processing Logic
-// ============================================================================
-
+/**
+ * Main processing function
+ */
 async function main() {
   console.log('');
-  console.log('📸 Hero Photo Processing');
+  console.log('📸 Hero Photo Processing Pipeline');
   console.log('━'.repeat(60));
   console.log('');
 
-  // Parse CLI arguments
   const options = parseArgs();
-  
-  console.log(`📁 Output: ${CONFIG.OUTPUT_DIR}`);
-  console.log(`🔧 Mode:   ${options.force ? 'FORCE (overwrite)' : 'Incremental (skip existing)'}`);
+  const inputDir = path.join(ROOT, CONFIG.INPUT_DIR);
+
+  if (!existsSync(inputDir)) {
+    console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
+    console.error('   Please create photo-source/hero/ and add your images');
+    process.exit(1);
+  }
+
+  // Find all image files
+  console.log('🔍 Discovering images...');
+  const files = await fsp.readdir(inputDir);
+  const imageFiles = files.filter(file => {
+    const ext = path.extname(file).toLowerCase();
+    return CONFIG.SUPPORTED_FORMATS.includes(ext) && !file.startsWith('_');
+  }).sort();
+
+  if (imageFiles.length === 0) {
+    console.error('❌ No images found in photo-source/hero/');
+    console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log(`   Found ${imageFiles.length} image(s)`);
   console.log('');
 
-  // Load site config
+  // Load metadata and existing site config
+  const metadata = await loadMetadata();
   let siteConfig;
   try {
     siteConfig = await loadSiteConfig();
   } catch (error) {
-    console.error(`❌ ERROR: Failed to load site config: ${error.message}`);
+    console.error(`❌ ERROR: ${error.message}`);
     process.exit(1);
   }
 
-  // Check if hero images exist
-  if (!siteConfig.hero || !siteConfig.hero.images) {
-    console.log('⚠️  No hero images found in site.json');
-    console.log('   Add items to hero.images to process hero photos');
-    console.log('');
-    process.exit(0);
-  }
-
-  const heroItems = siteConfig.hero.images;
+  // Process images in parallel with concurrency limit
+  console.log('🔄 Processing images...');
+  console.log('');
   
-  if (heroItems.length === 0) {
-    console.log('⚠️  hero.images array is empty');
-    console.log('');
-    process.exit(0);
-  }
-
-  console.log(`🔍 Found ${heroItems.length} hero image(s)`);
-  console.log('');
-
-  // Ensure output directory exists
-  await ensureDir(path.join(ROOT, CONFIG.OUTPUT_DIR));
-
-  // Process each hero item
-  console.log('🔄 Processing hero photos...');
-  console.log('');
-
-  const results = {
-    processed: 0,
-    skipped: 0,
-    errors: 0,
-    partial: 0
-  };
-
-  const updatedItems = [];
-
-  for (let i = 0; i < heroItems.length; i++) {
-    const item = heroItems[i];
-    const srcPath = item.src;
+  // Process images in batches to avoid overwhelming the system
+  // Concurrency limit balances speed with memory usage
+  const CONCURRENCY_LIMIT = 3; // Process 3 images at a time
+  const heroImages = [];
+  let processedCount = 0;
+  let skippedCount = 0;
+  let errorCount = 0;
+  
+  for (let i = 0; i < imageFiles.length; i += CONCURRENCY_LIMIT) {
+    const batch = imageFiles.slice(i, i + CONCURRENCY_LIMIT);
+    const batchIndex = i;
     
-    if (!srcPath) {
-      console.warn(`  ⚠️  Item ${i + 1} has no src, skipping`);
-      updatedItems.push(item);
-      continue;
-    }
-
-    console.log(`Processing item ${i + 1}/${heroItems.length}: ${srcPath}`);
-
-    // Find source photo
-    const sourcePhoto = await findSourcePhoto(srcPath);
+    console.log(`📦 Processing batch ${Math.floor(i / CONCURRENCY_LIMIT) + 1}/${Math.ceil(imageFiles.length / CONCURRENCY_LIMIT)} (${batch.length} image(s))...`);
     
-    if (!sourcePhoto) {
-      console.error(`  ❌ Could not find source photo for: ${srcPath}`);
-      console.error(`     Searched in: ${CONFIG.ORIGINALS_DIR}, ${CONFIG.PROCESSED_DIR}, public/`);
-      console.error('     Tip: Set hero.images[].src to the ORIGINAL file you placed in public/hero (e.g. "/hero/IMG_9416.JPG" or "/hero/IMG_4212.HEIC").');
-      updatedItems.push(item); // Keep original item
-      results.errors++;
-      continue;
-    }
-
-    console.log(`  ✓ Found source: ${path.relative(ROOT, sourcePhoto)}`);
-
-    // Generate output base name from the configured src filename
-    // e.g. "/hero/IMG_9416.JPG" -> "IMG_9416"
-    // e.g. "/hero/hero-2-large.webp" -> "hero-2"
-    const outputBaseName = deriveOutputBaseNameFromSrc(srcPath);
-    const outputDir = path.join(ROOT, CONFIG.OUTPUT_DIR);
-
-    // Process the photo
-    const result = await processHeroPhoto(sourcePhoto, outputBaseName, outputDir, options.force);
+    const batchPromises = batch.map((imageFile, idx) => 
+      processHeroImage(imageFile, batchIndex + idx, metadata, options.force)
+    );
     
-    if (result.status === 'processed') {
-      results.processed++;
-    } else if (result.status === 'skipped') {
-      results.skipped++;
-    } else if (result.status === 'error') {
-      results.errors++;
-    } else if (result.status === 'partial') {
-      results.partial++;
+    const batchResults = await Promise.all(batchPromises);
+    
+    for (const imageData of batchResults) {
+      if (imageData) {
+        heroImages.push(imageData);
+        processedCount++;
+      } else {
+        errorCount++;
+      }
     }
-
-    // Update item with processed paths
-    // Keep site.json minimal: only src, alt, caption. Do not rewrite src.
-    const updatedItem = {
-      src: item.src,
-      alt: item.alt || '',
-      caption: item.caption || null,
-    };
-
-    updatedItems.push(updatedItem);
+    
+    // Check for skipped files (already processed)
+    for (const imageFile of batch) {
+      const baseName = path.parse(imageFile).name;
+      const outputDir = path.join(ROOT, CONFIG.OUTPUT_DIR);
+      const allVariantsExist = Object.values(CONFIG.VARIANTS).every(config => {
+        const outputPath = path.join(outputDir, `${baseName}${config.suffix}.webp`);
+        return existsSync(outputPath);
+      });
+      if (allVariantsExist && !options.force) {
+        skippedCount++;
+      }
+    }
+    
+    console.log(''); // Blank line between batches
+  }
+  
+  // Summary
+  if (processedCount > 0 || skippedCount > 0) {
+    console.log(`📊 Summary: ${processedCount} processed, ${skippedCount} skipped, ${errorCount} errors`);
     console.log('');
   }
 
-  // Update site config with processed paths
-  siteConfig.hero.images = updatedItems;
-  
-  try {
-    await saveSiteConfig(siteConfig);
-    console.log(`✓ Updated ${CONFIG.SITE_CONFIG_PATH}`);
-  } catch (error) {
-    console.error(`❌ Failed to save site config: ${error.message}`);
-    results.errors++;
-  }
-
-  // Print summary
-  console.log('');
-  console.log('━'.repeat(60));
-  console.log('📊 Summary:');
-  console.log('');
-  console.log(`   Total items:     ${heroItems.length}`);
-  console.log(`   ✅ Processed:     ${results.processed}`);
-  console.log(`   ⏭️  Skipped:       ${results.skipped}`);
-  
-  if (results.partial > 0) {
-    console.log(`   ⚠️  Partial:       ${results.partial}`);
-  }
-  
-  if (results.errors > 0) {
-    console.log(`   ❌ Errors:        ${results.errors}`);
-  }
-  
-  console.log('');
-
-  if (results.errors > 0) {
-    console.log('⚠️  Some hero photos failed to process. Check the logs above for details.');
-    console.log('');
+  if (heroImages.length === 0) {
+    console.error('❌ No images were successfully processed');
     process.exit(1);
-  } else if (results.processed === 0 && results.skipped === heroItems.length) {
-    console.log('✨ All hero photos already processed! Use --force to reprocess.');
-    console.log('');
-  } else {
-    console.log('✅ Hero photo processing complete!');
-    console.log('');
   }
+
+  // Update site.json
+  console.log('📝 Updating site.json...');
+  await writeSiteConfig(siteConfig, heroImages);
+
+  console.log('');
+  console.log('✅ Hero processing complete!');
+  console.log(`   Images: ${heroImages.length} configured`);
+  console.log(`   Config: ${CONFIG.SITE_CONFIG}`);
+  console.log(`   Output: ${CONFIG.OUTPUT_DIR}`);
+  console.log('');
 }
 
-// ============================================================================
-// Entry Point
-// ============================================================================
-
-main().catch((error) => {
+main().catch(error => {
   console.error('');
-  console.error('❌ Fatal error:');
-  console.error(error);
+  console.error('❌ Fatal error:', error);
   console.error('');
   process.exit(1);
 });
-

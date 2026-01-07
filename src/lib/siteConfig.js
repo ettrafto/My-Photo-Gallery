@@ -94,6 +94,10 @@ export async function loadSiteConfig() {
         layout: data.hero.layout || 'default', // Layout identifier for hero photo arrangement
         images: Array.isArray(data.hero.images) ? data.hero.images : [],
       },
+      favorites: {
+        album: data.favorites?.album || null,
+        trip: data.favorites?.trip || null,
+      },
     };
 
     // Validate theme name
@@ -142,6 +146,10 @@ export async function loadSiteConfig() {
         subheadline: '',
         layout: 'default',
         images: [],
+      },
+      favorites: {
+        album: null,
+        trip: null,
       },
     };
   }
@@ -237,6 +245,42 @@ export function getHeroImages() {
       alt: item.alt || item.caption || 'Hero image',
       caption: item.caption || null,
     }));
+}
+
+/**
+ * Get favorite album configuration from site config
+ * @returns {Object|null} Favorite album config with slug and enabled flag, or null if not configured
+ */
+export function getFavoriteAlbum() {
+  const config = getSiteConfig();
+  const favorite = config?.favorites?.album;
+  
+  if (!favorite || !favorite.enabled || !favorite.slug) {
+    return null;
+  }
+  
+  return {
+    slug: favorite.slug,
+    enabled: favorite.enabled
+  };
+}
+
+/**
+ * Get favorite trip configuration from site config
+ * @returns {Object|null} Favorite trip config with slug and enabled flag, or null if not configured
+ */
+export function getFavoriteTrip() {
+  const config = getSiteConfig();
+  const favorite = config?.favorites?.trip;
+  
+  if (!favorite || !favorite.enabled || !favorite.slug) {
+    return null;
+  }
+  
+  return {
+    slug: favorite.slug,
+    enabled: favorite.enabled
+  };
 }
 
 /**

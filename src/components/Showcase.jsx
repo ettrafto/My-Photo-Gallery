@@ -1,38 +1,42 @@
-import { motion, useInView } from 'framer-motion';
-import { useRef, useState, useEffect } from 'react';
+/**
+ * Showcase Component - Single image layout with side-entry animations
+ * 
+ * Features:
+ * - Loads images from content/site/showcase.json
+ * - Single vertical layout (one image per item)
+ * - Alternating left/right entry animations based on image.side
+ * - Supports unlimited number of images
+ */
+
+import { motion, useInView, useReducedMotion } from 'framer-motion';
+import { useState, useEffect, useRef } from 'react';
 import './Showcase.css';
 
-// Default/fallback data (used if config fails to load)
-// Updated to support 12 images
-const defaultImageTiles = [
-  { id: 1, type: 'landscape', side: 'left', src: 'https://picsum.photos/seed/showcase1/1600/900', alt: 'Landscape 1', label: null },
-  { id: 2, type: 'portrait', side: 'right', src: 'https://picsum.photos/seed/showcase2/900/1400', alt: 'Portrait 1', label: null },
-  { id: 3, type: 'landscape', side: 'left', src: 'https://picsum.photos/seed/showcase3/1600/900', alt: 'Landscape 2', label: null },
-  { id: 4, type: 'square', side: 'right', src: 'https://picsum.photos/seed/showcase4/1200/1200', alt: 'Square 1', label: null },
-  { id: 5, type: 'landscape', side: 'left', src: 'https://picsum.photos/seed/showcase5/1600/900', alt: 'Landscape 3', label: null },
-  { id: 6, type: 'landscape', side: 'right', src: 'https://picsum.photos/seed/showcase6/1600/900', alt: 'Landscape 4', label: null },
-  { id: 7, type: 'portrait', side: 'left', src: 'https://picsum.photos/seed/showcase7/900/1400', alt: 'Portrait 2', label: null },
-  { id: 8, type: 'square', side: 'right', src: 'https://picsum.photos/seed/showcase8/1200/1200', alt: 'Square 2', label: null },
-  { id: 9, type: 'landscape', side: 'left', src: 'https://picsum.photos/seed/showcase9/1600/900', alt: 'Landscape 5', label: null },
-  { id: 10, type: 'landscape', side: 'right', src: 'https://picsum.photos/seed/showcase10/1600/900', alt: 'Landscape 6', label: null },
-  { id: 11, type: 'landscape', side: 'left', src: 'https://picsum.photos/seed/showcase11/1600/900', alt: 'Landscape 7', label: null },
-  { id: 12, type: 'landscape', side: 'right', src: 'https://picsum.photos/seed/showcase12/1600/900', alt: 'Landscape 8', label: null },
-];
-
-const defaultTextCallouts = [
-  { id: 'callout1', text: 'Costa Brava', position: 'before', targetId: 1 },
-  { id: 'callout2', text: 'Bryce Canyon', position: 'after', targetId: 2 },
-  { id: 'callout3', text: 'Arches', position: 'before', targetId: 4 },
-  { id: 'callout4', text: 'Zion', position: 'after', targetId: 5 },
-  { id: 'callout5', text: 'Acadia', position: 'before', targetId: 7 },
-  { id: 'callout6', text: 'White Mountains', position: 'after', targetId: 9 },
-];
-
-// Animation variants for tiles based on side
-const getTileVariants = (side) => {
+// Animation variants for images based on entry side
+const getImageVariants = (side, reducedMotion = false) => {
   const offsetX = side === 'left' ? -400 : 400;
   const exitX = side === 'left' ? -120 : 120;
-  
+
+  if (reducedMotion) {
+    return {
+      hidden: { opacity: 0 },
+      visible: {
+        opacity: 1,
+        transition: {
+          duration: 0.6,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        },
+      },
+      exit: {
+        opacity: 0,
+        transition: {
+          duration: 0.4,
+          ease: [0.25, 0.46, 0.45, 0.94],
+        },
+      },
+    };
+  }
+
   return {
     hidden: {
       opacity: 0,
@@ -69,187 +73,174 @@ const getTileVariants = (side) => {
   };
 };
 
-// Callout animation variants
-const calloutVariants = {
-  hidden: {
-    opacity: 0,
-    y: 15,
-    scale: 0.95,
-  },
-  visible: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: {
-      type: 'spring',
-      stiffness: 120,
-      damping: 20,
-      mass: 0.8,
-    },
-  },
-  exit: {
-    opacity: 0.2,
-    y: -10,
-    scale: 0.95,
-    transition: {
-      duration: 0.3,
-      ease: [0.25, 0.46, 0.45, 0.94],
-    },
-  },
-};
-
 /**
- * ScrollTile component - Individual image tile with scroll-driven animation
+ * ShowcaseImage - Individual image tile
  */
-function ScrollTile({ tile, index }) {
+function ShowcaseImage({ image, index, total, reducedMotion }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { 
-    amount: 0.25, 
-    once: false 
+  const isInView = useInView(ref, {
+    amount: 0.35,
+    once: false,
   });
+  const imageVariants = getImageVariants(image.side || 'left', reducedMotion);
 
-  const variants = getTileVariants(tile.side);
-  // Use src from config if available, otherwise fallback to placeholder
-  const imageUrl = tile.src || `https://picsum.photos/seed/showcase${tile.id}/1600/900`;
+  // Determine aspect ratio based on type or dimensions
+  const aspectRatio = image.dimensions?.aspectRatio || 
+    (image.type === 'portrait' ? 9 / 14 : image.type === 'square' ? 1 : 16 / 9);
+  const aspectClass = `aspect-[${aspectRatio}]`;
+
+  // Format EXIF data for display (matching Lightbox)
+  const formatDate = (dateStr) => {
+    if (!dateStr) return null;
+    try {
+      const date = new Date(dateStr);
+      return date.toLocaleString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const exif = image.exif || {};
+  
+  // Build camera info line (camera + lens)
+  const cameraLine = [exif.camera, exif.lens].filter(Boolean).join('  •  ');
+  
+  // Build settings line (focal length, aperture, shutter, ISO)
+  const settingsLine = [
+    exif.focalLength,
+    exif.aperture,
+    exif.shutterSpeed,
+    exif.iso ? `ISO ${exif.iso}` : null
+  ].filter(Boolean).join('  •  ');
+
+  const formattedDate = formatDate(exif.dateTaken);
+  const location = image.location || null;
+
+  // Check if we have any EXIF or location data to display
+  const hasExifData = formattedDate || cameraLine || settingsLine || location;
+  
+  // Extract filename from src path (fallback to alt or default)
+  const filename = image.src 
+    ? image.src.split('/').pop().replace(/-large\.webp$/, '').replace(/\.webp$/, '')
+    : (image.alt || `Image ${index + 1}`);
 
   return (
     <motion.div
       ref={ref}
-      className={`showcase-tile showcase-tile-${tile.side} showcase-tile-${tile.type}`}
-      variants={variants}
+      className={`showcase-image showcase-image-${image.side || 'left'}`}
+      variants={imageVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'exit'}
-      viewport={{ amount: 0.25, once: false }}
+      viewport={{ amount: 0.35, once: false }}
       style={{ willChange: 'transform, opacity, filter' }}
     >
       <motion.div
-        className="showcase-image-wrapper"
-        whileHover={{ 
-          scale: 1.02, 
-          filter: 'contrast(1.08) brightness(1.03)',
+        className={`showcase-image-wrapper ${aspectClass}`}
+        whileHover={{
+          scale: 1.01,
+          filter: 'contrast(1.05) brightness(1.02)',
         }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <img
-          src={imageUrl}
-          alt={tile.alt || `Showcase image ${tile.id}`}
-          className="showcase-image"
+          src={image.src}
+          alt={image.alt || 'Showcase image'}
+          className="showcase-image-img"
           loading="lazy"
         />
-        {tile.label && (
-          <div className="showcase-overlay">
-            <span className="showcase-label">{tile.label}</span>
+        {image.label && (
+          <div className="showcase-image-overlay">
+            <span className="showcase-image-label">{image.label}</span>
           </div>
         )}
       </motion.div>
+      
+      {/* EXIF info section below image - matching lightbox styling */}
+      {hasExifData && (
+        <div className="showcase-exif-info">
+          <div className="showcase-exif-header">
+            <span className="showcase-exif-filename">{filename}</span>
+            <span className="showcase-exif-position">{index + 1} / {total}</span>
+          </div>
+          <div className="showcase-exif-details">
+            {location && (
+              <div className="showcase-exif-line showcase-exif-location">{location}</div>
+            )}
+            {formattedDate && (
+              <div className="showcase-exif-line showcase-exif-date">{formattedDate}</div>
+            )}
+            {cameraLine && (
+              <div className="showcase-exif-line showcase-exif-camera">{cameraLine}</div>
+            )}
+            {settingsLine && (
+              <div className="showcase-exif-line showcase-exif-settings">{settingsLine}</div>
+            )}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
 
 /**
- * Callout component - Text label with scroll animation
- */
-function Callout({ callout }) {
-  const ref = useRef(null);
-  const isInView = useInView(ref, { 
-    amount: 0.3, 
-    once: false 
-  });
-
-  return (
-    <motion.div
-      ref={ref}
-      className="showcase-callout"
-      variants={calloutVariants}
-      initial="hidden"
-      animate={isInView ? 'visible' : 'exit'}
-      viewport={{ amount: 0.3, once: false }}
-    >
-      <span className="showcase-callout-text">{callout.text}</span>
-    </motion.div>
-  );
-}
-
-/**
- * Showcase component - Scroll-driven image showcase
+ * Showcase - Main component
  */
 export default function Showcase() {
-  const [imageTiles, setImageTiles] = useState(defaultImageTiles);
-  const [textCallouts, setTextCallouts] = useState(defaultTextCallouts);
-  const [isLoading, setIsLoading] = useState(true);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const reducedMotion = useReducedMotion();
 
-  // Load showcase configuration
+  // Load showcase data from JSON
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}content/site/showcase.json`)
-      .then(res => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json();
-      })
-      .then(data => {
-        if (data.images && Array.isArray(data.images)) {
-          setImageTiles(data.images);
+    async function loadShowcase() {
+      try {
+        const response = await fetch(`${import.meta.env.BASE_URL}content/site/showcase.json`);
+        if (!response.ok) {
+          throw new Error(`Failed to load showcase: ${response.status} ${response.statusText}`);
         }
-        if (data.callouts && Array.isArray(data.callouts)) {
-          setTextCallouts(data.callouts);
-        }
-        setIsLoading(false);
-      })
-      .catch(err => {
-        console.warn('Failed to load showcase config, using defaults:', err);
-        setIsLoading(false);
-        // Keep default values
-      });
+        const data = await response.json();
+        const imagesList = Array.isArray(data.images) ? data.images : [];
+        setImages(imagesList);
+      } catch (error) {
+        console.error('Error loading showcase data:', error);
+        setImages([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadShowcase();
   }, []);
 
-  // Build ordered content array (images + callouts)
-  const content = [];
-  let imageIndex = 0;
+  if (loading) {
+    return null; // Or a loading placeholder
+  }
 
-  imageTiles.forEach((tile, idx) => {
-    // Add callout before image if specified
-    const calloutBefore = textCallouts.find(
-      c => c.targetId === tile.id && c.position === 'before'
-    );
-    if (calloutBefore) {
-      content.push({ type: 'callout', data: calloutBefore });
-    }
-
-    // Add image
-    content.push({ type: 'image', data: tile, index: imageIndex++ });
-
-    // Add callout after image if specified
-    const calloutAfter = textCallouts.find(
-      c => c.targetId === tile.id && c.position === 'after'
-    );
-    if (calloutAfter) {
-      content.push({ type: 'callout', data: calloutAfter });
-    }
-  });
+  if (!images || images.length === 0) {
+    return null;
+  }
 
   return (
-    <section className="showcase-scroll">
-      <div className="showcase-scroll-container">
-        <h2 className="showcase-scroll-title">SHOWCASE</h2>
+    <section className="showcase-section">
+      <div className="showcase-container">
+        <h2 className="showcase-title">SHOWCASE</h2>
         
-        <div className="showcase-scroll-content">
-          {content.map((item, idx) => {
-            if (item.type === 'image') {
-              return (
-                <ScrollTile 
-                  key={`tile-${item.data.id}`} 
-                  tile={item.data} 
-                  index={item.index}
-                />
-              );
-            } else {
-              return (
-                <Callout 
-                  key={`callout-${item.data.id}`} 
-                  callout={item.data}
-                />
-              );
-            }
-          })}
+        <div className="showcase-items-container">
+          {images.map((image, index) => (
+            <ShowcaseImage
+              key={`image-${image.id}`}
+              image={image}
+              index={index}
+              total={images.length}
+              reducedMotion={reducedMotion}
+            />
+          ))}
         </div>
       </div>
     </section>

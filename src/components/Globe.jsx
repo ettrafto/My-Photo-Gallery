@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { geoOrthographic, geoGraticule, geoPath } from 'd3-geo';
+import { geoOrthographic, geoGraticule, geoPath, geoRotation } from 'd3-geo';
 import { select } from 'd3-selection';
 import { feature } from 'topojson-client';
 import './Globe.css';
@@ -37,9 +37,13 @@ export default function Globe() {
   const rotationStartRef = useRef(null);
   const animationFrameRef = useRef(null);
   
-  // Auto-spin state
-  const [autoSpin, setAutoSpin] = useState(false);
-  const autoSpinRef = useRef(false);
+  // Auto-spin state - start with auto-spin enabled
+  const [autoSpin, setAutoSpin] = useState(true);
+  const autoSpinRef = useRef(true);
+  
+  // Righting animation state
+  const isRightingRef = useRef(false);
+  const rightingAnimationRef = useRef(null);
   
   // Debug overlay state
   const [showDebug, setShowDebug] = useState(false);
@@ -165,90 +169,65 @@ export default function Globe() {
    */
   const isPointVisible = (lat, lng, isTestNode = false) => {
     if (!projectionRef.current || !containerRef.current) return false;
-    
-    // Get projected coordinates from D3 first
+
+    // Rotate the point into view-space (center at 0,0) using d3's rotation utility.
+    // Visible hemisphere is where the angular distance from the center is < 90deg.
+    const [rotLng, rotLat] = geoRotation(rotationRef.current)([lng, lat]);
+    const lambda = (rotLng * Math.PI) / 180;
+    const phi = (rotLat * Math.PI) / 180;
+    const cosc = Math.cos(phi) * Math.cos(lambda); // >0 means front hemisphere
+    const hemisphereVisible = cosc > 0;
+
+    // Project to 2D and ensure we're inside the drawn circle to avoid edge bleed.
     const coords = projectionRef.current([lng, lat]);
-    
-    // If D3 returns null, point is definitely behind
-    if (!coords) {
-      if (isTestNode) {
-        testNodeVisibilityRef.current = false;
-        setTestNodeVisible(false);
-        console.log('🔵 TEST NODE: D3 projection returned null - HIDDEN');
-      }
-      return false;
-    }
-    
-    // Convert lat/lng to radians
-    const lambda = (lng * Math.PI) / 180;
-    const phi = (lat * Math.PI) / 180;
-    
-    // Get current rotation [lambda, phi, gamma]
-    const [rotLambda, rotPhi, rotGamma] = rotationRef.current;
-    const rotLambdaRad = (rotLambda * Math.PI) / 180;
-    const rotPhiRad = (rotPhi * Math.PI) / 180;
-    const rotGammaRad = (rotGamma * Math.PI) / 180;
-    
-    // Convert point to 3D cartesian coordinates on unit sphere
-    // Standard geographic to cartesian: x = cos(lat) * cos(lng), y = cos(lat) * sin(lng), z = sin(lat)
-    const x = Math.cos(phi) * Math.cos(lambda);
-    const y = Math.cos(phi) * Math.sin(lambda);
-    const z = Math.sin(phi);
-    
-    // D3's geoOrthographic.rotate([lambda, phi, gamma]) rotates the globe
-    // The rotation is applied in the order: first around Z (longitude), then around Y (latitude), then around X (gamma)
-    // To check visibility, we need to apply the INVERSE rotation to the point
-    // This tells us where the point is in the viewer's coordinate system
-    
-    // Apply INVERSE rotations in REVERSE order (undo X first, then Y, then Z)
-    // Step 1: Inverse X rotation (gamma/roll) - rotate around X axis by -gamma
-    const x1 = x;
-    const y1 = y * Math.cos(-rotGammaRad) - z * Math.sin(-rotGammaRad);
-    const z1 = y * Math.sin(-rotGammaRad) + z * Math.cos(-rotGammaRad);
-    
-    // Step 2: Inverse Y rotation (latitude) - rotate around Y axis by -phi
-    const x2 = x1 * Math.cos(-rotPhiRad) + z1 * Math.sin(-rotPhiRad);
-    const y2 = y1;
-    const z2 = -x1 * Math.sin(-rotPhiRad) + z1 * Math.cos(-rotPhiRad);
-    
-    // Step 3: Inverse Z rotation (longitude) - rotate around Z axis by -lambda
-    const x3 = x2 * Math.cos(-rotLambdaRad) - y2 * Math.sin(-rotLambdaRad);
-    const y3 = x2 * Math.sin(-rotLambdaRad) + y2 * Math.cos(-rotLambdaRad);
-    const z3 = z2;
-    
-    // In orthographic projection, viewer looks down +Z axis
-    // Point is visible if z3 > 0 (in front of viewer after inverse rotation)
-    const isVisible = z3 > 0;
-    
-    // Update test node visibility state
+    const [centerX, centerY] = projectionRef.current.translate();
+    const scale = projectionRef.current.scale();
+    const dx = coords ? coords[0] - centerX : Infinity;
+    const dy = coords ? coords[1] - centerY : Infinity;
+    const distFromCenter = Math.sqrt(dx * dx + dy * dy);
+    const withinRadius = coords ? distFromCenter <= scale + 6 : false; // small buffer for marker radius
+
+    const isVisible = hemisphereVisible && withinRadius;
+
     if (isTestNode) {
       testNodeVisibilityRef.current = isVisible;
       setTestNodeVisible(isVisible);
-      
-      const container = containerRef.current;
-      const width = container.clientWidth || 400;
-      const height = container.clientHeight || 400;
-      const centerX = width / 2;
-      const centerY = height / 2;
-      const dx = coords[0] - centerX;
-      const dy = coords[1] - centerY;
-      const distFromCenter = Math.sqrt(dx * dx + dy * dy);
-      const scale = projectionRef.current.scale();
-      
       console.log('🔵 TEST NODE:', {
         position: `lat: ${lat.toFixed(4)}, lng: ${lng.toFixed(4)}`,
-        rotation: `[${rotLambda.toFixed(2)}, ${rotPhi.toFixed(2)}, ${rotGamma.toFixed(2)}]`,
-        cartesian: `[${x.toFixed(4)}, ${y.toFixed(4)}, ${z.toFixed(4)}]`,
-        afterRot: `[${x3.toFixed(4)}, ${y3.toFixed(4)}, ${z3.toFixed(6)}]`,
-        z3: z3.toFixed(6),
-        d3Projection: `[${coords[0].toFixed(2)}, ${coords[1].toFixed(2)}]`,
+        rotation: `[${rotationRef.current.map(v => v.toFixed(2)).join(', ')}]`,
+        rotated: `[${rotLat.toFixed(4)}, ${rotLng.toFixed(4)}]`,
+        cosc: cosc.toFixed(6),
+        hemisphereVisible,
+        d3Projection: coords ? `[${coords[0].toFixed(2)}, ${coords[1].toFixed(2)}]` : 'null',
         distFromCenter: distFromCenter.toFixed(2),
         globeRadius: scale.toFixed(2),
+        withinRadius,
         isVisible,
         verdict: isVisible ? '✅ VISIBLE' : '❌ HIDDEN'
       });
     }
-    
+
+    // If we ever detect a disagreement between hemisphere check and radius check, log it.
+    if (hemisphereVisible && !withinRadius) {
+      console.debug('Globe visibility mismatch: hemisphere says visible but outside radius', {
+        lat,
+        lng,
+        rotLng,
+        rotLat,
+        distFromCenter,
+        scale
+      });
+    } else if (!hemisphereVisible && withinRadius) {
+      console.debug('Globe visibility mismatch: hemisphere says hidden but inside radius', {
+        lat,
+        lng,
+        rotLng,
+        rotLat,
+        distFromCenter,
+        scale
+      });
+    }
+
     return isVisible;
   };
 
@@ -272,15 +251,22 @@ export default function Globe() {
     // Update projection rotation
     projectionRef.current.rotate(rotationRef.current);
 
-    // Update paths
-    if (graticulePathRef.current) {
-      graticulePathRef.current.attr('d', pathRef.current);
+    // Update graticule path - explicitly call path generator with graticule data
+    if (graticulePathRef.current && graticuleRef.current) {
+      const graticuleData = graticuleRef.current();
+      graticulePathRef.current.attr('d', pathRef.current(graticuleData));
     }
+    
+    // Update land paths - explicitly update each path with its feature data
     if (landGroupRef.current && worldData) {
       landGroupRef.current
         .selectAll('.globe-land-path')
-        .attr('d', pathRef.current);
+        .each(function(d) {
+          select(this).attr('d', pathRef.current(d));
+        });
     }
+    
+    // Update markers
     if (markersGroupRef.current) {
       // Update all markers (both regular and test)
       markersGroupRef.current
@@ -313,8 +299,10 @@ export default function Globe() {
             .style('pointer-events', 'auto');
         });
     }
+    
+    // Update sphere outline - explicitly call path generator with sphere datum
     if (spherePathRef.current) {
-      spherePathRef.current.attr('d', pathRef.current);
+      spherePathRef.current.attr('d', pathRef.current({ type: 'Sphere' }));
     }
   };
 
@@ -322,9 +310,18 @@ export default function Globe() {
    * Handle pointer down (start drag)
    */
   const handlePointerDown = (e) => {
+    // Stop auto-spin and righting animation when user starts interacting
     if (autoSpinRef.current) {
       setAutoSpin(false);
       autoSpinRef.current = false;
+    }
+    
+    if (isRightingRef.current) {
+      isRightingRef.current = false;
+      if (rightingAnimationRef.current) {
+        cancelAnimationFrame(rightingAnimationRef.current);
+        rightingAnimationRef.current = null;
+      }
     }
 
     isDraggingRef.current = true;
@@ -384,6 +381,54 @@ export default function Globe() {
 
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    // Start righting animation - smoothly move phi (latitude) back to 0
+    if (!isRightingRef.current) {
+      isRightingRef.current = true;
+      const startPhi = rotationRef.current[1];
+      const startTime = performance.now();
+      const duration = 800; // 800ms animation duration
+
+      const animateRighting = (currentTime) => {
+        if (!isRightingRef.current) {
+          rightingAnimationRef.current = null;
+          return;
+        }
+
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Use ease-out cubic for smooth deceleration
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        
+        const [lambda, phi, gamma] = rotationRef.current;
+        const newPhi = startPhi * (1 - easeOutCubic); // Interpolate phi from current to 0
+        
+        rotationRef.current = [lambda, newPhi, gamma];
+        setRotation([lambda, newPhi, gamma]);
+        render();
+
+        if (progress < 1) {
+          rightingAnimationRef.current = requestAnimationFrame(animateRighting);
+        } else {
+          // Righting complete - resume auto-spin
+          // Ensure phi is exactly 0
+          const [finalLambda, , finalGamma] = rotationRef.current;
+          rotationRef.current = [finalLambda, 0, finalGamma];
+          setRotation([finalLambda, 0, finalGamma]);
+          render();
+          
+          isRightingRef.current = false;
+          rightingAnimationRef.current = null;
+          
+          // Force re-enable auto-spin - update both state and ref
+          autoSpinRef.current = true;
+          setAutoSpin(true);
+        }
+      };
+
+      rightingAnimationRef.current = requestAnimationFrame(animateRighting);
     }
   };
 
@@ -488,6 +533,11 @@ export default function Globe() {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
+      if (rightingAnimationRef.current) {
+        cancelAnimationFrame(rightingAnimationRef.current);
+        rightingAnimationRef.current = null;
+      }
+      isRightingRef.current = false;
     };
   }, [worldData, albums]);
 
@@ -509,11 +559,16 @@ export default function Globe() {
 
   // Auto-spin animation
   useEffect(() => {
-    if (!autoSpin) return;
+    if (!autoSpin || !worldData) return;
 
     const interval = setInterval(() => {
-      if (!autoSpinRef.current) {
-        clearInterval(interval);
+      // Skip if auto-spin is disabled or world data not loaded
+      if (!autoSpinRef.current || !worldData) {
+        return;
+      }
+      
+      // Skip if righting animation is active (but keep interval running)
+      if (isRightingRef.current) {
         return;
       }
 
@@ -525,7 +580,7 @@ export default function Globe() {
     }, 16); // ~60fps
 
     return () => clearInterval(interval);
-  }, [autoSpin]);
+  }, [autoSpin, worldData]);
 
   // Format rotation for display
   const formatRotation = (rot) => {
@@ -580,6 +635,11 @@ export default function Globe() {
         >
           {showDebug ? 'Hide' : 'Debug'}
         </button> */}
+      </div>
+      <div className="globe-spin-label">
+        <span className="globe-spin-arrow">←</span>
+        <span className="globe-spin-text">spin me</span>
+        <span className="globe-spin-arrow">→</span>
       </div>
     </div>
   );

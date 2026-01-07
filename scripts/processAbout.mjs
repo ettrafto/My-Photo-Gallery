@@ -1,27 +1,25 @@
 #!/usr/bin/env node
 
 /**
- * Showcase Processing Pipeline
+ * About Photo Processing Pipeline
  *
  * Usage:
- *   npm run process:showcase            # Process showcase images
- *   npm run process:showcase -- --force  # Reprocess all images
+ *   npm run process:about            # Process about images
+ *   npm run process:about -- --force  # Reprocess all images
  *
  * What it does:
- *   1) Reads originals from photo-source/showcase/
- *   2) Generates WebP variants to public/photos/showcase/:
+ *   1) Reads originals from photo-source/about/
+ *   2) Generates WebP variants to public/about/:
  *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
- *   3) Extracts EXIF data (camera, lens, aperture, shutter, ISO, focal length, date)
- *   4) Extracts location from metadata file or EXIF GPS (if available)
- *   5) Builds/updates content/site/showcase.json with:
- *        - Images with type, side, src paths, dimensions, EXIF data, and location
+ *   3) Builds/updates content/site/about.json with:
+ *        - Processed image paths in images array
+ *        - Preserves alt text and captions from metadata or EXIF
  *
  * Notes:
- *   - Processes all images in photo-source/showcase/ (unlimited number)
- *   - Determines image type from aspect ratio
- *   - Alternates left/right sides automatically
- *   - Location can be configured via _showcase.json metadata file:
- *        { "locations": { "IMG_9041.JPG": "Zion National Park", "1": "Bryce Canyon" } }
+ *   - Processes all images found in photo-source/about/
+ *   - Automatically updates about.json with processed paths
+ *   - Preserves existing alt text and captions
+ *   - Metadata can be configured via _about.json metadata file
  */
 
 import fs from 'fs';
@@ -38,11 +36,11 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const CONFIG = {
-  INPUT_DIR: 'photo-source/showcase',
-  OUTPUT_DIR: 'public/photos/showcase',
+  INPUT_DIR: 'photo-source/about',
+  OUTPUT_DIR: 'public/about',
   CONTENT_DIR: 'content',
-  SHOWCASE_CONFIG: 'content/site/showcase.json',
-  METADATA_FILE: 'photo-source/showcase/_showcase.json',
+  ABOUT_CONFIG: 'content/site/about.json',
+  METADATA_FILE: 'photo-source/about/_about.json',
   SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
     large: { maxSize: 1800, quality: 80, suffix: '-large' },
@@ -96,37 +94,6 @@ async function getSharpInput(imagePath) {
 }
 
 /**
- * Determine image type from aspect ratio
- * Refined thresholds for better classification:
- * - Landscape: > 1.25 (wider than 5:4)
- * - Portrait: < 0.8 (taller than 5:4)
- * - Square: between 0.8 and 1.25
- */
-function getImageType(width, height) {
-  const aspectRatio = width / height;
-  
-  if (aspectRatio > 1.25) {
-    return 'landscape';
-  } else if (aspectRatio < 0.8) {
-    return 'portrait';
-  } else {
-    return 'square';
-  }
-}
-
-/**
- * Format shutter speed from decimal to fraction
- */
-function formatShutterSpeed(speed) {
-  if (!speed) return null;
-  if (speed >= 1) {
-    return `${speed}s`;
-  }
-  const frac = Math.round(1 / speed);
-  return `1/${frac}s`;
-}
-
-/**
  * Get image metadata (dimensions and EXIF) efficiently
  * Returns both dimensions and EXIF data in one pass
  * Reuses Sharp input to avoid duplicate file reads (important for HEIC files)
@@ -136,80 +103,78 @@ async function getImageMetadata(imagePath) {
     const sharpInput = await getSharpInput(imagePath);
     const image = sharp(sharpInput.input);
     
-    // Get dimensions and EXIF in parallel
+    // Get dimensions and EXIF in parallel for efficiency
     const [metadata, exifData] = await Promise.all([
       image.metadata(),
       exifr.parse(imagePath, {
-        pick: [
-          'Make',
-          'Model',
-          'LensModel',
-          'FNumber',
-          'ExposureTime',
-          'ISO',
-          'DateTimeOriginal',
-          'FocalLength',
-          'Copyright',
-          'Artist',
-          'ImageDescription',
-          'latitude',
-          'longitude',
-          'GPSLatitude',
-          'GPSLongitude',
-          'GPSLatitudeRef',
-          'GPSLongitudeRef'
-        ]
-      }).catch(() => ({})) // Ignore EXIF errors
+        pick: ['ImageDescription', 'DateTimeOriginal', 'Make', 'Model', 'FNumber', 'ExposureTime', 'ISO', 'FocalLength']
+      }).catch(() => ({})) // Ignore EXIF errors gracefully
     ]);
 
-    // Format EXIF data similar to importPhotos.mjs
-    const formattedExif = {
-      camera: exifData.Make && exifData.Model ? `${exifData.Make} ${exifData.Model}` : null,
-      lens: exifData.LensModel || null,
-      aperture: exifData.FNumber ? `f/${exifData.FNumber}` : null,
-      shutterSpeed: exifData.ExposureTime ? formatShutterSpeed(exifData.ExposureTime) : null,
-      iso: exifData.ISO || null,
-      focalLength: exifData.FocalLength ? `${Math.round(exifData.FocalLength)}mm` : null,
-      dateTaken: exifData.DateTimeOriginal || null,
-      copyright: exifData.Copyright || null,
-      artist: exifData.Artist || null,
-      description: exifData.ImageDescription || null
-    };
-
-    // Extract GPS coordinates for location (optional, can also be set manually)
-    let location = null;
-    if (typeof exifData.latitude === 'number' && typeof exifData.longitude === 'number') {
-      // Already in decimal format - location name would need to come from metadata file
-    } else if (exifData.GPSLatitude && exifData.GPSLongitude) {
-      // GPS coordinates available but location name would still need to come from metadata
+    if (!metadata.width || !metadata.height) {
+      throw new Error('Invalid image dimensions');
     }
 
     return {
       width: metadata.width,
       height: metadata.height,
       aspectRatio: metadata.width / metadata.height,
-      sharpInput, // Return the input for reuse
-      exif: formattedExif,
-      location: location // Will be overridden by metadata file if available
+      sharpInput, // Return the input for reuse in processing
+      exif: exifData
     };
   } catch (error) {
-    console.error(`  ⚠️  Could not read metadata for ${imagePath}: ${error.message}`);
+    console.error(`  ⚠️  Could not read metadata for ${path.basename(imagePath)}: ${error.message}`);
     return {
       width: 1600,
       height: 900,
       aspectRatio: 16/9,
       sharpInput: null,
-      exif: {},
-      location: null
+      exif: {}
     };
   }
 }
 
 /**
- * Process a single showcase image efficiently
+ * Format EXIF data into a caption string
+ */
+function formatExifCaption(exif) {
+  if (!exif || Object.keys(exif).length === 0) return null;
+  
+  const parts = [];
+  
+  // Focal length
+  if (exif.FocalLength) {
+    parts.push(`${Math.round(exif.FocalLength)}mm`);
+  }
+  
+  // Aperture
+  if (exif.FNumber) {
+    parts.push(`f/${exif.FNumber}`);
+  }
+  
+  // Shutter speed
+  if (exif.ExposureTime) {
+    if (exif.ExposureTime >= 1) {
+      parts.push(`${exif.ExposureTime}s`);
+    } else {
+      const denominator = Math.round(1 / exif.ExposureTime);
+      parts.push(`1/${denominator}s`);
+    }
+  }
+  
+  // ISO
+  if (exif.ISO) {
+    parts.push(`ISO ${exif.ISO}`);
+  }
+  
+  return parts.length > 0 ? parts.join(' • ') : null;
+}
+
+/**
+ * Process a single about image efficiently
  * Reuses Sharp input to avoid duplicate file reads
  */
-async function processShowcaseImage(imageFile, index, force = false, metadata = {}) {
+async function processAboutImage(imageFile, index, metadata, force = false) {
   const inputPath = path.join(ROOT, CONFIG.INPUT_DIR, imageFile);
   const outputDir = path.join(ROOT, CONFIG.OUTPUT_DIR);
   
@@ -232,12 +197,7 @@ async function processShowcaseImage(imageFile, index, force = false, metadata = 
       throw new Error('Failed to load image input');
     }
 
-    const { width, height, aspectRatio, sharpInput, exif, location: exifLocation } = imageMetadata;
-    const imageType = getImageType(width, height);
-
-    // Get location from metadata file (by filename or index 1-based) or use EXIF-derived location
-    const locations = metadata.locations || {};
-    const location = locations[imageFile] || locations[baseName] || locations[index + 1] || exifLocation || null;
+    const { width, height, aspectRatio, sharpInput, exif } = imageMetadata;
 
     // Check which variants need processing (skip existing unless force)
     const variantsToProcess = [];
@@ -285,28 +245,18 @@ async function processShowcaseImage(imageFile, index, force = false, metadata = 
       }
     }
 
-    // Determine side (alternate left/right)
-    const side = index % 2 === 0 ? 'left' : 'right';
-
-    // Get alt text from EXIF or use default
-    const altText = exif?.description || `Showcase image ${index + 1}`;
-
-    // Only include exif if it has any meaningful data
-    const hasExifData = exif && (
-      exif.camera || exif.lens || exif.aperture || exif.shutterSpeed || 
-      exif.iso || exif.focalLength || exif.dateTaken
+    // Get alt text and caption from metadata or EXIF
+    const metadataItem = metadata?.images?.find(img => 
+      img.filename === imageFile || img.filename === baseName
     );
+    
+    const altText = metadataItem?.alt || exif?.ImageDescription || `About image ${index + 1}`;
+    const caption = metadataItem?.caption || formatExifCaption(exif) || null;
 
     return {
-      id: index + 1,
-      type: imageType,
-      side: side,
-      src: `/photos/showcase/${baseName}-large.webp`,
+      src: `/about/${baseName}-large.webp`,
       alt: altText,
-      label: null,
-      location: location,
-      exif: hasExifData ? exif : undefined,
-      dimensions: { width, height, aspectRatio }
+      caption: caption
     };
   } catch (error) {
     console.error(`  ❌ ERROR processing ${imageFile}: ${error.message}`);
@@ -316,44 +266,56 @@ async function processShowcaseImage(imageFile, index, force = false, metadata = 
 
 /**
  * Load metadata file if it exists
- * Supports:
- * - locations: Object mapping image filename or index (1-based) to location name
- *   Example: { "locations": { "IMG_9041.JPG": "Zion National Park", "1": "Bryce Canyon" } }
  */
 async function loadMetadata() {
   const metadataPath = path.join(ROOT, CONFIG.METADATA_FILE);
   if (!existsSync(metadataPath)) {
-    return { locations: {} };
+    return { images: null };
   }
 
   try {
     const content = await fsp.readFile(metadataPath, 'utf-8');
     const metadata = JSON.parse(content);
-    return {
-      locations: metadata.locations || {}
-    };
+    return metadata;
   } catch (error) {
     console.warn(`  ⚠️  Could not load metadata file: ${error.message}`);
-    return { locations: {} };
+    return { images: null };
   }
 }
 
 /**
- * Write showcase.json configuration
+ * Load existing about config if it exists
  */
-async function writeShowcaseConfig(images, metadata) {
-  const configPath = path.join(ROOT, CONFIG.SHOWCASE_CONFIG);
+async function loadAboutConfig() {
+  const configPath = path.join(ROOT, CONFIG.ABOUT_CONFIG);
+  if (!existsSync(configPath)) {
+    return { images: [] };
+  }
+
+  try {
+    const content = await fsp.readFile(configPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    console.warn(`  ⚠️  Could not load existing about config: ${error.message}`);
+    return { images: [] };
+  }
+}
+
+/**
+ * Write about.json configuration
+ */
+async function writeAboutConfig(aboutImages) {
+  const configPath = path.join(ROOT, CONFIG.ABOUT_CONFIG);
   const configDir = path.dirname(configPath);
   
   await fsp.mkdir(configDir, { recursive: true });
 
   const config = {
-    images: images.filter(img => img !== null)
+    images: aboutImages.filter(img => img !== null)
   };
 
   await fsp.writeFile(configPath, JSON.stringify(config, null, 2));
   console.log(`  ✅ Generated ${configPath}`);
-  console.log(`     - ${config.images.length} images with EXIF and location data`);
 }
 
 /**
@@ -361,7 +323,7 @@ async function writeShowcaseConfig(images, metadata) {
  */
 async function main() {
   console.log('');
-  console.log('🎨 Showcase Processing Pipeline');
+  console.log('📸 About Photo Processing Pipeline');
   console.log('━'.repeat(60));
   console.log('');
 
@@ -370,7 +332,7 @@ async function main() {
 
   if (!existsSync(inputDir)) {
     console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
-    console.error('   Please create photo-source/showcase/ and add your images');
+    console.error('   Please create photo-source/about/ and add your images');
     process.exit(1);
   }
 
@@ -383,15 +345,15 @@ async function main() {
   }).sort();
 
   if (imageFiles.length === 0) {
-    console.error('❌ No images found in photo-source/showcase/');
+    console.error('❌ No images found in photo-source/about/');
     console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
     process.exit(1);
   }
 
-  console.log(`   Found ${imageFiles.length} image(s) to process`);
+  console.log(`   Found ${imageFiles.length} image(s)`);
   console.log('');
 
-  // Load metadata if available
+  // Load metadata
   const metadata = await loadMetadata();
 
   // Process images in parallel with concurrency limit
@@ -401,7 +363,7 @@ async function main() {
   // Process images in batches to avoid overwhelming the system
   // Concurrency limit balances speed with memory usage
   const CONCURRENCY_LIMIT = 3; // Process 3 images at a time
-  const images = [];
+  const aboutImages = [];
   let processedCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
@@ -413,14 +375,14 @@ async function main() {
     console.log(`📦 Processing batch ${Math.floor(i / CONCURRENCY_LIMIT) + 1}/${Math.ceil(imageFiles.length / CONCURRENCY_LIMIT)} (${batch.length} image(s))...`);
     
     const batchPromises = batch.map((imageFile, idx) => 
-      processShowcaseImage(imageFile, batchIndex + idx, options.force, metadata)
+      processAboutImage(imageFile, batchIndex + idx, metadata, options.force)
     );
     
     const batchResults = await Promise.all(batchPromises);
     
     for (const imageData of batchResults) {
       if (imageData) {
-        images.push(imageData);
+        aboutImages.push(imageData);
         processedCount++;
       } else {
         errorCount++;
@@ -449,19 +411,19 @@ async function main() {
     console.log('');
   }
 
-  if (images.length === 0) {
+  if (aboutImages.length === 0) {
     console.error('❌ No images were successfully processed');
     process.exit(1);
   }
 
-  // Generate showcase.json
-  console.log('📝 Generating showcase.json...');
-  await writeShowcaseConfig(images, metadata);
+  // Generate about.json
+  console.log('📝 Generating about.json...');
+  await writeAboutConfig(aboutImages);
 
   console.log('');
-  console.log('✅ Showcase processing complete!');
-  console.log(`   Images: ${images.length} configured`);
-  console.log(`   Config: ${CONFIG.SHOWCASE_CONFIG}`);
+  console.log('✅ About processing complete!');
+  console.log(`   Images: ${aboutImages.length} configured`);
+  console.log(`   Config: ${CONFIG.ABOUT_CONFIG}`);
   console.log(`   Output: ${CONFIG.OUTPUT_DIR}`);
   console.log('');
 }
