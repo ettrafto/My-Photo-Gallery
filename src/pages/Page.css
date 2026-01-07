@@ -68,3 +68,18 @@
   opacity: 0.6;
 }
 
+.highlights-section {
+  display: flex;
+  gap: 2rem;
+  margin: 2rem auto;
+  max-width: 1120px; /* ~20% smaller than hero container (1400px) */
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .highlights-section {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+}
+

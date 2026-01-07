@@ -1,0 +1,33 @@
+.favorite-album {
+  flex: 1;
+  min-height: 300px;
+  padding: 2rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+}
+
+.favorite-album-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.favorite-album-title {
+  font-family: var(--mono-display);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.favorite-album-placeholder {
+  font-family: var(--mono-ui);
+  font-size: 0.95rem;
+  opacity: 0.6;
+  text-align: center;
+}
+

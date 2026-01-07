@@ -1,5 +1,8 @@
 import Hero from '../components/Hero';
-import AlbumGrid from '../components/AlbumGrid';
+import FavoriteAlbum from '../components/FavoriteAlbum';
+import FavoriteTrip from '../components/FavoriteTrip';
+import Showcase from '../components/Showcase';
+import Globe from '../components/Globe';
 import './Page.css';
 
 export default function Home() {
@@ -7,7 +10,12 @@ export default function Home() {
     <>
       <Hero />
       <main className="page-shell">
-        <AlbumGrid />
+        <div className="highlights-section">
+          <FavoriteAlbum />
+          <FavoriteTrip />
+        </div>
+        <Showcase />
+        <Globe />
       </main>
     </>
   );

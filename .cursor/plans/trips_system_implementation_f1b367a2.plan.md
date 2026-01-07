@@ -50,7 +50,7 @@ todos:
 
 ## Data Architecture
 
-```mermaid
+````mermaid
 graph TB
     subgraph content [Content Layer]
         tripJSON[content/trips/*.json]
@@ -84,12 +84,12 @@ graph TB
 
 - Create `content/trips/` directory
 - Add example trip: `content/trips/western-parks-2025.json` with complete schema including:
-  - Basic metadata (slug, title, dates, region, summary)
-  - albumSlugs array referencing existing albums (e.g., `["cascades", "olympic", "yosemite"]`)
-  - Route with polyline points
-  - Highlights array with GPS coordinates
-  - Media array for supplemental content
-  - coverImage path (will use first album photo as fallback if missing)
+        - Basic metadata (slug, title, dates, region, summary)
+        - albumSlugs array referencing existing albums (e.g., `["cascades", "olympic", "yosemite"]`)
+        - Route with polyline points
+        - Highlights array with GPS coordinates
+        - Media array for supplemental content
+        - coverImage path (will use first album photo as fallback if missing)
 
 ### 1.2 Create Trip Registry
 
@@ -102,11 +102,11 @@ graph TB
 ### 1.3 Add JSDoc Types
 
 - Create `src/types/trips.jsdoc.js` with comprehensive JSDoc type definitions:
-  - `@typedef {Object} Trip` - main trip structure
-  - `@typedef {Object} TripHighlight` - highlight with map coordinates
-  - `@typedef {Object} TripMediaItem` - supplemental media
-  - `@typedef {Object} TripRoutePoint` - polyline points
-  - Reuse Photo type from map.json structure
+        - `@typedef {Object} Trip` - main trip structure
+        - `@typedef {Object} TripHighlight` - highlight with map coordinates
+        - `@typedef {Object} TripMediaItem` - supplemental media
+        - `@typedef {Object} TripRoutePoint` - polyline points
+        - Reuse Photo type from map.json structure
 
 ## Phase 2: Routing
 
@@ -125,8 +125,8 @@ Create `src/components/TripCard.jsx` and `src/components/TripCard.css`:
 
 - Display: cover image, title, date range, region, summary
 - Cover image fallback logic:
-  - Use `trip.coverImage` if present
-  - Else if `trip.useFirstAlbumCoverIfMissing`, fetch first album's cover from `content/albums/{slug}.json`
+        - Use `trip.coverImage` if present
+        - Else if `trip.useFirstAlbumCoverIfMissing`, fetch first album's cover from `content/albums/{slug}.json`
 - Link to `/trips/:slug`
 - Styling: match existing album card aesthetic (dark theme, hover effects)
 
@@ -156,14 +156,14 @@ Create `src/pages/TripDetail.jsx` and `src/pages/TripDetail.css`:
 
 1. **Hero Section**
 
-   - Full-width cover image (fallback to first tripPhotos)
-   - Overlaid title
+            - Full-width cover image (fallback to first tripPhotos)
+            - Overlaid title
 
 2. **Summary Bar**
 
-   - Trip metadata: title, date range, region
-   - Stats: duration (computed from dates), photo count, album count
-   - Summary text
+            - Trip metadata: title, date range, region
+            - Stats: duration (computed from dates), photo count, album count
+            - Summary text
 
 3. **Trip Map Section** (see 4.2)
 
@@ -173,27 +173,27 @@ Create `src/pages/TripDetail.jsx` and `src/pages/TripDetail.css`:
 
 6. **All Photos Gallery**
 
-   - Grid/masonry layout of all tripPhotos
-   - Sort by dateTaken if available
-   - Album-agnostic display
-   - Reuse existing Lightbox component for photo viewing
+            - Grid/masonry layout of all tripPhotos
+            - Sort by dateTaken if available
+            - Album-agnostic display
+            - Reuse existing Lightbox component for photo viewing
 
 7. **Supplemental Media Section**
 
-   - Render trip.media items by type:
-     - `map-image`: standard img with caption
-     - `journal`: markdown link or inline display
-     - `video`: video element with controls
-     - `artifact`: styled image card
-     - `gpx`: download link
-     - `collage`: full-width image
-     - `external-link`: styled link card
-   - Grouped subsections if needed
+            - Render trip.media items by type:
+                    - `map-image`: standard img with caption
+                    - `journal`: markdown link or inline display
+                    - `video`: video element with controls
+                    - `artifact`: styled image card
+                    - `gpx`: download link
+                    - `collage`: full-width image
+                    - `external-link`: styled link card
+            - Grouped subsections if needed
 
 8. **Misc Images Strip** (optional)
 
-   - Horizontal scrolling strip for trip.miscImages
-   - "Behind the Scenes" heading
+            - Horizontal scrolling strip for trip.miscImages
+            - "Behind the Scenes" heading
 
 ### 4.2 Create TripMap Component
 
@@ -205,8 +205,8 @@ Create `src/components/TripMap.jsx` and `src/components/TripMap.css`:
 - Draw polyline if `trip.route.polyline` exists
 - Fit bounds to include markers + polyline
 - Expose methods via ref for external control:
-  - `panToLocation(lat, lng)` - center map on coordinates
-  - `highlightMarker(photoPath)` - optionally highlight specific marker
+        - `panToLocation(lat, lng)` - center map on coordinates
+        - `highlightMarker(photoPath)` - optionally highlight specific marker
 - Use existing dark theme map styling
 
 ### 4.3 Create TripHighlightsCarousel
@@ -215,10 +215,10 @@ Create `src/components/TripHighlightsCarousel.jsx` and `.css`:
 
 - Props: `highlights`, `onHighlightHover`, `onHighlightClick`
 - Carousel/slider showing each highlight:
-  - Large image
-  - Title, description, date
+        - Large image
+        - Title, description, date
 - Interaction:
-  - On hover/click → callback with `{lat, lng}` to pan map
+        - On hover/click → callback with `{lat, lng}` to pan map
 - Simple CSS-based carousel (no heavy library)
 - Keyboard navigation support
 
@@ -230,8 +230,8 @@ Create `src/components/TripTimeline.jsx` and `.css`:
 - Vertical timeline displaying highlights chronologically
 - Each item: date, title, small thumbnail
 - On click → callback to:
-  - Scroll to corresponding carousel slide
-  - Pan map to location
+        - Scroll to corresponding carousel slide
+        - Pan map to location
 - Simple CSS timeline with dots/lines
 
 ## Phase 5: Interactive Map Synchronization
@@ -328,4 +328,5 @@ Update `scripts/copy-content.mjs`:
 - [ ] All photos gallery shows images from all trip albums
 - [ ] Supplemental media renders correctly by type
 - [ ] Responsive on mobile
-- [ ] Build script copies trips content to dist/
+
+````
