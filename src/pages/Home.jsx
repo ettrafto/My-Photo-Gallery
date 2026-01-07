@@ -10,12 +10,12 @@ export default function Home() {
     <>
       <Hero />
       <main className="page-shell">
+        <Globe />
+        <Showcase />
         <div className="highlights-section">
           <FavoriteAlbum />
           <FavoriteTrip />
         </div>
-        <Showcase />
-        <Globe />
       </main>
     </>
   );

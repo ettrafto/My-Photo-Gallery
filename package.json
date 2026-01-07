@@ -9,6 +9,7 @@
     "init-locations": "node scripts/initAlbumLocations.mjs",
     "process:photos": "node scripts/processPhotos.mjs",
     "process:hero": "node scripts/processHero.mjs",
+    "process:showcase": "node scripts/processShowcase.mjs",
     "import:photos": "node scripts/importPhotos.mjs",
     "reset:gallery": "node scripts/resetGallery.mjs",
     "dev": "vite",
@@ -17,6 +18,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "d3": "^7.9.0",
+    "d3-geo": "^3.1.1",
     "exifr": "^7.1.3",
     "framer-motion": "^12.23.26",
     "leaflet": "^1.9.4",
@@ -24,7 +27,8 @@
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3",
-    "slugify": "^1.6.6"
+    "slugify": "^1.6.6",
+    "topojson-client": "^3.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",

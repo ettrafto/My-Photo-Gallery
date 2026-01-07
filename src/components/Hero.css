@@ -11,7 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  padding: 4rem 2rem 0 2rem;
 }
 
 .hero-skeleton-overlay {
@@ -266,7 +266,7 @@
 @media (max-width: 768px) {
   .hero {
     min-height: auto;
-    padding: 3rem 1.5rem;
+    padding: 3rem 1.5rem 0 1.5rem;
   }
   
   .hero-container {
@@ -334,7 +334,7 @@
 /* Small Mobile */
 @media (max-width: 480px) {
   .hero {
-    padding: 2rem 1rem;
+    padding: 2rem 1rem 0 1rem;
   }
   
   .hero-headline {

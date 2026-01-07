@@ -521,9 +521,9 @@ async function writeMapIndex(contentDir, albumsList) {
     }
   }
 
-  const mapPhotos = [];
-  let exifGpsCount = 0;
-  let albumDefaultCount = 0;
+  const mapAlbums = [];
+  let albumsWithGpsCount = 0;
+  let albumsWithDefaultCount = 0;
 
   for (const album of albumsList) {
     const albumJsonPath = path.join(contentDir, 'albums', `${album.slug}.json`);
@@ -532,60 +532,91 @@ async function writeMapIndex(contentDir, albumsList) {
     const albumData = JSON.parse(fs.readFileSync(albumJsonPath, 'utf-8'));
     const photos = albumData.photos || [];
 
+    // Collect all valid GPS coordinates from photos
+    const validGpsPhotos = [];
+    let hasDefaultLocation = false;
+    let defaultLat = null;
+    let defaultLng = null;
+
     for (const photo of photos) {
-      let { lat, lng } = photo;
-      let accuracy = null;
-
-      if (typeof lat === 'number' && typeof lng === 'number') {
-        accuracy = 'exif';
-        exifGpsCount++;
-      } else {
-        // Try albumLocations.json first
-        const locationData = albumLocations[album.slug]?.defaultLocation;
-        if (
-          locationData &&
-          typeof locationData.lat === 'number' &&
-          typeof locationData.lng === 'number'
-        ) {
-          lat = locationData.lat;
-          lng = locationData.lng;
-          accuracy = 'album-default';
-          albumDefaultCount++;
-        } else if (
-          album.primaryLocation &&
-          typeof album.primaryLocation.lat === 'number' &&
-          typeof album.primaryLocation.lng === 'number'
-        ) {
-          // Fall back to primaryLocation from albums.json
-          lat = album.primaryLocation.lat;
-          lng = album.primaryLocation.lng;
-          accuracy = 'album-primary';
-          albumDefaultCount++;
-        } else {
-          continue;
-        }
+      if (typeof photo.lat === 'number' && typeof photo.lng === 'number') {
+        validGpsPhotos.push({ lat: photo.lat, lng: photo.lng, dateTaken: photo.exif?.dateTaken || null });
       }
-
-      mapPhotos.push({
-        albumSlug: album.slug,
-        albumTitle: album.title,
-        filename: photo.filename,
-        path: photo.path,
-        lat,
-        lng,
-        accuracy,
-        dateTaken: photo.exif?.dateTaken || null,
-        tags: album.tags || []
-      });
     }
+
+    // If no GPS photos, try album default location
+    if (validGpsPhotos.length === 0) {
+      const locationData = albumLocations[album.slug]?.defaultLocation;
+      if (
+        locationData &&
+        typeof locationData.lat === 'number' &&
+        typeof locationData.lng === 'number'
+      ) {
+        defaultLat = locationData.lat;
+        defaultLng = locationData.lng;
+        hasDefaultLocation = true;
+        albumsWithDefaultCount++;
+      } else if (
+        album.primaryLocation &&
+        typeof album.primaryLocation.lat === 'number' &&
+        typeof album.primaryLocation.lng === 'number'
+      ) {
+        defaultLat = album.primaryLocation.lat;
+        defaultLng = album.primaryLocation.lng;
+        hasDefaultLocation = true;
+        albumsWithDefaultCount++;
+      }
+    } else {
+      albumsWithGpsCount++;
+    }
+
+    // Skip album if no location data available
+    if (validGpsPhotos.length === 0 && !hasDefaultLocation) {
+      continue;
+    }
+
+    // Calculate average location
+    let avgLat, avgLng;
+    if (validGpsPhotos.length > 0) {
+      avgLat = validGpsPhotos.reduce((sum, p) => sum + p.lat, 0) / validGpsPhotos.length;
+      avgLng = validGpsPhotos.reduce((sum, p) => sum + p.lng, 0) / validGpsPhotos.length;
+    } else {
+      avgLat = defaultLat;
+      avgLng = defaultLng;
+    }
+
+    // Collect date range from photos with dates
+    const dates = validGpsPhotos
+      .map(p => p.dateTaken)
+      .filter(Boolean)
+      .sort();
+
+    const albumEntry = {
+      albumSlug: album.slug,
+      albumTitle: album.title,
+      lat: avgLat,
+      lng: avgLng,
+      photoCount: validGpsPhotos.length || photos.length,
+      tags: album.tags || []
+    };
+
+    // Add date range if available
+    if (dates.length > 0) {
+      albumEntry.dateRange = {
+        start: dates[0],
+        end: dates[dates.length - 1]
+      };
+    }
+
+    mapAlbums.push(albumEntry);
   }
 
   const mapIndexPath = path.join(contentDir, 'map.json');
-  await fsp.writeFile(mapIndexPath, JSON.stringify({ photos: mapPhotos }, null, 2));
+  await fsp.writeFile(mapIndexPath, JSON.stringify({ albums: mapAlbums }, null, 2));
 
-  console.log(`✅ Generated map.json with ${mapPhotos.length} geotagged photo(s)`);
-  console.log(`   ${exifGpsCount} from EXIF GPS`);
-  console.log(`   ${albumDefaultCount} from album default location`);
+  console.log(`✅ Generated map.json with ${mapAlbums.length} album(s)`);
+  console.log(`   ${albumsWithGpsCount} with GPS from photos`);
+  console.log(`   ${albumsWithDefaultCount} with default location`);
 }
 
 async function main() {

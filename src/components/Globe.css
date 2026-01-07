@@ -3,32 +3,186 @@
   min-height: 500px;
   margin: 2rem calc(-50vw + 50%);
   padding: 3rem 2rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.8);
+  background: transparent;
+}
+
+.globe-wrapper {
+  position: relative;
+  width: 40vw;
+  max-width: 40vw;
+  margin: 0 auto;
+  aspect-ratio: 1;
+}
+
+.globe-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  user-select: none;
+  touch-action: none;
+  overflow: visible;
+}
+
+.globe-graticule,
+.globe-sphere {
+  transform-origin: center;
+}
+
+/* Graticule lines (latitude/longitude grid) */
+.globe-graticule-path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.15);
+  stroke-width: 0.5;
+  opacity: 0.8;
+}
+
+/* Land masses */
+.globe-land-path {
+  fill: rgba(200, 200, 200, 0.7);
+  stroke: none;
+}
+
+/* Album markers - glowing white nodes */
+.globe-marker {
+  fill: rgba(255, 255, 255, 0.95);
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1;
+  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.8)) 
+          drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))
+          drop-shadow(0 0 12px rgba(255, 255, 255, 0.3));
+  pointer-events: none;
+}
+
+/* Test marker - blue for debugging visibility */
+.globe-marker-test {
+  fill: rgba(0, 150, 255, 0.95);
+  stroke: rgba(0, 100, 255, 0.8);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 6px rgba(0, 150, 255, 0.9)) 
+          drop-shadow(0 0 12px rgba(0, 150, 255, 0.6))
+          drop-shadow(0 0 18px rgba(0, 150, 255, 0.4));
+  pointer-events: none;
+  /* Force visibility controls */
+  will-change: transform, opacity, visibility;
+}
+
+/* Sphere outline */
+.globe-sphere-path {
+  fill: rgba(255, 255, 255, 0.02);
+  stroke: rgba(255, 255, 255, 0.6);
+  stroke-width: 1.5;
+  opacity: 0.9;
+}
+
+/* Debug overlay */
+.globe-debug {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-family: var(--mono-ui), monospace;
+  font-size: 0.75rem;
+  z-index: 10;
   backdrop-filter: blur(10px);
 }
 
-.globe-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
+.globe-debug-info {
+  margin-bottom: 0.75rem;
 }
 
-.globe-title {
-  font-family: var(--mono-display);
-  font-size: 2rem;
-  margin-bottom: 1rem;
+.globe-debug-label {
+  opacity: 0.7;
+  margin-bottom: 0.25rem;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
+  font-size: 0.7rem;
 }
 
-.globe-placeholder {
-  font-family: var(--mono-ui);
-  font-size: 0.95rem;
-  opacity: 0.6;
-  text-align: center;
+.globe-debug-value {
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Courier New', monospace;
+}
+
+.globe-debug-controls {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.globe-debug-button {
+  padding: 0.4rem 0.8rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--mono-ui), monospace;
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.globe-debug-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.globe-debug-button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Debug toggle button */
+.globe-debug-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  padding: 0.4rem 0.8rem;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.7);
+  font-family: var(--mono-ui), monospace;
+  font-size: 0.7rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  z-index: 10;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.globe-debug-toggle:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .globe {
+    min-height: 400px;
+    padding: 2rem 1rem;
+  }
+
+  .globe-wrapper {
+    max-width: 100%;
+  }
+
+  .globe-debug {
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.65rem;
+  }
+
+  .globe-debug-toggle {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.65rem;
+  }
 }
 
