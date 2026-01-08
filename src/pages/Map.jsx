@@ -23,7 +23,7 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 export default function MapPage() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const [photos, setPhotos] = useState([]);
+  const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -32,79 +32,79 @@ export default function MapPage() {
   const [mapBounds, setMapBounds] = useState(null); // L.LatLngBounds
   const [albumsByProximity, setAlbumsByProximity] = useState([]);
 
-  // Load geotagged photos
+  // Load albums with geo data
   useEffect(() => {
     setLoading(true);
-    fetch(`${import.meta.env.BASE_URL}content/map.json`)
+    fetch(`${import.meta.env.BASE_URL}content/albums.json`)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then((data) => {
-        setPhotos(data.photos || []);
+        // Filter albums to only those with valid primaryLocation coordinates
+        const albumsWithGeo = (data.albums || []).filter(album => 
+          album.primaryLocation &&
+          typeof album.primaryLocation.lat === 'number' &&
+          typeof album.primaryLocation.lng === 'number' &&
+          !isNaN(album.primaryLocation.lat) &&
+          !isNaN(album.primaryLocation.lng)
+        );
+        
+        setAlbums(albumsWithGeo);
         setLoading(false);
+        console.log(`📍 Loaded ${albumsWithGeo.length} album(s) with geo data`);
       })
       .catch((err) => {
-        console.error('Failed to load map index:', err);
-        setError('Could not load map data');
+        console.error('Failed to load albums:', err);
+        setError('Could not load album data');
         setLoading(false);
       });
   }, []);
 
   // Compute album proximity when map center/bounds change
   useEffect(() => {
-    if (!mapCenter || !mapBounds || !photos.length) {
+    if (!mapCenter || !mapBounds || !albums.length) {
       setAlbumsByProximity([]);
       return;
     }
 
     console.log('🗺️  Computing album proximity for center:', mapCenter);
 
-    // Filter photos within current map bounds
-    const visiblePhotos = photos.filter(photo => {
-      if (typeof photo.lat !== 'number' || typeof photo.lng !== 'number') return false;
-      return mapBounds.contains([photo.lat, photo.lng]);
+    // Filter albums within current map bounds
+    const visibleAlbums = albums.filter(album => {
+      const { lat, lng } = album.primaryLocation;
+      return mapBounds.contains([lat, lng]);
     });
 
-    console.log(`📍 ${visiblePhotos.length} of ${photos.length} photos visible in bounds`);
+    console.log(`📍 ${visibleAlbums.length} of ${albums.length} albums visible in bounds`);
 
-    if (visiblePhotos.length === 0) {
+    if (visibleAlbums.length === 0) {
       setAlbumsByProximity([]);
       return;
     }
 
-    // Group visible photos by album and compute distance
-    const albumMap = new Map();
-    
-    visiblePhotos.forEach(photo => {
-      const { albumSlug, albumTitle, lat, lng } = photo;
-      
-      // Calculate distance from map center to this photo
+    // Calculate distance for each visible album and sort by proximity
+    const albumsWithDistance = visibleAlbums.map(album => {
+      const { lat, lng } = album.primaryLocation;
       const distance = getDistanceKm(mapCenter.lat, mapCenter.lng, lat, lng);
       
-      if (!albumMap.has(albumSlug)) {
-        albumMap.set(albumSlug, {
-          albumSlug,
-          albumTitle,
-          minDistance: distance,
-          visiblePhotoCount: 1,
-        });
-      } else {
-        const album = albumMap.get(albumSlug);
-        album.visiblePhotoCount++;
-        // Track minimum distance (closest photo to center)
-        album.minDistance = Math.min(album.minDistance, distance);
-      }
+      return {
+        albumSlug: album.slug,
+        albumTitle: album.title,
+        minDistance: distance,
+        photoCount: album.count || 0,
+        cover: album.cover,
+        coverAspectRatio: album.coverAspectRatio || 1.5
+      };
     });
 
-    // Convert to array and sort by proximity (closest first)
-    const sortedAlbums = Array.from(albumMap.values())
-      .sort((a, b) => a.minDistance - b.minDistance);
+    // Sort by proximity (closest first)
+    const sortedAlbums = albumsWithDistance.sort((a, b) => a.minDistance - b.minDistance);
 
-    console.log(`📊 ${sortedAlbums.length} album(s) with visible photos`, sortedAlbums);
+    console.log(`📊 ${sortedAlbums.length} album(s) in view`, sortedAlbums);
     
     setAlbumsByProximity(sortedAlbums);
-  }, [mapCenter, mapBounds, photos]);
+  }, [mapCenter, mapBounds, albums]);
 
   // Initialize Leaflet once data is ready
   useEffect(() => {
@@ -120,9 +120,14 @@ export default function MapPage() {
       maxZoom: 19,
     }).addTo(map);
 
-    if (!photos.length) {
+    if (!albums.length) {
       // Default view (continental US-ish) if nothing to show
       map.setView([37.5, -96], 4);
+      
+      // Set initial center and bounds even if no albums
+      const center = map.getCenter();
+      setMapCenter({ lat: center.lat, lng: center.lng });
+      setMapBounds(map.getBounds());
       return;
     }
 
@@ -135,21 +140,22 @@ export default function MapPage() {
       shadowUrl: null,            // Disable default shadow
     });
 
-    photos.forEach((photo) => {
-      if (typeof photo.lat !== 'number' || typeof photo.lng !== 'number') return;
-
-      const marker = L.marker([photo.lat, photo.lng], { icon: customIcon }).addTo(map);
-      const thumbUrl = `${import.meta.env.BASE_URL}${photo.path}`;
-      const albumUrl = `/album/${photo.albumSlug}`;
+    // Add markers for each album
+    albums.forEach((album) => {
+      const { lat, lng } = album.primaryLocation;
+      
+      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+      const coverUrl = `${import.meta.env.BASE_URL}${album.cover}`;
+      const albumUrl = `/album/${album.slug}`;
 
       const popupHtml = `
         <div class="map-popup">
           <div class="map-popup-thumb-wrap">
-            <img src="${thumbUrl}" alt="${photo.filename}" class="map-popup-thumb" />
+            <img src="${coverUrl}" alt="${album.title}" class="map-popup-thumb" />
           </div>
           <div class="map-popup-meta">
-            <div class="map-popup-album">${photo.albumTitle}</div>
-            ${photo.dateTaken ? `<div class="map-popup-date">${String(photo.dateTaken).slice(0, 10)}</div>` : ''}
+            <div class="map-popup-album">${album.title}</div>
+            ${album.count ? `<div class="map-popup-date">${album.count} photo${album.count !== 1 ? 's' : ''}</div>` : ''}
             <a href="${albumUrl}" class="map-popup-link">view album &rsaquo;</a>
           </div>
         </div>
@@ -158,8 +164,15 @@ export default function MapPage() {
       marker.bindPopup(popupHtml);
     });
 
-    // Set initial view to show entire continental US
-    map.setView([39.8, -98.5], 4);
+    // Fit map to show all album markers, or default to continental US
+    if (albums.length > 0) {
+      const bounds = L.latLngBounds(
+        albums.map(album => [album.primaryLocation.lat, album.primaryLocation.lng])
+      );
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
+    } else {
+      map.setView([39.8, -98.5], 4);
+    }
 
     // Set initial center and bounds
     const center = map.getCenter();
@@ -185,15 +198,15 @@ export default function MapPage() {
       map.remove();
       mapInstanceRef.current = null;
     };
-  }, [photos, loading, error]);
+  }, [albums, loading, error]);
 
   const statusText = error
-    ? 'ERROR LOADING MAP DATA'
+    ? 'ERROR LOADING ALBUM DATA'
     : loading
-    ? 'SCANNING ROLLS FOR GEO TAGS...'
-    : photos.length === 0
-    ? 'NO GEOTAGGED FRAMES FOUND'
-    : `${photos.length} GEOTAGGED FRAME${photos.length === 1 ? '' : 'S'} LOADED`;
+    ? 'LOADING ALBUMS...'
+    : albums.length === 0
+    ? 'NO ALBUMS WITH GEO DATA FOUND'
+    : `${albums.length} ALBUM${albums.length === 1 ? '' : 'S'} WITH LOCATION DATA`;
 
   return (
     <main className="page-shell map-page-shell">
@@ -201,8 +214,7 @@ export default function MapPage() {
         <p className="page-label">map</p>
         <h1 className="page-title">Geo index</h1>
         <p className="page-body">
-          Live index of frames with GPS coordinates. As you add geotagged photos and rescan, markers
-          will appear here on the map.
+          Live index of albums with location data. Albums with GPS coordinates appear as markers on the map.
         </p>
       </section>
 
@@ -238,7 +250,7 @@ export default function MapPage() {
                       </div>
                       <div className="proximity-album-meta">
                         <span className="proximity-photo-count">
-                          {album.visiblePhotoCount} photo{album.visiblePhotoCount !== 1 ? 's' : ''} visible
+                          {album.photoCount} photo{album.photoCount !== 1 ? 's' : ''}
                         </span>
                         <span className="proximity-album-slug">/{album.albumSlug}</span>
                       </div>
@@ -249,12 +261,12 @@ export default function MapPage() {
             </div>
           )}
 
-          {mapCenter && albumsByProximity.length === 0 && !loading && photos.length > 0 && (
+          {mapCenter && albumsByProximity.length === 0 && !loading && albums.length > 0 && (
             <div className="albums-panel">
               <p className="page-label">nearby albums</p>
               <h2 className="page-title">No albums in view</h2>
               <p className="page-body">
-                Pan or zoom the map to show photo markers, and nearby albums will appear here.
+                Pan or zoom the map to show album markers, and nearby albums will appear here.
               </p>
             </div>
           )}

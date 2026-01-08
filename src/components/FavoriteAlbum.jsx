@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { loadSiteConfig } from '../lib/siteConfig';
 import LazyImage from './LazyImage';
 import { buildPhotoProps } from '../utils/imageUtils';
@@ -10,6 +10,7 @@ import './FavoriteAlbum.css';
  * Loads album data from site.json favorites.album.slug
  */
 export default function FavoriteAlbum() {
+  const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -134,6 +135,17 @@ export default function FavoriteAlbum() {
             </span>
           )}
         </div>
+        <button
+          className="favorite-album-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            navigate('/albums');
+          }}
+        >
+          EXPLORE ALL ALBUMS
+        </button>
       </div>
     </Link>
   );

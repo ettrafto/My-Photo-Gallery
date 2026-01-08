@@ -54,24 +54,74 @@ export default function TripDetail() {
         // Load trip JSON
         const tripResponse = await fetch(`${import.meta.env.BASE_URL}content/trips/${slug}.json`);
         if (!tripResponse.ok) throw new Error(`Trip not found: ${slug}`);
-        const tripData = await tripResponse.json();
+        let tripData = await tripResponse.json();
+
+        // Try to load map JSON file if it exists (generated from CSV)
+        try {
+          const mapResponse = await fetch(`${import.meta.env.BASE_URL}content/trips/${slug}-map.json`);
+          if (mapResponse.ok) {
+            const mapData = await mapResponse.json();
+            // Merge map route data into trip data
+            if (mapData.polyline && Array.isArray(mapData.polyline)) {
+              tripData = {
+                ...tripData,
+                route: {
+                  ...tripData.route,
+                  polyline: mapData.polyline,
+                  // Preserve gpxFile from trip JSON if map file has null, otherwise use map file value
+                  gpxFile: mapData.gpxFile !== null ? mapData.gpxFile : (tripData.route?.gpxFile || null)
+                }
+              };
+              console.log(`🗺️  Loaded map route with ${mapData.polyline.length} points from ${slug}-map.json`);
+            }
+          }
+        } catch (mapErr) {
+          // Map file doesn't exist or couldn't be loaded - use route from trip JSON
+          console.log(`📍 No map file found for ${slug}, using route from trip JSON`);
+        }
+
         setTrip(tripData);
 
-        // Load map.json to get all photos
-        const mapResponse = await fetch(`${import.meta.env.BASE_URL}content/map.json`);
-        if (!mapResponse.ok) throw new Error('Failed to load photo index');
-        const mapData = await mapResponse.json();
+        // Load photos from individual album JSON files
+        const tripAlbumSlugs = tripData.albumIds || [];
+        const albumPromises = tripAlbumSlugs.map(async (albumSlug) => {
+          try {
+            const albumResponse = await fetch(`${import.meta.env.BASE_URL}content/albums/${albumSlug}.json`);
+            if (!albumResponse.ok) {
+              console.warn(`Failed to load album: ${albumSlug}`);
+              return null;
+            }
+            const albumData = await albumResponse.json();
+            
+            // Extract ALL photos (not just GPS-tagged) and add album metadata
+            // The map will filter GPS-tagged photos itself when displaying markers
+            const photosWithMetadata = (albumData.photos || [])
+              .map(photo => ({
+                ...photo,
+                albumSlug: albumSlug,
+                albumTitle: albumData.title || albumSlug
+              }));
+            
+            return photosWithMetadata;
+          } catch (err) {
+            console.warn(`Error loading album ${albumSlug}:`, err);
+            return null;
+          }
+        });
 
-        // Filter photos that belong to this trip's albums
-        const tripAlbumSlugs = new Set(tripData.albumIds);
-        const filteredPhotos = mapData.photos.filter(photo => 
-          tripAlbumSlugs.has(photo.albumSlug) &&
-          typeof photo.lat === 'number' && 
-          typeof photo.lng === 'number'
-        );
+        const albumResults = await Promise.all(albumPromises);
+        // Flatten all photos from all albums (including photos without GPS)
+        const allPhotos = albumResults
+          .filter(result => result !== null)
+          .flat();
 
-        setTripPhotos(filteredPhotos);
-        console.log(`📸 Loaded ${filteredPhotos.length} geotagged photos for trip: ${slug}`);
+        // Count geotagged photos for logging
+        const geotaggedCount = allPhotos.filter(photo => 
+          typeof photo.lat === 'number' && typeof photo.lng === 'number'
+        ).length;
+
+        setTripPhotos(allPhotos);
+        console.log(`📸 Loaded ${allPhotos.length} photos (${geotaggedCount} with GPS) for trip: ${slug}`);
       } catch (err) {
         console.error('Failed to load trip:', err);
         setError(err.message);
@@ -185,8 +235,8 @@ export default function TripDetail() {
       
       // Sort photos by date taken
       const sortedPhotos = albumPhotos.sort((a, b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken) : new Date(0);
-        const dateB = b.dateTaken ? new Date(b.dateTaken) : new Date(0);
+        const dateA = (a.exif?.dateTaken || a.dateTaken) ? new Date(a.exif?.dateTaken || a.dateTaken) : new Date(0);
+        const dateB = (b.exif?.dateTaken || b.dateTaken) ? new Date(b.exif?.dateTaken || b.dateTaken) : new Date(0);
         return dateA - dateB;
       });
 
@@ -207,8 +257,8 @@ export default function TripDetail() {
   const sortedTripPhotos = useMemo(() => {
     if (!tripPhotos || tripPhotos.length === 0) return [];
     return [...tripPhotos].sort((a, b) => {
-      const dateA = a.dateTaken ? new Date(a.dateTaken) : new Date(0);
-      const dateB = b.dateTaken ? new Date(b.dateTaken) : new Date(0);
+      const dateA = (a.exif?.dateTaken || a.dateTaken) ? new Date(a.exif?.dateTaken || a.dateTaken) : new Date(0);
+      const dateB = (b.exif?.dateTaken || b.dateTaken) ? new Date(b.exif?.dateTaken || b.dateTaken) : new Date(0);
       return dateA - dateB;
     });
   }, [tripPhotos]);
