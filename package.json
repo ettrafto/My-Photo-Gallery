@@ -6,6 +6,7 @@
   "scripts": {
     "scan": "node scripts/scan.mjs",
     "process:geo": "node scripts/rebuildAlbumsIndex.mjs",
+    "process:about": "node scripts/processAbout.mjs",
     "process:trip": "node scripts/process-trip.mjs",
     "new-album": "node scripts/new-album.mjs",
     "init-locations": "node scripts/initAlbumLocations.mjs",

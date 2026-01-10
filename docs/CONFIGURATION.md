@@ -467,6 +467,179 @@ This prevents the app from crashing if the config file is missing or invalid.
 
 ---
 
+## Available Scripts Reference
+
+This section provides a quick reference for all available npm scripts and their purposes.
+
+### Primary Processing Scripts
+
+#### `npm run import:photos`
+**Script**: `scripts/importPhotos.mjs`  
+**Purpose**: Main photo import pipeline - the recommended way to add albums  
+**What it does**:
+- Reads originals from `photo-source/originals/<album-name>/`
+- Generates WebP variants (large, small, blur) to `public/photos/<album-slug>/`
+- Builds/updates `content/albums/<album>.json` with photo data and EXIF metadata
+- Refreshes `content/albums.json` (album index) and `content/map.json` (geo index)
+- Respects optional `_album.json` metadata files in album folders
+- Looks up default locations from `content/album-locations.json`
+
+**Options**:
+- `--force` - Reprocess all WebP variants (overwrite existing)
+
+#### `npm run process:photos`
+**Script**: `scripts/processPhotos.mjs`  
+**Purpose**: Standalone photo processing (WebP generation only)  
+**What it does**:
+- Processes images from `photo-source/originals/` to `public/photos/`
+- Generates WebP variants only (does NOT modify JSON files)
+- Useful when you only need to regenerate optimized images
+
+**Options**:
+- `--force` - Reprocess all images
+- `--input=<path>` - Custom input directory
+- `--output=<path>` - Custom output directory
+
+**Note**: Prefer `npm run import:photos` for the complete workflow that also writes album JSON.
+
+### Configuration Image Scripts
+
+#### `npm run process:hero`
+**Script**: `scripts/processHero.mjs`  
+**Purpose**: Process hero section images  
+**What it does**:
+- Reads originals from `photo-source/originals/config/hero/`
+- Generates WebP variants to `public/hero/`
+- Automatically updates `content/site/site.json` with processed image paths
+- Extracts EXIF metadata (alt text, captions)
+- Respects optional `_hero.json` metadata file
+
+**Options**:
+- `--force` - Reprocess all images
+
+#### `npm run process:showcase`
+**Script**: `scripts/processShowcase.mjs`  
+**Purpose**: Process showcase images  
+**What it does**:
+- Reads originals from `photo-source/originals/config/showcase/`
+- Generates WebP variants to `public/photos/showcase/`
+- Extracts EXIF data (camera, lens, settings, date)
+- Determines image type from aspect ratio
+- Automatically alternates left/right side for animations
+- Generates/updates `content/site/showcase.json`
+- Respects optional `_showcase.json` metadata file for locations
+
+**Options**:
+- `--force` - Reprocess all images
+
+#### `node scripts/processAbout.mjs` (or add to package.json)
+**Script**: `scripts/processAbout.mjs`  
+**Note**: Not currently in package.json, run directly or add as `"process:about": "node scripts/processAbout.mjs"`  
+**Purpose**: Process about page images  
+**What it does**:
+- Reads originals from `photo-source/originals/config/about/`
+- Generates WebP variants to `public/about/`
+- Generates/updates `content/site/about.json` with processed paths
+- Extracts EXIF metadata
+- Respects optional `_about.json` metadata file
+
+**Options**:
+- `--force` - Reprocess all images
+
+### Album Management Scripts
+
+#### `npm run new-album`
+**Script**: `scripts/new-album.mjs`  
+**Purpose**: Interactive album creation helper  
+**What it does**:
+- Prompts for album name and creates folder structure
+- Creates `photo-source/originals/<album-name>/` directory
+- Guides you through the album setup process
+
+#### `npm run init-locations`
+**Script**: `scripts/initAlbumLocations.mjs`  
+**Purpose**: Initialize album location configuration file  
+**What it does**:
+- Scans album directories and creates `content/album-locations.json`
+- Provides template for manually adding location data to albums
+- Used as fallback when albums don't have GPS coordinates in photos
+
+### Index & Data Management Scripts
+
+#### `npm run process:geo`
+**Script**: `scripts/rebuildAlbumsIndex.mjs`  
+**Purpose**: Rebuild album and map indexes  
+**What it does**:
+- Rebuilds `content/albums.json` from individual album JSON files
+- Preserves manually entered geo data (primaryLocation) from existing albums.json
+- Generates `content/map.json` for the Globe component
+- Useful when you've manually edited album JSON files
+
+#### `npm run process:trip`
+**Script**: `scripts/process-trip.mjs`  
+**Purpose**: Process trip CSV route files  
+**What it does**:
+- Reads `.csv` files from `content/trips/` directory
+- Converts CSV lat/lng points into JSON polyline format
+- Generates matching `*-map.json` files for trip routes
+- Used for trip detail pages with map visualization
+
+### Utility Scripts
+
+#### `npm run reset:gallery`
+**Script**: `scripts/resetGallery.mjs`  
+**Purpose**: Reset gallery data (clean slate)  
+**What it deletes**:
+- `content/albums/` (per-album manifests)
+- `content/albums.json` (album index)
+- `content/map.json` (map index)
+- `public/photos/` (processed WebP outputs)
+- `public/images/` (legacy images)
+
+**What it preserves**:
+- `photo-source/originals/` (your original photos)
+- All other `content/*` metadata (site, trips, album-locations, favorites, etc.)
+
+**Options**:
+- `--dry-run` - Preview what will be deleted without actually deleting
+- `--keep-public-images` - Keep `public/images/` directory
+- `--keep-public-photos` - Keep `public/photos/` directory
+
+**After reset**: Recreates empty `albums.json` and `map.json` files so the app can boot.
+
+### Build Scripts
+
+#### `npm run build`
+**Combined workflow**: Full production build  
+**What it does**:
+1. Runs `npm run import:photos` - Process all album photos
+2. Runs `npm run process:hero` - Process hero images
+3. Runs `npm run process:showcase` - Process showcase images
+4. Runs `vite build` - Build React application
+5. Runs `scripts/copy-content.mjs` - Copy content directory to dist
+
+#### `scripts/copy-content.mjs` (internal)
+**Purpose**: Copy content directory to build output  
+**What it does**:
+- Copies `content/` directory to `dist/content/`
+- Ensures all JSON configuration files are available in production build
+- Automatically run as part of `npm run build`
+
+### Legacy Scripts
+
+#### `npm run scan`
+**Script**: `scripts/scan.mjs`  
+**Status**: ⚠️ Legacy - retained for backward compatibility  
+**Purpose**: Legacy album scanning (from `public/images/`)  
+**What it does**:
+- Scans `public/images/` directory structure (legacy workflow)
+- Generates album JSON files
+- Does NOT process images or generate WebP variants
+
+**Recommendation**: Use `npm run import:photos` instead for modern workflow with originals and WebP generation.
+
+---
+
 ## Other JSON Configuration Files
 
 ### Albums System
