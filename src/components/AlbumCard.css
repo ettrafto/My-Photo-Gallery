@@ -6,6 +6,34 @@
 
 .album-cover {
   position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3 !important; /* Force 4:3 aspect ratio for all album covers */
+  flex-shrink: 0; /* Prevent shrinking in flex container */
+  min-height: 0; /* Prevent flex from expanding beyond aspect ratio */
+}
+
+/* Ensure LazyImage wrapper fills the container completely - override any inline styles */
+.album-cover > .lazy-image-wrapper {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  aspect-ratio: unset !important; /* Remove aspect ratio - container controls it */
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Ensure the actual image fills the wrapper */
+.album-cover .lazy-image-photo,
+.album-cover .lazy-image-wrapper img,
+.album-cover img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block;
 }
 
 /* Favorites indicator */

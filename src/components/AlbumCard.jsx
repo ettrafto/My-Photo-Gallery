@@ -10,16 +10,22 @@ import './AlbumCard.css';
  */
 export default function AlbumCard({ album }) {
   const coverPhoto = album.photos?.[0] || null;
+  const coverAspectRatio = 4/3; // Fixed 4:3 aspect ratio for all album covers
+  
   const coverProps = coverPhoto
-    ? buildPhotoProps(coverPhoto, {
-        baseUrl: import.meta.env.BASE_URL,
-        sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
-        className: "album-cover-image",
-      })
+    ? (() => {
+        const props = buildPhotoProps(coverPhoto, {
+          baseUrl: import.meta.env.BASE_URL,
+          sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
+          className: "album-cover-image",
+        });
+        // Remove width, height, and aspectRatio - let container control sizing via CSS
+        const { width, height, aspectRatio, ...rest } = props;
+        return rest;
+      })()
     : {
         src: `${import.meta.env.BASE_URL}${album.cover}`,
         alt: album.title,
-        aspectRatio: album.coverAspectRatio || 1.5,
         sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
       };
   
@@ -49,15 +55,13 @@ export default function AlbumCard({ album }) {
       to={`/album/${album.slug}`}
       className="album-card"
     >
-      <div 
-        className="album-cover"
-        style={{ aspectRatio: album.coverAspectRatio || 1.5 }}
-      >
+      <div className="album-cover">
         <LazyImage 
           {...coverProps}
-          aspectRatio={album.coverAspectRatio || 1.5}
+          aspectRatio={coverAspectRatio}
           threshold={0}
           rootMargin="0px"
+          style={{ position: 'absolute', inset: 0, aspectRatio: 'unset' }}
         />
         
         {/* Hover collage overlay */}
