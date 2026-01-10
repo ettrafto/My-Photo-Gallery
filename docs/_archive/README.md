@@ -57,3 +57,11 @@ Yes, but be aware:
 - New features may not be documented
 
 **Recommendation**: Refer to canonical docs first (`docs/CONFIGURATION.md`, `docs/DEVELOPMENT.md`, `docs/ARCHITECTURE.md`).
+
+
+
+
+
+
+
+

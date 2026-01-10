@@ -8,7 +8,7 @@
  *   npm run process:hero -- --force  # Reprocess all images
  *
  * What it does:
- *   1) Reads originals from photo-source/hero/
+ *   1) Reads originals from photo-source/originals/config/hero/
  *   2) Generates WebP variants to public/hero/:
  *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
  *   3) Builds/updates content/site/site.json with:
@@ -16,7 +16,7 @@
  *        - Preserves alt text and captions from metadata or EXIF
  *
  * Notes:
- *   - Processes all images found in photo-source/hero/
+ *   - Processes all images found in photo-source/originals/config/hero/
  *   - Automatically updates site.json with processed paths
  *   - Preserves existing alt text and captions
  *   - Callouts can be configured via _hero.json metadata file
@@ -36,11 +36,11 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const CONFIG = {
-  INPUT_DIR: 'photo-source/hero',
+  INPUT_DIR: 'photo-source/originals/config/hero',
   OUTPUT_DIR: 'public/hero',
   CONTENT_DIR: 'content',
   SITE_CONFIG: 'content/site/site.json',
-  METADATA_FILE: 'photo-source/hero/_hero.json',
+  METADATA_FILE: 'photo-source/originals/config/hero/_hero.json',
   SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
     large: { maxSize: 1800, quality: 80, suffix: '-large' },
@@ -339,7 +339,7 @@ async function main() {
 
   if (!existsSync(inputDir)) {
     console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
-    console.error('   Please create photo-source/hero/ and add your images');
+    console.error('   Please create photo-source/originals/config/hero/ and add your images');
     process.exit(1);
   }
 
@@ -352,7 +352,7 @@ async function main() {
   }).sort();
 
   if (imageFiles.length === 0) {
-    console.error('❌ No images found in photo-source/hero/');
+    console.error('❌ No images found in photo-source/originals/config/hero/');
     console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
     process.exit(1);
   }

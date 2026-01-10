@@ -8,7 +8,7 @@
  *   npm run process:showcase -- --force  # Reprocess all images
  *
  * What it does:
- *   1) Reads originals from photo-source/showcase/
+ *   1) Reads originals from photo-source/originals/config/showcase/
  *   2) Generates WebP variants to public/photos/showcase/:
  *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
  *   3) Extracts EXIF data (camera, lens, aperture, shutter, ISO, focal length, date)
@@ -17,7 +17,7 @@
  *        - Images with type, side, src paths, dimensions, EXIF data, and location
  *
  * Notes:
- *   - Processes all images in photo-source/showcase/ (unlimited number)
+ *   - Processes all images in photo-source/originals/config/showcase/ (unlimited number)
  *   - Determines image type from aspect ratio
  *   - Alternates left/right sides automatically
  *   - Location can be configured via _showcase.json metadata file:
@@ -38,11 +38,11 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const CONFIG = {
-  INPUT_DIR: 'photo-source/showcase',
+  INPUT_DIR: 'photo-source/originals/config/showcase',
   OUTPUT_DIR: 'public/photos/showcase',
   CONTENT_DIR: 'content',
   SHOWCASE_CONFIG: 'content/site/showcase.json',
-  METADATA_FILE: 'photo-source/showcase/_showcase.json',
+  METADATA_FILE: 'photo-source/originals/config/showcase/_showcase.json',
   SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
     large: { maxSize: 1800, quality: 80, suffix: '-large' },
@@ -370,7 +370,7 @@ async function main() {
 
   if (!existsSync(inputDir)) {
     console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
-    console.error('   Please create photo-source/showcase/ and add your images');
+    console.error('   Please create photo-source/originals/config/showcase/ and add your images');
     process.exit(1);
   }
 
@@ -383,7 +383,7 @@ async function main() {
   }).sort();
 
   if (imageFiles.length === 0) {
-    console.error('❌ No images found in photo-source/showcase/');
+    console.error('❌ No images found in photo-source/originals/config/showcase/');
     console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
     process.exit(1);
   }

@@ -4,6 +4,16 @@ import { select } from 'd3-selection';
 import { feature } from 'topojson-client';
 import './Globe.css';
 
+// Debug: Verify D3 imports
+console.log('🌍 Globe: D3 imports check', {
+  geoOrthographic: typeof geoOrthographic,
+  geoGraticule: typeof geoGraticule,
+  geoPath: typeof geoPath,
+  geoRotation: typeof geoRotation,
+  select: typeof select,
+  feature: typeof feature
+});
+
 /**
  * Globe component - D3 globe with drag-to-rotate interaction
  * Uses d3.geoOrthographic() projection and d3.geoGraticule() for latitude/longitude lines
@@ -59,12 +69,23 @@ export default function Globe() {
    * Initialize D3 projection and path generators
    */
   const initGlobe = () => {
-    if (!svgRef.current || !containerRef.current) return;
+    if (!svgRef.current || !containerRef.current) {
+      console.warn('🌍 Globe: Cannot initialize - missing refs');
+      return;
+    }
 
     const container = containerRef.current;
     // Get actual dimensions, ensuring we have valid values
     const width = container.clientWidth || container.offsetWidth || 400;
     const height = container.clientHeight || container.offsetHeight || 400;
+    
+    if (width === 0 || height === 0) {
+      console.warn('🌍 Globe: Container has zero dimensions', { width, height });
+      return;
+    }
+    
+    console.log('🌍 Globe: Initializing with dimensions', { width, height });
+    
     const size = Math.min(width, height);
     const scale = size * 0.702; // 20% larger than 0.585 (0.585 * 1.2 = 0.702)
     // Ensure center is exactly in the middle
@@ -124,16 +145,16 @@ export default function Globe() {
         .attr('class', 'globe-land-path');
     }
 
-    // Draw album markers
-    if (albums.length > 0) {
-      markersGroup
-        .selectAll('circle.globe-marker')
-        .data(albums)
-        .enter()
-        .append('circle')
-        .attr('class', 'globe-marker')
-        .attr('r', 4);
-    }
+    // Draw album markers (even if empty array - allows for later updates)
+    markersGroup
+      .selectAll('circle.globe-marker')
+      .data(albums || [])
+      .enter()
+      .append('circle')
+      .attr('class', 'globe-marker')
+      .attr('r', 4);
+    
+    console.log(`🌍 Globe: Initialized with ${albums?.length || 0} marker(s)`);
     
     // Test node removed - commented out for now
     // markersGroup
@@ -452,21 +473,27 @@ export default function Globe() {
 
   // Load album markers data
   useEffect(() => {
+    console.log('🌍 Globe: Loading album markers...');
     fetch(`${import.meta.env.BASE_URL}content/map.json`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then(data => {
-        setAlbums(data.albums || []);
+        const albumsData = data.albums || [];
+        console.log(`🌍 Globe: Loaded ${albumsData.length} album marker(s)`, albumsData);
+        setAlbums(albumsData);
       })
       .catch(err => {
-        console.error('Failed to load album markers:', err);
+        console.error('🌍 Globe: Failed to load album markers:', err);
+        // Continue with empty array - globe should still render without markers
+        setAlbums([]);
       });
   }, []);
 
   // Load world map data
   useEffect(() => {
+    console.log('🌍 Globe: Loading world map data...');
     // Fetch world-110m TopoJSON (lightweight, efficient)
     // Using a reliable CDN source
     fetch('https://unpkg.com/world-atlas@1.1.4/world/110m.json')
@@ -477,6 +504,7 @@ export default function Globe() {
         return res.json();
       })
       .then(topology => {
+        console.log('🌍 Globe: World topology loaded, converting to GeoJSON...');
         // Convert TopoJSON to GeoJSON
         // Check if topology has the expected structure
         const countries = topology.objects?.countries || topology.objects?.land;
@@ -484,10 +512,12 @@ export default function Globe() {
           throw new Error('Invalid topology structure');
         }
         const world = feature(topology, countries);
+        console.log(`🌍 Globe: World data converted, ${world.features.length} features`);
         setWorldData(world);
       })
       .catch(err => {
-        console.error('Failed to load world map data:', err);
+        console.error('🌍 Globe: Failed to load world map data:', err);
+        console.log('🌍 Globe: Trying fallback URL...');
         // Fallback: try alternative URL with different structure
         fetch('https://raw.githubusercontent.com/topojson/world-atlas/master/world/110m.json')
           .then(res => {
@@ -495,23 +525,60 @@ export default function Globe() {
             return res.json();
           })
           .then(topology => {
+            console.log('🌍 Globe: Fallback topology loaded');
             const countries = topology.objects?.countries || topology.objects?.land;
             if (!countries) {
               throw new Error('Invalid topology structure in fallback');
             }
             const world = feature(topology, countries);
+            console.log(`🌍 Globe: Fallback world data converted, ${world.features.length} features`);
             setWorldData(world);
           })
           .catch(fallbackErr => {
-            console.error('Fallback also failed:', fallbackErr);
+            console.error('🌍 Globe: Fallback also failed:', fallbackErr);
           });
       });
   }, []);
 
   // Initialize globe on mount and when world data loads
   useEffect(() => {
-    if (!worldData || albums.length === 0) return; // Wait for world data and albums
+    console.log('🌍 Globe: Init effect triggered', { 
+      hasWorldData: !!worldData, 
+      albumsCount: albums.length,
+      hasContainer: !!containerRef.current,
+      hasSvg: !!svgRef.current
+    });
     
+    // Wait for world data to load - this is required
+    if (!worldData) {
+      console.log('🌍 Globe: Waiting for world data...');
+      return;
+    }
+    
+    // Check if container has dimensions
+    if (!containerRef.current || !svgRef.current) {
+      console.log('🌍 Globe: Waiting for DOM refs...');
+      return;
+    }
+    
+    const container = containerRef.current;
+    const width = container.clientWidth || container.offsetWidth || 0;
+    const height = container.clientHeight || container.offsetHeight || 0;
+    
+    if (width === 0 || height === 0) {
+      console.warn('🌍 Globe: Container has no dimensions', { width, height });
+      // Retry after a short delay
+      const timeoutId = setTimeout(() => {
+        if (containerRef.current && svgRef.current && worldData) {
+          console.log('🌍 Globe: Retrying initialization after delay...');
+          initGlobe();
+          render();
+        }
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+    
+    console.log('🌍 Globe: Initializing globe...', { width, height, albumsCount: albums.length });
     initGlobe();
     render();
 
@@ -543,7 +610,10 @@ export default function Globe() {
 
   // Handle resize
   useEffect(() => {
-    if (!containerRef.current || !worldData || albums.length === 0) return;
+    if (!containerRef.current || !worldData) {
+      console.log('🌍 Globe: ResizeObserver waiting for worldData');
+      return;
+    }
 
     const resizeObserver = new ResizeObserver(() => {
       initGlobe();
@@ -551,11 +621,12 @@ export default function Globe() {
     });
 
     resizeObserver.observe(containerRef.current);
+    console.log('🌍 Globe: ResizeObserver set up');
 
     return () => {
       resizeObserver.disconnect();
     };
-  }, [worldData, albums]);
+  }, [worldData]); // Removed albums dependency - resize should work without markers
 
   // Auto-spin animation
   useEffect(() => {
