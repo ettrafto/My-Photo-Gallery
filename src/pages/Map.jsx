@@ -33,6 +33,9 @@ export default function MapPage() {
   const [mapBounds, setMapBounds] = useState(null); // L.LatLngBounds
   const [albumsByProximity, setAlbumsByProximity] = useState([]);
   
+  // Track which album is currently being hovered
+  const [hoveredAlbumSlug, setHoveredAlbumSlug] = useState(null);
+  
   /**
    * Calculate marker icon size based on zoom level
    * Smaller at low zoom (world view), scales up as zoom increases
@@ -70,15 +73,21 @@ export default function MapPage() {
   
   /**
    * Create a marker icon with specified size
+   * Using divIcon with wrapper div so we can scale the inner content without affecting Leaflet's positioning
    */
   const createMarkerIcon = (size) => {
     const [width, height] = size;
-    return L.icon({
-      iconUrl: `${import.meta.env.BASE_URL}icons/marker.svg`,
+    const iconAnchor = [width / 2, height]; // Center horizontally, anchor at bottom
+    
+    // Use divIcon with a wrapper div - this allows us to scale the inner img without moving the marker
+    const iconUrl = `${import.meta.env.BASE_URL}icons/marker.svg`;
+    
+    return L.divIcon({
+      className: 'map-marker-wrapper', // Class for the wrapper div
+      html: `<div class="map-marker-inner" style="width: ${width}px; height: ${height}px;"><img src="${iconUrl}" style="width: 100%; height: 100%; object-fit: contain;" /></div>`,
       iconSize: [width, height],
-      iconAnchor: [width / 2, height], // Center horizontally, anchor at bottom
+      iconAnchor: iconAnchor,
       popupAnchor: [0, -height],
-      shadowUrl: null,
     });
   };
   
@@ -89,9 +98,95 @@ export default function MapPage() {
     const newSize = getMarkerIconSize(zoom);
     const newIcon = createMarkerIcon(newSize);
     
-    markersRef.current.forEach(({ marker }) => {
+    markersRef.current.forEach(({ marker, album }) => {
       marker.setIcon(newIcon);
+      // Reapply hover effect if this marker is currently hovered
+      if (hoveredAlbumSlug === album.slug) {
+        highlightMarker(marker);
+      }
     });
+  };
+  
+  /**
+   * Highlight a marker with glow and scale effect
+   * Now using divIcon wrapper, so we scale the inner div instead of the outer container
+   */
+  const highlightMarker = (marker) => {
+    const element = marker.getElement();
+    if (!element) return;
+    
+    // With divIcon, the element is the wrapper div, and we need to find the inner div
+    const innerDiv = element.querySelector('.map-marker-inner');
+    if (!innerDiv) {
+      // Fallback: if divIcon structure isn't found, use direct transform (for backward compatibility)
+      const scale = 1.25;
+      element.style.transformOrigin = 'center center';
+      element.style.transform = `scale(${scale})`;
+      element.style.filter = 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))';
+      element.style.transition = 'transform 0.2s ease-out, filter 0.2s ease-out';
+      element.style.zIndex = '1000';
+      return;
+    }
+    
+    const scale = 1.25;
+    
+    // Scale the inner div from center - this won't affect Leaflet's positioning of the wrapper
+    innerDiv.style.transformOrigin = 'center center';
+    innerDiv.style.transform = `scale(${scale})`;
+    innerDiv.style.filter = 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 4px rgba(255, 255, 255, 0.6))';
+    innerDiv.style.transition = 'transform 0.2s ease-out, filter 0.2s ease-out';
+    element.style.zIndex = '1000';
+  };
+  
+  /**
+   * Remove highlight from a marker
+   */
+  const unhighlightMarker = (marker) => {
+    const element = marker.getElement();
+    if (!element) return;
+    
+    const innerDiv = element.querySelector('.map-marker-inner');
+    if (innerDiv) {
+      // Using divIcon wrapper - remove styles from inner div
+      innerDiv.style.transform = '';
+      innerDiv.style.transformOrigin = '';
+      innerDiv.style.filter = '';
+      innerDiv.style.transition = '';
+      element.style.zIndex = '';
+    } else {
+      // Fallback: remove styles from element directly (for backward compatibility)
+      element.style.transform = '';
+      element.style.transformOrigin = '';
+      element.style.filter = '';
+      element.style.transition = '';
+      element.style.zIndex = '';
+    }
+  };
+  
+  /**
+   * Handle album hover from the list
+   */
+  const handleAlbumHover = (albumSlug) => {
+    setHoveredAlbumSlug(albumSlug);
+    
+    // Find and highlight the corresponding marker
+    const markerEntry = markersRef.current.find(({ album }) => album.slug === albumSlug);
+    if (markerEntry) {
+      highlightMarker(markerEntry.marker);
+    }
+  };
+  
+  /**
+   * Handle album hover end
+   */
+  const handleAlbumHoverEnd = () => {
+    if (hoveredAlbumSlug) {
+      const markerEntry = markersRef.current.find(({ album }) => album.slug === hoveredAlbumSlug);
+      if (markerEntry) {
+        unhighlightMarker(markerEntry.marker);
+      }
+    }
+    setHoveredAlbumSlug(null);
   };
 
   // Load albums with geo data
@@ -138,7 +233,6 @@ export default function MapPage() {
       return mapBounds.contains([lat, lng]);
     });
 
-    console.log(`📍 ${visibleAlbums.length} of ${albums.length} albums visible in bounds`);
 
     if (visibleAlbums.length === 0) {
       setAlbumsByProximity([]);
@@ -163,7 +257,6 @@ export default function MapPage() {
     // Sort by proximity (closest first)
     const sortedAlbums = albumsWithDistance.sort((a, b) => a.minDistance - b.minDistance);
 
-    console.log(`📊 ${sortedAlbums.length} album(s) in view`, sortedAlbums);
     
     setAlbumsByProximity(sortedAlbums);
   }, [mapCenter, mapBounds, albums]);
@@ -221,6 +314,19 @@ export default function MapPage() {
       const { lat, lng } = album.primaryLocation;
       
       const marker = L.marker([lat, lng], { icon: defaultIcon }).addTo(map);
+      
+      // Add hover effects to the marker
+      marker.on('mouseover', () => {
+        highlightMarker(marker);
+      });
+      
+      marker.on('mouseout', () => {
+        // Only unhighlight if not currently hovered from the list
+        if (hoveredAlbumSlug !== album.slug) {
+          unhighlightMarker(marker);
+        }
+      });
+      
       const coverUrl = `${import.meta.env.BASE_URL}${album.cover}`;
       const albumUrl = `/album/${album.slug}`;
 
@@ -317,7 +423,12 @@ export default function MapPage() {
               
               <ul className="album-proximity-list">
                 {albumsByProximity.map((album) => (
-                  <li key={album.albumSlug} className="proximity-album-item">
+                  <li 
+                    key={album.albumSlug} 
+                    className="proximity-album-item"
+                    onMouseEnter={() => handleAlbumHover(album.albumSlug)}
+                    onMouseLeave={handleAlbumHoverEnd}
+                  >
                     <a href={`/album/${album.albumSlug}`} className="proximity-album-link">
                       <div className="proximity-album-header">
                         <span className="proximity-album-title">{album.albumTitle}</span>

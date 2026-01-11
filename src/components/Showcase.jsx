@@ -142,11 +142,6 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
     >
       <motion.div
         className={`showcase-image-wrapper ${aspectClass}`}
-        whileHover={{
-          scale: 1.01,
-          filter: 'contrast(1.05) brightness(1.02)',
-        }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
       >
         <img
           src={image.src}
@@ -206,7 +201,16 @@ export default function Showcase() {
         }
         const data = await response.json();
         const imagesList = Array.isArray(data.images) ? data.images : [];
-        setImages(imagesList);
+        
+        // Sort images by order field (if provided)
+        // Images without order field will maintain their relative order but come after ordered images
+        const sortedImages = [...imagesList].sort((a, b) => {
+          const orderA = a.order !== undefined ? a.order : Infinity;
+          const orderB = b.order !== undefined ? b.order : Infinity;
+          return orderA - orderB;
+        });
+        
+        setImages(sortedImages);
       } catch (error) {
         console.error('Error loading showcase data:', error);
         setImages([]);

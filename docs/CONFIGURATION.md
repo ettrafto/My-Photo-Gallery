@@ -718,6 +718,8 @@ Locations can be specified by filename or by index (1-based).
 {
   "images": [
     {
+      "id": 1,
+      "order": 1,
       "type": "portrait",
       "side": "left",
       "src": "/photos/showcase/IMG_9041-large.webp",
@@ -741,6 +743,14 @@ Locations can be specified by filename or by index (1-based).
   ]
 }
 ```
+
+**Image Ordering:**
+
+Images are sorted by the `order` field (ascending). To customize the display order:
+
+- Add an `order` field (number) to each image object
+- Lower numbers appear first (e.g., `order: 1` appears before `order: 2`)
+- Images without an `order` field will appear after all ordered images, maintaining their relative order from the JSON array
 
 **Code Reference**: `src/components/Showcase.jsx` - Loads from `content/site/showcase.json`
 

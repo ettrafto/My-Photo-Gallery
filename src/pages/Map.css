@@ -355,6 +355,24 @@
 }
 
 /* Custom SVG markers - no filters needed */
+/* Marker wrapper (divIcon) */
+.map-marker-wrapper {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.map-marker-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.map-marker-inner img {
+  display: block;
+}
+
 .leaflet-marker-icon {
   /* SVG is already styled, no filters applied */
 }
