@@ -23,6 +23,7 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 export default function MapPage() {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const markersRef = useRef([]); // Store markers for dynamic scaling
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +32,67 @@ export default function MapPage() {
   const [mapCenter, setMapCenter] = useState(null); // { lat, lng }
   const [mapBounds, setMapBounds] = useState(null); // L.LatLngBounds
   const [albumsByProximity, setAlbumsByProximity] = useState([]);
+  
+  /**
+   * Calculate marker icon size based on zoom level
+   * Smaller at low zoom (world view), scales up as zoom increases
+   * Uses a gentler scaling curve (square root) for less drastic changes
+   */
+  const getMarkerIconSize = (zoom) => {
+    // Base size at low zoom (world view, zoom ~2-4)
+    const baseSize = 20; // Smaller base size
+    const baseHeight = 25;
+    
+    // Max size at high zoom (street level, zoom ~15+)
+    const maxSize = 32;
+    const maxHeight = 40;
+    
+    // Use square root scaling for gentler curve
+    // Zoom range: typically 1-19, but we focus on 2-15 range
+    const minZoom = 2;
+    const maxZoom = 15;
+    
+    // Clamp zoom to our scaling range
+    const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoom));
+    
+    // Normalize zoom to 0-1 range
+    const normalized = (clampedZoom - minZoom) / (maxZoom - minZoom);
+    
+    // Square root scaling for gentler curve
+    const scale = Math.sqrt(normalized);
+    
+    // Interpolate between base and max sizes
+    const width = baseSize + (maxSize - baseSize) * scale;
+    const height = baseHeight + (maxHeight - baseHeight) * scale;
+    
+    return [Math.round(width), Math.round(height)];
+  };
+  
+  /**
+   * Create a marker icon with specified size
+   */
+  const createMarkerIcon = (size) => {
+    const [width, height] = size;
+    return L.icon({
+      iconUrl: `${import.meta.env.BASE_URL}icons/marker.svg`,
+      iconSize: [width, height],
+      iconAnchor: [width / 2, height], // Center horizontally, anchor at bottom
+      popupAnchor: [0, -height],
+      shadowUrl: null,
+    });
+  };
+  
+  /**
+   * Update all marker sizes based on current zoom level
+   */
+  const updateMarkerSizes = (zoom) => {
+    const newSize = getMarkerIconSize(zoom);
+    const newIcon = createMarkerIcon(newSize);
+    
+    markersRef.current.forEach(({ marker }) => {
+      marker.setIcon(newIcon);
+    });
+  };
 
   // Load albums with geo data
   useEffect(() => {
@@ -131,20 +193,34 @@ export default function MapPage() {
       return;
     }
 
-    // Create custom icon from SVG
-    const customIcon = L.icon({
-      iconUrl: `${import.meta.env.BASE_URL}icons/marker.svg`,
-      iconSize: [32, 40],        // Size of the icon [width, height]
-      iconAnchor: [16, 40],      // Point of the icon which corresponds to marker's location
-      popupAnchor: [0, -40],     // Point from which the popup should open relative to iconAnchor
-      shadowUrl: null,            // Disable default shadow
-    });
+    // Track map movement for album proximity updates
+    // Using 'moveend' to avoid excessive updates during pan/zoom
+    const handleMoveEnd = () => {
+      const newCenter = map.getCenter();
+      const newBounds = map.getBounds();
+      
+      setMapCenter({ lat: newCenter.lat, lng: newCenter.lng });
+      setMapBounds(newBounds);
+      
+      console.log('🗺️  Map moved - new center:', newCenter.lat.toFixed(3), newCenter.lng.toFixed(3));
+    };
 
-    // Add markers for each album
+    // Track zoom changes to update marker sizes
+    const handleZoomEnd = () => {
+      const zoom = map.getZoom();
+      updateMarkerSizes(zoom);
+    };
+
+    // Create markers - we'll update icon sizes after view is set
+    // Start with a reasonable default icon size
+    const defaultZoom = 4;
+    const defaultIcon = createMarkerIcon(getMarkerIconSize(defaultZoom));
+    
+    markersRef.current = [];
     albums.forEach((album) => {
       const { lat, lng } = album.primaryLocation;
       
-      const marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+      const marker = L.marker([lat, lng], { icon: defaultIcon }).addTo(map);
       const coverUrl = `${import.meta.env.BASE_URL}${album.cover}`;
       const albumUrl = `/album/${album.slug}`;
 
@@ -162,7 +238,14 @@ export default function MapPage() {
       `;
 
       marker.bindPopup(popupHtml);
+      markersRef.current.push({ marker, album });
     });
+
+    // Track map movement for album proximity updates
+    map.on('moveend', handleMoveEnd);
+    
+    // Track zoom changes to update marker sizes (handles both user zoom and initial fitBounds)
+    map.on('zoomend', handleZoomEnd);
 
     // Fit map to show all album markers, or default to continental US
     if (albums.length > 0) {
@@ -170,8 +253,16 @@ export default function MapPage() {
         albums.map(album => [album.primaryLocation.lat, album.primaryLocation.lng])
       );
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 8 });
+      
+      // Update marker sizes after fitBounds completes (zoomend will also fire)
+      // Use a small delay to ensure fitBounds animation completes
+      setTimeout(() => {
+        const zoom = map.getZoom();
+        updateMarkerSizes(zoom);
+      }, 100);
     } else {
       map.setView([39.8, -98.5], 4);
+      updateMarkerSizes(4);
     }
 
     // Set initial center and bounds
@@ -179,24 +270,12 @@ export default function MapPage() {
     setMapCenter({ lat: center.lat, lng: center.lng });
     setMapBounds(map.getBounds());
 
-    // Track map movement for album proximity updates
-    // Using 'moveend' to avoid excessive updates during pan/zoom
-    const handleMoveEnd = () => {
-      const newCenter = map.getCenter();
-      const newBounds = map.getBounds();
-      
-      setMapCenter({ lat: newCenter.lat, lng: newCenter.lng });
-      setMapBounds(newBounds);
-      
-      console.log('🗺️  Map moved - new center:', newCenter.lat.toFixed(3), newCenter.lng.toFixed(3));
-    };
-
-    map.on('moveend', handleMoveEnd);
-
     return () => {
       map.off('moveend', handleMoveEnd);
+      map.off('zoomend', handleZoomEnd);
       map.remove();
       mapInstanceRef.current = null;
+      markersRef.current = [];
     };
   }, [albums, loading, error]);
 
