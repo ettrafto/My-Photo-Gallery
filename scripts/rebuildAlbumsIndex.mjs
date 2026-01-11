@@ -52,6 +52,18 @@ async function rebuildAlbumsIndex() {
     }
   }
 
+  // Load album-locations.json as fallback source for coordinates
+  const ALBUM_LOCATIONS_PATH = path.join(CONTENT_DIR, 'album-locations.json');
+  let albumLocations = {};
+  if (fs.existsSync(ALBUM_LOCATIONS_PATH)) {
+    try {
+      albumLocations = JSON.parse(fs.readFileSync(ALBUM_LOCATIONS_PATH, 'utf-8'));
+      console.log(`  ✓ Loaded album-locations.json as fallback source`);
+    } catch (err) {
+      console.warn(`  ⚠ Could not read album-locations.json:`, err.message);
+    }
+  }
+
   // Get all album JSON files
   const albumFiles = fs.readdirSync(ALBUMS_DIR)
     .filter(file => file.endsWith('.json'))
@@ -67,6 +79,7 @@ async function rebuildAlbumsIndex() {
   const albumsList = [];
   let preservedCount = 0;
   let updatedCount = 0;
+  let fromAlbumLocationsCount = 0;
 
   for (const albumFile of albumFiles) {
     try {
@@ -77,7 +90,7 @@ async function rebuildAlbumsIndex() {
       let primaryLocation;
       
       if (existingLocation) {
-        // Use preserved manual geo data
+        // Use preserved manual geo data from albums.json
         primaryLocation = existingLocation;
         preservedCount++;
       } else {
@@ -87,6 +100,25 @@ async function rebuildAlbumsIndex() {
           lat: null,
           lng: null
         };
+        
+        // If coordinates are null, try to use album-locations.json as fallback
+        if ((primaryLocation.lat === null || primaryLocation.lng === null) &&
+            albumLocations[albumData.slug]?.defaultLocation) {
+          const defaultLoc = albumLocations[albumData.slug].defaultLocation;
+          if (typeof defaultLoc.lat === 'number' && 
+              typeof defaultLoc.lng === 'number' &&
+              !isNaN(defaultLoc.lat) &&
+              !isNaN(defaultLoc.lng)) {
+            primaryLocation = {
+              name: albumLocations[albumData.slug].albumTitle || albumData.title,
+              lat: defaultLoc.lat,
+              lng: defaultLoc.lng
+            };
+            fromAlbumLocationsCount++;
+            console.log(`  📍 Using coordinates from album-locations.json for: ${albumData.slug}`);
+          }
+        }
+        
         updatedCount++;
       }
       
@@ -138,7 +170,10 @@ async function rebuildAlbumsIndex() {
 
   console.log(`\n✅ Rebuilt albums.json with ${albumsList.length} album(s)`);
   if (preservedCount > 0) {
-    console.log(`   ${preservedCount} with preserved manual geo data`);
+    console.log(`   ${preservedCount} with preserved manual geo data from albums.json`);
+  }
+  if (fromAlbumLocationsCount > 0) {
+    console.log(`   ${fromAlbumLocationsCount} with coordinates from album-locations.json`);
   }
   console.log(`   ${updatedCount} updated from album files`);
   console.log(`   ${albumsWithGeo.length} total with geo location data`);
