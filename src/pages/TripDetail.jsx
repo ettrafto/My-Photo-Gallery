@@ -17,8 +17,8 @@ import './TripDetail.css';
  * - Section order: Hero → Summary → Highlights → Map → Albums → Media
  * - All albums displayed simultaneously with scroll-based activation
  * - Active album transitions in/out based on scroll position
- * - Timeline shows route points (destinations) on right edge
- * - Timeline syncs with active album - clicking destination scrolls to album section
+ * - Timeline shows albums on right edge (in trip order)
+ * - Timeline syncs with active album - clicking album scrolls to album section
  * - Map displays full route statically (no transformations/panning)
  * - Map is non-interactive (no user dragging/zooming)
  */
@@ -252,6 +252,36 @@ export default function TripDetail() {
   }, [trip, tripPhotos]);
 
   /**
+   * Build timeline items from albums
+   * Each album becomes a timeline item with id (slug), label (title), and date (from first photo)
+   */
+  const timelineItems = useMemo(() => {
+    if (!albums || albums.length === 0) return [];
+
+    return albums.map(album => {
+      // Get date from first photo in album
+      let albumDate = null;
+      if (album.photos && album.photos.length > 0) {
+        const firstPhoto = album.photos[0];
+        const dateTaken = firstPhoto.exif?.dateTaken || firstPhoto.dateTaken;
+        if (dateTaken) {
+          const date = new Date(dateTaken);
+          if (!isNaN(date.getTime())) {
+            albumDate = date.toISOString().split('T')[0]; // YYYY-MM-DD format
+          }
+        }
+      }
+
+      return {
+        id: album.slug,
+        label: album.title,
+        date: albumDate,
+        albumSlug: album.slug // Keep for easy access
+      };
+    });
+  }, [albums]);
+
+  /**
    * All trip photos sorted chronologically for lightbox navigation
    */
   const sortedTripPhotos = useMemo(() => {
@@ -277,37 +307,6 @@ export default function TripDetail() {
     }
   }, [sortedTripPhotos]);
 
-  /**
-   * Map album slug to destination ID
-   * Route points and albums have 1:1 correspondence by index
-   */
-  const getDestinationIdForAlbum = useCallback((albumSlug) => {
-    if (!trip || !destinations) return null;
-    const albumIndex = trip.albumIds.indexOf(albumSlug);
-    if (albumIndex === -1) return null;
-    // Find route point destination at this index
-    const routePointDestinations = destinations.filter(d => d.type === 'route-point');
-    return routePointDestinations[albumIndex]?.id || null;
-  }, [trip, destinations]);
-
-  /**
-   * Map destination ID to album slug
-   */
-  const getAlbumSlugForDestination = useCallback((destinationId) => {
-    if (!trip || !destinations) return null;
-    const routePointDestinations = destinations.filter(d => d.type === 'route-point');
-    const destinationIndex = routePointDestinations.findIndex(d => d.id === destinationId);
-    if (destinationIndex === -1) return null;
-    return trip.albumIds[destinationIndex] || null;
-  }, [trip, destinations]);
-
-  /**
-   * Derived: active destination ID from active album
-   */
-  const activeDestinationId = useMemo(() => {
-    if (!activeAlbumSlug) return null;
-    return getDestinationIdForAlbum(activeAlbumSlug);
-  }, [activeAlbumSlug, getDestinationIdForAlbum]);
 
   /**
    * Map transformations removed - map now shows full route statically
@@ -350,15 +349,14 @@ export default function TripDetail() {
   };
 
   /**
-   * Handle timeline destination click
+   * Handle timeline item click (album click)
    * 
-   * When user clicks a destination in the timeline:
-   * 1. Find corresponding album slug
-   * 2. Set active album and scroll to section
-   * Map transformations removed - map shows full route statically
+   * When user clicks an album in the timeline:
+   * 1. Set active album
+   * 2. Scroll to album section
    */
-  const handleDestinationClick = useCallback((destination) => {
-    const albumSlug = getAlbumSlugForDestination(destination.id);
+  const handleTimelineItemClick = useCallback((item) => {
+    const albumSlug = item.albumSlug || item.id; // Support both formats
     if (!albumSlug) return;
     
     // Set active album
@@ -372,7 +370,7 @@ export default function TripDetail() {
         block: 'center' 
       });
     }
-  }, [getAlbumSlugForDestination]);
+  }, []);
 
   /**
    * Handle album activation from scroll
@@ -567,25 +565,22 @@ export default function TripDetail() {
       </div>
 
       {/* Scroll Wheel Timeline - Fixed on right edge */}
-      {/* Filter out highlights - only show route points */}
-      {destinations.length > 0 && (() => {
-        const routePointDestinations = destinations.filter(d => d.type === 'route-point');
-        return routePointDestinations.length > 0 ? (
-          <TripsScrollWheelTimeline
-            destinations={routePointDestinations}
-            onItemClick={handleDestinationClick}
-            selectedDestinationId={activeDestinationId}
-            activeAlbumSlug={activeAlbumSlug}
-            onShowAllClick={handleShowAllPhotos}
-            sectionRefs={{
-              photosRef: photosRef,
-              carouselRef: carouselRef,
-              mapRef: mapRef,
-              mapSectionRef: mapSectionRef
-            }}
-          />
-        ) : null;
-      })()}
+      {/* Shows albums in trip order */}
+      {timelineItems.length > 0 && (
+        <TripsScrollWheelTimeline
+          destinations={timelineItems}
+          onItemClick={handleTimelineItemClick}
+          selectedDestinationId={activeAlbumSlug}
+          activeAlbumSlug={activeAlbumSlug}
+          onShowAllClick={handleShowAllPhotos}
+          sectionRefs={{
+            photosRef: photosRef,
+            carouselRef: carouselRef,
+            mapRef: mapRef,
+            mapSectionRef: mapSectionRef
+          }}
+        />
+      )}
 
       {/* Lightbox for viewing photos (like AlbumPage) */}
       {selectedPhotoIndex !== null && sortedTripPhotos.length > 0 && (

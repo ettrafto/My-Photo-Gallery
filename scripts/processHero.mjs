@@ -256,7 +256,8 @@ async function processHeroImage(imageFile, index, metadata, force = false) {
     return {
       src: `/hero/${baseName}-large.webp`,
       alt: altText,
-      caption: caption
+      caption: caption,
+      order: index + 1 // Assign order based on position (1-indexed)
     };
   } catch (error) {
     console.error(`  ❌ ERROR processing ${imageFile}: ${error.message}`);
@@ -319,7 +320,25 @@ async function writeSiteConfig(siteConfig, heroImages) {
     };
   }
 
-  siteConfig.hero.images = heroImages.filter(img => img !== null);
+  const existingImages = siteConfig.hero.images || [];
+  
+  // Preserve existing order values by matching images by src
+  const updatedImages = heroImages
+    .filter(img => img !== null)
+    .map((newImage, index) => {
+      // Try to find existing image with same src
+      const existingImage = existingImages.find(existing => existing.src === newImage.src);
+      
+      // Preserve order if it exists, otherwise use index + 1
+      const order = existingImage?.order !== undefined ? existingImage.order : newImage.order;
+      
+      return {
+        ...newImage,
+        order: order
+      };
+    });
+
+  siteConfig.hero.images = updatedImages;
 
   await fsp.writeFile(configPath, JSON.stringify(siteConfig, null, 2));
   console.log(`  ✅ Updated ${configPath}`);

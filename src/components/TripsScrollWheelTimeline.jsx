@@ -158,6 +158,7 @@ export default function TripsScrollWheelTimeline({
           const isActive = activeDestinationIndex === index;
           const isRoutePoint = destination.type === 'route-point';
           const isHighlight = destination.type === 'highlight';
+          const isAlbum = !destination.type; // Items without type are albums
 
           // Calculate scale based on distance from active index
           let scale = 0.6; // Base scale for inactive items (reduced for more compression)
@@ -181,11 +182,19 @@ export default function TripsScrollWheelTimeline({
             }
           }
 
+          // Determine emoji based on type
+          let emoji = '⭐'; // Default for highlights
+          if (isRoutePoint) {
+            emoji = '📍';
+          } else if (isAlbum) {
+            emoji = null; // No emoji for albums
+          }
+
           return (
             <div
               key={destination.id}
               ref={el => itemRefs.current[index] = el}
-              className={`trips-scrollwheel-item ${isActive ? 'trips-scrollwheel-item-active' : ''} ${isSelected ? 'trips-scrollwheel-item-selected' : ''} ${isRoutePoint ? 'trips-scrollwheel-item-route' : 'trips-scrollwheel-item-highlight'}`}
+              className={`trips-scrollwheel-item ${isActive ? 'trips-scrollwheel-item-active' : ''} ${isSelected ? 'trips-scrollwheel-item-selected' : ''} ${isRoutePoint ? 'trips-scrollwheel-item-route' : isHighlight ? 'trips-scrollwheel-item-highlight' : 'trips-scrollwheel-item-album'}`}
               style={{
                 transform: `scale(${scale})`,
                 opacity: opacity,
@@ -207,9 +216,11 @@ export default function TripsScrollWheelTimeline({
             >
               <div className="trips-scrollwheel-content">
                 <div className="trips-scrollwheel-name-row">
-                  <span className="trips-scrollwheel-emoji">
-                    {isRoutePoint ? '📍' : '⭐'}
-                  </span>
+                  {emoji && (
+                    <span className="trips-scrollwheel-emoji">
+                      {emoji}
+                    </span>
+                  )}
                   <span className="trips-scrollwheel-label">
                     {destination.label}
                   </span>

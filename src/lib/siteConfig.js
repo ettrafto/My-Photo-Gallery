@@ -225,26 +225,43 @@ export function getSocialItems() {
 
 /**
  * Get hero images from site config
- * @returns {Array} Array of hero images with valid src
+ * @returns {Array} Array of hero images with valid src, sorted by order field
  */
 export function getHeroImages() {
   const config = getSiteConfig();
   const images = config?.hero?.images;
   if (!Array.isArray(images)) return [];
 
-  return images
-    .filter((item) => {
+  const validImages = images
+    .map((item, index) => ({
+      item,
+      index, // Preserve original index for stable sort
+    }))
+    .filter(({ item }) => {
       if (!item?.src || typeof item.src !== 'string') {
         console.warn('Site config: Skipping hero image with invalid src:', item);
         return false;
       }
       return true;
-    })
-    .map((item) => ({
-      src: item.src,
-      alt: item.alt || item.caption || 'Hero image',
-      caption: item.caption || null,
-    }));
+    });
+
+  // Sort by order field (ascending), then by original array index for items without order
+  validImages.sort((a, b) => {
+    const orderA = a.item.order !== undefined ? a.item.order : Infinity;
+    const orderB = b.item.order !== undefined ? b.item.order : Infinity;
+    
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    // If orders are equal (both Infinity), maintain original order
+    return a.index - b.index;
+  });
+
+  return validImages.map(({ item }) => ({
+    src: item.src,
+    alt: item.alt || item.caption || 'Hero image',
+    caption: item.caption || null,
+  }));
 }
 
 /**

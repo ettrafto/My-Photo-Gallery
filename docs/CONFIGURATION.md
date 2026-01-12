@@ -349,6 +349,7 @@ Each item must have:
 - `src` (required, string): Image path (relative to public root or absolute URL)
 - `alt` (optional, string): Alt text for image (falls back to `caption` or `"Hero image"`)
 - `caption` (optional, string): Caption text displayed with image
+- `order` (optional, number): Display order (lower numbers appear first). Images are sorted by this field, then assigned to CSS positions `.hero-image-1` through `.hero-image-5` based on their sorted order. Images without an `order` field will appear after ordered images, maintaining their relative order from the JSON array.
 
 **Image processing workflow:**
 
