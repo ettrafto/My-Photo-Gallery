@@ -96,52 +96,7 @@ export default function TripHighlightsCarousel({
         </div>
       </div>
 
-      <div className="highlights-carousel-container" ref={carouselRef}>
-        <div className="highlights-carousel-track">
-          {highlights.map((highlight, index) => (
-            <div
-              key={highlight.id}
-              ref={el => slideRefs.current[index] = el}
-              className={`highlights-slide ${index === currentIndex ? 'highlights-slide-active' : ''} ${highlight.id === activeHighlightId ? 'highlights-slide-highlighted' : ''}`}
-              onClick={() => {
-                goToSlide(index);
-                handleHighlightInteraction(highlight);
-              }}
-              onMouseEnter={() => onHighlightHover && onHighlightHover(highlight)}
-            >
-              {highlight.image && (
-                <div className="highlights-slide-image">
-                  <Photo 
-                    src={`${import.meta.env.BASE_URL}${highlight.image}`} 
-                    alt={highlight.title}
-                    loading="lazy"
-                    decoding="async"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 50vw"
-                  />
-                </div>
-              )}
-              {!highlight.image && (
-                <div className="highlights-slide-placeholder">
-                  <span>Photo from {highlight.albumSlug}</span>
-                </div>
-              )}
-              
-              <div className="highlights-slide-content">
-                <div className="highlights-slide-date">{formatDate(highlight.date)}</div>
-                <h4 className="highlights-slide-title">{highlight.title}</h4>
-                <p className="highlights-slide-description">{highlight.description}</p>
-                {highlight.mapLat && highlight.mapLng && (
-                  <div className="highlights-slide-location-hint">
-                    📍 Click to view on map
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="highlights-carousel-controls">
+      <div className="highlights-carousel-wrapper">
         <button
           className="highlights-carousel-btn highlights-carousel-btn-prev"
           onClick={goToPrevious}
@@ -150,6 +105,52 @@ export default function TripHighlightsCarousel({
         >
           ‹
         </button>
+        
+        <div className="highlights-carousel-container" ref={carouselRef}>
+          <div className="highlights-carousel-track">
+            {highlights.map((highlight, index) => (
+              <div
+                key={highlight.id}
+                ref={el => slideRefs.current[index] = el}
+                className={`highlights-slide ${index === currentIndex ? 'highlights-slide-active' : ''} ${highlight.id === activeHighlightId ? 'highlights-slide-highlighted' : ''}`}
+                onClick={() => {
+                  goToSlide(index);
+                  handleHighlightInteraction(highlight);
+                }}
+                onMouseEnter={() => onHighlightHover && onHighlightHover(highlight)}
+              >
+                {highlight.image && (
+                  <div className="highlights-slide-image">
+                    <Photo 
+                      src={`${import.meta.env.BASE_URL}${highlight.image}`} 
+                      alt={highlight.title}
+                      loading="lazy"
+                      decoding="async"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 70vw, 50vw"
+                    />
+                  </div>
+                )}
+                {!highlight.image && (
+                  <div className="highlights-slide-placeholder">
+                    <span>Photo from {highlight.albumSlug}</span>
+                  </div>
+                )}
+                
+                <div className="highlights-slide-content">
+                  <div className="highlights-slide-date">{formatDate(highlight.date)}</div>
+                  <h4 className="highlights-slide-title">{highlight.title}</h4>
+                  <p className="highlights-slide-description">{highlight.description}</p>
+                  {highlight.mapLat && highlight.mapLng && (
+                    <div className="highlights-slide-location-hint">
+                      📍 Click to view on map
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <button
           className="highlights-carousel-btn highlights-carousel-btn-next"
           onClick={goToNext}

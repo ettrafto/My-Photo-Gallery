@@ -76,6 +76,28 @@
   display: block;
 }
 
+/* Location header at the top */
+.showcase-location-header {
+  margin-bottom: 1rem;
+}
+
+.showcase-location-name {
+  font-family: var(--mono-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.showcase-location-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin-bottom: 0;
+}
+
 /* Overlay for optional labels */
 .showcase-image-overlay {
   position: absolute;

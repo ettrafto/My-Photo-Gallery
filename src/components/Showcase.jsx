@@ -122,8 +122,8 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
   const formattedDate = formatDate(exif.dateTaken);
   const location = image.location || null;
 
-  // Check if we have any EXIF or location data to display
-  const hasExifData = formattedDate || cameraLine || settingsLine || location;
+  // Check if we have any EXIF data to display (location is handled separately at top)
+  const hasExifData = formattedDate || cameraLine || settingsLine;
   
   // Extract filename from src path (fallback to alt or default)
   const filename = image.src 
@@ -140,6 +140,14 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
       viewport={{ amount: 0.35, once: false }}
       style={{ willChange: 'transform, opacity, filter' }}
     >
+      {/* Location at the top, above a line */}
+      {location && (
+        <div className="showcase-location-header">
+          <div className="showcase-location-name">{location}</div>
+          <div className="showcase-location-line"></div>
+        </div>
+      )}
+      
       <motion.div
         className={`showcase-image-wrapper ${aspectClass}`}
       >
@@ -164,9 +172,6 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
             <span className="showcase-exif-position">{index + 1} / {total}</span>
           </div>
           <div className="showcase-exif-details">
-            {location && (
-              <div className="showcase-exif-line showcase-exif-location">{location}</div>
-            )}
             {formattedDate && (
               <div className="showcase-exif-line showcase-exif-date">{formattedDate}</div>
             )}
