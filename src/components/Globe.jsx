@@ -4,15 +4,6 @@ import { select } from 'd3-selection';
 import { feature } from 'topojson-client';
 import './Globe.css';
 
-// Debug: Verify D3 imports
-console.log('🌍 Globe: D3 imports check', {
-  geoOrthographic: typeof geoOrthographic,
-  geoGraticule: typeof geoGraticule,
-  geoPath: typeof geoPath,
-  geoRotation: typeof geoRotation,
-  select: typeof select,
-  feature: typeof feature
-});
 
 /**
  * Globe component - D3 globe with drag-to-rotate interaction
@@ -209,19 +200,6 @@ export default function Globe() {
     if (isTestNode) {
       testNodeVisibilityRef.current = isVisible;
       setTestNodeVisible(isVisible);
-      console.log('🔵 TEST NODE:', {
-        position: `lat: ${lat.toFixed(4)}, lng: ${lng.toFixed(4)}`,
-        rotation: `[${rotationRef.current.map(v => v.toFixed(2)).join(', ')}]`,
-        rotated: `[${rotLat.toFixed(4)}, ${rotLng.toFixed(4)}]`,
-        cosc: cosc.toFixed(6),
-        hemisphereVisible,
-        d3Projection: coords ? `[${coords[0].toFixed(2)}, ${coords[1].toFixed(2)}]` : 'null',
-        distFromCenter: distFromCenter.toFixed(2),
-        globeRadius: scale.toFixed(2),
-        withinRadius,
-        isVisible,
-        verdict: isVisible ? '✅ VISIBLE' : '❌ HIDDEN'
-      });
     }
 
     // If we ever detect a disagreement between hemisphere check and radius check, log it.
@@ -469,7 +447,6 @@ export default function Globe() {
 
   // Load album markers data
   useEffect(() => {
-    console.log('🌍 Globe: Loading album markers...');
     fetch(`${import.meta.env.BASE_URL}content/map.json`)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -477,7 +454,6 @@ export default function Globe() {
       })
       .then(data => {
         const albumsData = data.albums || [];
-        console.log(`🌍 Globe: Loaded ${albumsData.length} album marker(s)`, albumsData);
         setAlbums(albumsData);
       })
       .catch(err => {
@@ -489,7 +465,6 @@ export default function Globe() {
 
   // Load world map data
   useEffect(() => {
-    console.log('🌍 Globe: Loading world map data...');
     // Fetch world-110m TopoJSON (lightweight, efficient)
     // Using a reliable CDN source
     fetch('https://unpkg.com/world-atlas@1.1.4/world/110m.json')
@@ -500,7 +475,6 @@ export default function Globe() {
         return res.json();
       })
       .then(topology => {
-        console.log('🌍 Globe: World topology loaded, converting to GeoJSON...');
         // Convert TopoJSON to GeoJSON
         // Check if topology has the expected structure
         const countries = topology.objects?.countries || topology.objects?.land;
@@ -508,12 +482,10 @@ export default function Globe() {
           throw new Error('Invalid topology structure');
         }
         const world = feature(topology, countries);
-        console.log(`🌍 Globe: World data converted, ${world.features.length} features`);
         setWorldData(world);
       })
       .catch(err => {
         console.error('🌍 Globe: Failed to load world map data:', err);
-        console.log('🌍 Globe: Trying fallback URL...');
         // Fallback: try alternative URL with different structure
         fetch('https://raw.githubusercontent.com/topojson/world-atlas/master/world/110m.json')
           .then(res => {
@@ -521,13 +493,11 @@ export default function Globe() {
             return res.json();
           })
           .then(topology => {
-            console.log('🌍 Globe: Fallback topology loaded');
             const countries = topology.objects?.countries || topology.objects?.land;
             if (!countries) {
               throw new Error('Invalid topology structure in fallback');
             }
             const world = feature(topology, countries);
-            console.log(`🌍 Globe: Fallback world data converted, ${world.features.length} features`);
             setWorldData(world);
           })
           .catch(fallbackErr => {
@@ -538,22 +508,13 @@ export default function Globe() {
 
   // Initialize globe on mount and when world data loads
   useEffect(() => {
-    console.log('🌍 Globe: Init effect triggered', { 
-      hasWorldData: !!worldData, 
-      albumsCount: albums.length,
-      hasContainer: !!containerRef.current,
-      hasSvg: !!svgRef.current
-    });
-    
     // Wait for world data to load - this is required
     if (!worldData) {
-      console.log('🌍 Globe: Waiting for world data...');
       return;
     }
     
     // Check if container has dimensions
     if (!containerRef.current || !svgRef.current) {
-      console.log('🌍 Globe: Waiting for DOM refs...');
       return;
     }
     
@@ -562,11 +523,9 @@ export default function Globe() {
     const height = container.clientHeight || container.offsetHeight || 0;
     
     if (width === 0 || height === 0) {
-      console.warn('🌍 Globe: Container has no dimensions', { width, height });
       // Retry after a short delay
       const timeoutId = setTimeout(() => {
         if (containerRef.current && svgRef.current && worldData) {
-          console.log('🌍 Globe: Retrying initialization after delay...');
           initGlobe();
           render();
         }
@@ -574,7 +533,6 @@ export default function Globe() {
       return () => clearTimeout(timeoutId);
     }
     
-    console.log('🌍 Globe: Initializing globe...', { width, height, albumsCount: albums.length });
     initGlobe();
     render();
 
@@ -607,7 +565,6 @@ export default function Globe() {
   // Handle resize
   useEffect(() => {
     if (!containerRef.current || !worldData) {
-      console.log('🌍 Globe: ResizeObserver waiting for worldData');
       return;
     }
 
@@ -617,7 +574,6 @@ export default function Globe() {
     });
 
     resizeObserver.observe(containerRef.current);
-    console.log('🌍 Globe: ResizeObserver set up');
 
     return () => {
       resizeObserver.disconnect();
