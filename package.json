@@ -15,6 +15,7 @@
     "process:showcase": "node scripts/processShowcase.mjs",
     "import:photos": "node scripts/importPhotos.mjs",
     "reset:gallery": "node scripts/resetGallery.mjs",
+    "album:update": "node scripts/albumUpdate.mjs",
     "dev": "vite",
     "build": "npm run import:photos && npm run process:hero && npm run process:showcase && vite build && node scripts/copy-content.mjs",
     "lint": "eslint .",

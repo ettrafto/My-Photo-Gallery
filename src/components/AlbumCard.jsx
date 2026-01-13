@@ -9,12 +9,17 @@ import './AlbumCard.css';
  * @param {Object} props.album - Album object
  */
 export default function AlbumCard({ album }) {
-  const coverPhoto = album.photos?.[0] || null;
   const coverAspectRatio = 4/3; // Fixed 4:3 aspect ratio for all album covers
   
-  const coverProps = coverPhoto
+  // Find the photo that matches album.cover, or fall back to first photo
+  const coverPhoto = album.cover && album.photos
+    ? album.photos.find(photo => photo.path === album.cover || photo.pathLarge === album.cover)
+    : null;
+  const fallbackPhoto = coverPhoto || (album.photos?.[0] || null);
+  
+  const coverProps = fallbackPhoto
     ? (() => {
-        const props = buildPhotoProps(coverPhoto, {
+        const props = buildPhotoProps(fallbackPhoto, {
           baseUrl: import.meta.env.BASE_URL,
           sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
           className: "album-cover-image",
@@ -23,11 +28,11 @@ export default function AlbumCard({ album }) {
         const { width, height, aspectRatio, ...rest } = props;
         return rest;
       })()
-    : {
+    : album.cover ? {
         src: `${import.meta.env.BASE_URL}${album.cover}`,
         alt: album.title,
         sizes: "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw",
-      };
+      } : null;
   
   // Get first 3 photos for collage (or first 3 available)
   const collagePhotos = album.photos?.slice(0, 3) || [];
