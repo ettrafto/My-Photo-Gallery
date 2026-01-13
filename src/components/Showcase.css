@@ -76,6 +76,44 @@
   display: block;
 }
 
+/* Portrait/vertical images - constrain to viewport height */
+.showcase-image-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.showcase-image-portrait .showcase-image-wrapper {
+  max-height: 85vh;
+  height: auto;
+  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  aspect-ratio: var(--portrait-aspect-ratio, 9/14);
+}
+
+.showcase-image-portrait .showcase-image-img {
+  object-fit: contain;
+  width: 100%;
+  height: 100%;
+}
+
+/* Make location header and EXIF info match portrait image width */
+.showcase-image-portrait .showcase-location-header {
+  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.showcase-image-portrait .showcase-exif-info {
+  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* Location header at the top */
 .showcase-location-header {
   margin-bottom: 1rem;

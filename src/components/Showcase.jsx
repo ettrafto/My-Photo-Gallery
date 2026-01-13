@@ -87,7 +87,8 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
   // Determine aspect ratio based on type or dimensions
   const aspectRatio = image.dimensions?.aspectRatio || 
     (image.type === 'portrait' ? 9 / 14 : image.type === 'square' ? 1 : 16 / 9);
-  const aspectClass = `aspect-[${aspectRatio}]`;
+  const isPortrait = image.type === 'portrait' || (aspectRatio < 1);
+  const aspectClass = isPortrait ? '' : `aspect-[${aspectRatio}]`;
 
   // Format EXIF data for display (matching Lightbox)
   const formatDate = (dateStr) => {
@@ -133,12 +134,15 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
   return (
     <motion.div
       ref={ref}
-      className={`showcase-image showcase-image-${image.side || 'left'}`}
+      className={`showcase-image showcase-image-${image.side || 'left'} ${isPortrait ? 'showcase-image-portrait' : ''}`}
       variants={imageVariants}
       initial="hidden"
       animate={isInView ? 'visible' : 'exit'}
       viewport={{ amount: 0.35, once: false }}
-      style={{ willChange: 'transform, opacity, filter' }}
+      style={isPortrait ? { 
+        willChange: 'transform, opacity, filter',
+        '--portrait-aspect-ratio': aspectRatio
+      } : { willChange: 'transform, opacity, filter' }}
     >
       {/* Location at the top, above a line */}
       {location && (
