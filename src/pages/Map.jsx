@@ -209,7 +209,6 @@ export default function MapPage() {
         
         setAlbums(albumsWithGeo);
         setLoading(false);
-        console.log(`📍 Loaded ${albumsWithGeo.length} album(s) with geo data`);
       })
       .catch((err) => {
         console.error('Failed to load albums:', err);
@@ -224,8 +223,6 @@ export default function MapPage() {
       setAlbumsByProximity([]);
       return;
     }
-
-    console.log('🗺️  Computing album proximity for center:', mapCenter);
 
     // Filter albums within current map bounds
     const visibleAlbums = albums.filter(album => {
@@ -294,8 +291,6 @@ export default function MapPage() {
       
       setMapCenter({ lat: newCenter.lat, lng: newCenter.lng });
       setMapBounds(newBounds);
-      
-      console.log('🗺️  Map moved - new center:', newCenter.lat.toFixed(3), newCenter.lng.toFixed(3));
     };
 
     // Track zoom changes to update marker sizes

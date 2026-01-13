@@ -32,6 +32,7 @@ export default function TripDetail() {
   // Data state
   const [trip, setTrip] = useState(null);
   const [tripPhotos, setTripPhotos] = useState([]);
+  const [tripAlbums, setTripAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -72,7 +73,6 @@ export default function TripDetail() {
                   gpxFile: mapData.gpxFile !== null ? mapData.gpxFile : (tripData.route?.gpxFile || null)
                 }
               };
-              console.log(`🗺️  Loaded map route with ${mapData.polyline.length} points from ${slug}-map.json`);
             }
           }
         } catch (mapErr) {
@@ -89,7 +89,7 @@ export default function TripDetail() {
             const albumResponse = await fetch(`${import.meta.env.BASE_URL}content/albums/${albumSlug}.json`);
             if (!albumResponse.ok) {
               console.warn(`Failed to load album: ${albumSlug}`);
-              return null;
+              return { albumData: null, photos: null };
             }
             const albumData = await albumResponse.json();
             
@@ -102,18 +102,31 @@ export default function TripDetail() {
                 albumTitle: albumData.title || albumSlug
               }));
             
-            return photosWithMetadata;
+            return { albumData, photos: photosWithMetadata };
           } catch (err) {
             console.warn(`Error loading album ${albumSlug}:`, err);
-            return null;
+            return { albumData: null, photos: null };
           }
         });
 
         const albumResults = await Promise.all(albumPromises);
+        
+        // Store album metadata (for map markers)
+        const albumsWithMetadata = albumResults
+          .filter(result => result.albumData !== null)
+          .map(result => ({
+            slug: result.albumData.slug,
+            title: result.albumData.title,
+            primaryLocation: result.albumData.primaryLocation || null,
+            cover: result.albumData.cover || null,
+            count: result.albumData.count || 0
+          }));
+        setTripAlbums(albumsWithMetadata);
+        
         // Flatten all photos from all albums (including photos without GPS)
         const allPhotos = albumResults
-          .filter(result => result !== null)
-          .flat();
+          .filter(result => result.photos !== null)
+          .flatMap(result => result.photos);
 
         // Count geotagged photos for logging
         const geotaggedCount = allPhotos.filter(photo => 
@@ -121,7 +134,6 @@ export default function TripDetail() {
         ).length;
 
         setTripPhotos(allPhotos);
-        console.log(`📸 Loaded ${allPhotos.length} photos (${geotaggedCount} with GPS) for trip: ${slug}`);
       } catch (err) {
         console.error('Failed to load trip:', err);
         setError(err.message);
@@ -500,8 +512,8 @@ export default function TripDetail() {
             <h2 className="page-title">Trip Map</h2>
             <TripMap
               ref={mapRef}
-              tripPhotos={tripPhotos}
               route={trip.route}
+              albums={tripAlbums}
             />
           </section>
         )}

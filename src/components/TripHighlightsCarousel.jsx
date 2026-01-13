@@ -140,11 +140,6 @@ export default function TripHighlightsCarousel({
                   <div className="highlights-slide-date">{formatDate(highlight.date)}</div>
                   <h4 className="highlights-slide-title">{highlight.title}</h4>
                   <p className="highlights-slide-description">{highlight.description}</p>
-                  {highlight.mapLat && highlight.mapLng && (
-                    <div className="highlights-slide-location-hint">
-                      📍 Click to view on map
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

@@ -3,23 +3,40 @@ import L from 'leaflet';
 import './TripMap.css';
 
 /**
- * TripMap component - displays a STATIC (non-interactive) map with trip photos and route
+ * Create a marker icon using the custom marker SVG
+ */
+function createMarkerIcon(size = [28, 35]) {
+  const [width, height] = size;
+  const iconAnchor = [width / 2, height]; // Center horizontally, anchor at bottom
+  const iconUrl = `${import.meta.env.BASE_URL}icons/marker.svg`;
+  
+  return L.divIcon({
+    className: 'trip-map-marker-wrapper',
+    html: `<div class="trip-map-marker-inner" style="width: ${width}px; height: ${height}px;"><img src="${iconUrl}" style="width: 100%; height: 100%; object-fit: contain;" /></div>`,
+    iconSize: [width, height],
+    iconAnchor: iconAnchor,
+    popupAnchor: [0, -height],
+  });
+}
+
+/**
+ * TripMap component - displays a STATIC (non-interactive) map with route
  * 
  * This map is intentionally non-interactive - users cannot drag, zoom, or scroll.
  * Programmatic panning from highlights/timeline is still supported via ref methods.
  * This keeps the map as a visual reference while preventing accidental navigation.
  * 
  * @param {Object} props
- * @param {import('../types/trips.jsdoc').Photo[]} props.tripPhotos - Photos to display on map
  * @param {import('../types/trips.jsdoc').TripRoute} props.route - Route information with polyline
+ * @param {Array<{slug: string, title: string, primaryLocation: {lat: number, lng: number, name: string}, cover: string, count: number}>} props.albums - Albums to display markers for
  * @param {Function} props.onMapReady - Callback when map is initialized
  * @param {Object} ref - Forwarded ref for external control
  */
-const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
+const TripMap = forwardRef(({ route, albums = [], onMapReady }, ref) => {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
-  const markersRef = useRef([]);
   const polylineRef = useRef(null);
+  const albumMarkersRef = useRef([]);
 
   // Store initial bounds for reset functionality
   const initialBoundsRef = useRef(null);
@@ -43,7 +60,7 @@ const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
     },
 
     /**
-     * Reset map to show full journey (all markers + route)
+     * Reset map to show full journey (route)
      */
     resetToFullView: () => {
       if (mapInstanceRef.current && initialBoundsRef.current) {
@@ -52,17 +69,6 @@ const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
           maxZoom: 10,
           duration: 1.5
         });
-      }
-    },
-
-    /**
-     * Highlight a specific marker by photo path
-     * @param {string} photoPath - Path to photo to highlight
-     */
-    highlightMarker: (photoPath) => {
-      const marker = markersRef.current.find(m => m.photoPath === photoPath);
-      if (marker) {
-        marker.leafletMarker.openPopup();
       }
     }
   }));
@@ -90,49 +96,8 @@ const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
       maxZoom: 19,
     }).addTo(map);
 
-    // Custom dark marker icon (reuse existing)
-    const customIcon = L.icon({
-      iconUrl: `${import.meta.env.BASE_URL}icons/marker.svg`,
-      iconSize: [32, 40],
-      iconAnchor: [16, 40],
-      popupAnchor: [0, -40],
-      shadowUrl: null,
-    });
-
     const bounds = L.latLngBounds();
     let hasValidBounds = false;
-
-    // Add photo markers
-    if (tripPhotos && tripPhotos.length > 0) {
-      tripPhotos.forEach((photo) => {
-        if (typeof photo.lat !== 'number' || typeof photo.lng !== 'number') return;
-
-        const marker = L.marker([photo.lat, photo.lng], { icon: customIcon }).addTo(map);
-        const thumbUrl = `${import.meta.env.BASE_URL}${photo.path}`;
-
-        const popupHtml = `
-          <div class="trip-map-popup">
-            <div class="trip-map-popup-thumb">
-              <img src="${thumbUrl}" alt="${photo.filename}" />
-            </div>
-            <div class="trip-map-popup-meta">
-              <div class="trip-map-popup-album">${photo.albumTitle}</div>
-              ${photo.dateTaken ? `<div class="trip-map-popup-date">${String(photo.dateTaken).slice(0, 10)}</div>` : ''}
-            </div>
-          </div>
-        `;
-
-        marker.bindPopup(popupHtml);
-        
-        markersRef.current.push({
-          photoPath: photo.path,
-          leafletMarker: marker
-        });
-
-        bounds.extend([photo.lat, photo.lng]);
-        hasValidBounds = true;
-      });
-    }
 
     // Draw route polyline if provided
     // Using black dashed line for clear visibility against map tiles
@@ -170,6 +135,51 @@ const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
       });
     }
 
+    // Add album markers with popups
+    if (albums && albums.length > 0) {
+      // Filter albums with valid locations
+      const albumsWithLocations = albums.filter(album => 
+        album.primaryLocation && 
+        typeof album.primaryLocation.lat === 'number' && 
+        typeof album.primaryLocation.lng === 'number'
+      );
+
+      if (albumsWithLocations.length > 0) {
+        const markerIcon = createMarkerIcon([28, 35]);
+        
+        albumsWithLocations.forEach((album) => {
+          const { lat, lng } = album.primaryLocation;
+          const marker = L.marker([lat, lng], { icon: markerIcon }).addTo(map);
+          
+          // Create popup HTML similar to Map page
+          const coverUrl = album.cover ? `${import.meta.env.BASE_URL}${album.cover}` : '';
+          const albumUrl = `/album/${album.slug}`;
+          
+          const popupHtml = `
+            <div class="trip-map-popup">
+              ${coverUrl ? `
+                <div class="trip-map-popup-thumb-wrap">
+                  <img src="${coverUrl}" alt="${album.title}" class="trip-map-popup-thumb" />
+                </div>
+              ` : ''}
+              <div class="trip-map-popup-meta">
+                <div class="trip-map-popup-album">${album.title}</div>
+                ${album.count ? `<div class="trip-map-popup-date">${album.count} photo${album.count !== 1 ? 's' : ''}</div>` : ''}
+                <a href="${albumUrl}" class="trip-map-popup-link">view album &rsaquo;</a>
+              </div>
+            </div>
+          `;
+          
+          marker.bindPopup(popupHtml);
+          albumMarkersRef.current.push(marker);
+          
+          // Add to bounds
+          bounds.extend([lat, lng]);
+          hasValidBounds = true;
+        });
+      }
+    }
+
     // Fit map to bounds or use default view
     if (hasValidBounds) {
       map.fitBounds(bounds, { padding: [50, 50], maxZoom: 10 });
@@ -185,12 +195,15 @@ const TripMap = forwardRef(({ tripPhotos, route, onMapReady }, ref) => {
     }
 
     return () => {
+      // Clean up album markers
+      albumMarkersRef.current.forEach(marker => marker.remove());
+      albumMarkersRef.current = [];
+      
       map.remove();
       mapInstanceRef.current = null;
-      markersRef.current = [];
       polylineRef.current = null;
     };
-  }, [tripPhotos, route, onMapReady]);
+  }, [route, albums, onMapReady]);
 
   return (
     <div className="trip-map-container">

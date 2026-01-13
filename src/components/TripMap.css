@@ -21,7 +21,7 @@
   min-width: 200px;
 }
 
-.trip-map-popup-thumb {
+.trip-map-popup-thumb-wrap {
   width: 80px;
   height: 60px;
   overflow: hidden;
@@ -30,7 +30,7 @@
   flex-shrink: 0;
 }
 
-.trip-map-popup-thumb img {
+.trip-map-popup-thumb {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -40,20 +40,31 @@
 .trip-map-popup-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  justify-content: center;
+  gap: 0.15rem;
 }
 
 .trip-map-popup-album {
   font-family: var(--mono-display);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 0.85rem;
 }
 
 .trip-map-popup-date {
   opacity: 0.7;
+}
+
+.trip-map-popup-link {
+  margin-top: 0.25rem;
   font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.9);
+  text-decoration: none;
+}
+
+.trip-map-popup-link:hover {
+  color: rgba(255, 255, 255, 1);
+  text-decoration: underline;
 }
 
 /* Route label styling */
@@ -75,6 +86,22 @@
   white-space: nowrap;
   text-align: center;
   backdrop-filter: blur(4px);
+}
+
+/* Marker styling */
+.trip-map-marker-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.trip-map-marker-inner {
+  cursor: pointer;
+  transition: transform 0.2s ease-out, filter 0.2s ease-out;
+}
+
+.trip-map-marker-inner:hover {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
 }
 
 @media (max-width: 768px) {

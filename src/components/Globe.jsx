@@ -84,8 +84,6 @@ export default function Globe() {
       return;
     }
     
-    console.log('🌍 Globe: Initializing with dimensions', { width, height });
-    
     const size = Math.min(width, height);
     const scale = size * 0.702; // 20% larger than 0.585 (0.585 * 1.2 = 0.702)
     // Ensure center is exactly in the middle
@@ -153,8 +151,6 @@ export default function Globe() {
       .append('circle')
       .attr('class', 'globe-marker')
       .attr('r', 4);
-    
-    console.log(`🌍 Globe: Initialized with ${albums?.length || 0} marker(s)`);
     
     // Test node removed - commented out for now
     // markersGroup
