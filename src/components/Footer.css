@@ -1,0 +1,106 @@
+/**
+ * Footer Component Styles
+ * 
+ * Matches the site's minimal design aesthetic
+ */
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  margin-top: auto; /* Push footer to bottom */
+}
+
+.footer-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.footer-credit {
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.footer-social {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer-social-link {
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.4rem 0.8rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.02);
+  transition: all 0.15s ease-out;
+}
+
+.footer-social-link:hover {
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.footer-social-link:active {
+  transform: translateY(0);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Responsive: Tablet */
+@media (max-width: 1024px) {
+  .footer-inner {
+    padding: 1.75rem 2rem;
+    gap: 1.25rem;
+  }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 768px) {
+  .footer-inner {
+    padding: 1.5rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .footer-credit {
+    font-size: 0.75rem;
+  }
+
+  .footer-social {
+    gap: 1rem;
+  }
+
+  .footer-social-link {
+    font-size: 0.75rem;
+    padding: 0.35rem 0.7rem;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .footer-social-link {
+    transition: none;
+  }
+
+  .footer-social-link:hover {
+    transform: none;
+  }
+}
+

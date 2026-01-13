@@ -105,6 +105,11 @@ export async function loadSiteConfig() {
         channelName: data.youtube?.channelName || null,
         apiKey: data.youtube?.apiKey || null,
       },
+      footer: {
+        enabled: data.footer?.enabled !== false, // Default to true
+        credit: data.footer?.credit || '© {year} {ownerName}. All rights reserved.',
+        showSocialLinks: data.footer?.showSocialLinks !== false, // Default to true
+      },
     };
 
     // Validate theme name
@@ -164,6 +169,11 @@ export async function loadSiteConfig() {
         channelUsername: null,
         channelName: null,
         apiKey: null,
+      },
+      footer: {
+        enabled: true,
+        credit: '© {year} {ownerName}. All rights reserved.',
+        showSocialLinks: true,
       },
     };
   }
@@ -337,6 +347,25 @@ export function getYouTubeConfig() {
     channelUsername: youtube.channelUsername || null,
     channelName: youtube.channelName || null,
     apiKey: youtube.apiKey || null,
+  };
+}
+
+/**
+ * Get footer configuration from site config
+ * @returns {Object|null} Footer config with enabled flag, credit text, and social links setting, or null if not enabled
+ */
+export function getFooterConfig() {
+  const config = getSiteConfig();
+  const footer = config?.footer;
+  
+  if (!footer || !footer.enabled) {
+    return null;
+  }
+  
+  return {
+    enabled: footer.enabled,
+    credit: footer.credit || '© {year} {ownerName}. All rights reserved.',
+    showSocialLinks: footer.showSocialLinks !== false,
   };
 }
 
