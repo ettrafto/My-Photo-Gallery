@@ -164,15 +164,13 @@
   position: relative;
 }
 
-.highlights-carousel-btn::before {
-  content: '';
-  display: inline-block;
-  height: 100%;
-  vertical-align: middle;
-}
-
-.highlights-carousel-btn > * {
-  vertical-align: middle;
+/* Center the arrow character with slight vertical adjustment */
+.highlights-carousel-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transform: translateY(-1px); /* Slight upward adjustment for visual centering */
 }
 
 .highlights-carousel-btn:hover:not(:disabled) {

@@ -3,6 +3,7 @@ import FavoriteAlbum from '../components/FavoriteAlbum';
 import FavoriteTrip from '../components/FavoriteTrip';
 import Showcase from '../components/Showcase';
 import Globe from '../components/Globe';
+import YouTubeCard from '../components/YouTubeCard';
 import './Page.css';
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
           <FavoriteAlbum />
           <FavoriteTrip />
         </div>
+        <YouTubeCard />
       </main>
     </>
   );

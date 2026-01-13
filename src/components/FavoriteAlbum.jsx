@@ -59,12 +59,18 @@ export default function FavoriteAlbum() {
 
   if (loading) {
     return (
-      <div className="favorite-album">
-        <div className="favorite-album-skeleton">
-          <div className="favorite-album-skeleton-image" />
-          <div className="favorite-album-skeleton-content">
-            <div className="favorite-album-skeleton-title" />
-            <div className="favorite-album-skeleton-text" />
+      <div className="favorite-album-wrapper">
+        <div className="favorite-album-header">
+          <div className="favorite-album-label-header">Featured Album</div>
+          <div className="favorite-album-line"></div>
+        </div>
+        <div className="favorite-album">
+          <div className="favorite-album-skeleton">
+            <div className="favorite-album-skeleton-image" />
+            <div className="favorite-album-skeleton-content">
+              <div className="favorite-album-skeleton-title" />
+              <div className="favorite-album-skeleton-text" />
+            </div>
           </div>
         </div>
       </div>
@@ -73,11 +79,17 @@ export default function FavoriteAlbum() {
 
   if (error || !album) {
     return (
-      <div className="favorite-album">
-        <div className="favorite-album-content">
-          <p className="favorite-album-error">
-            {error || 'Album not found'}
-          </p>
+      <div className="favorite-album-wrapper">
+        <div className="favorite-album-header">
+          <div className="favorite-album-label-header">Featured Album</div>
+          <div className="favorite-album-line"></div>
+        </div>
+        <div className="favorite-album">
+          <div className="favorite-album-content">
+            <p className="favorite-album-error">
+              {error || 'Album not found'}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -110,18 +122,22 @@ export default function FavoriteAlbum() {
   const dateDisplay = formatDate(album.startDate || album.date);
 
   return (
-    <Link to={`/album/${album.slug}`} className="favorite-album">
-      <div className="favorite-album-cover">
-        <LazyImage
-          {...coverProps}
-          aspectRatio={album.coverAspectRatio || 1.5}
-          threshold={0.01}
-          rootMargin="50px"
-        />
+    <div className="favorite-album-wrapper">
+      <div className="favorite-album-header">
+        <div className="favorite-album-label-header">Featured Album</div>
+        <div className="favorite-album-line"></div>
       </div>
-      <div className="favorite-album-content">
-        <div className="favorite-album-label">Featured Album</div>
-        <h2 className="favorite-album-title">{album.title}</h2>
+      <Link to={`/album/${album.slug}`} className="favorite-album">
+        <div className="favorite-album-cover">
+          <LazyImage
+            {...coverProps}
+            aspectRatio={album.coverAspectRatio || 1.5}
+            threshold={0.01}
+            rootMargin="50px"
+          />
+        </div>
+        <div className="favorite-album-content">
+          <h2 className="favorite-album-title">{album.title}</h2>
         {album.description && (
           <p className="favorite-album-description">{album.description}</p>
         )}
@@ -147,6 +163,7 @@ export default function FavoriteAlbum() {
           EXPLORE ALL ALBUMS
         </button>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }

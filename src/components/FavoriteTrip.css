@@ -1,3 +1,32 @@
+.favorite-trip-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title header above the card */
+.favorite-trip-header {
+  margin-bottom: 1rem;
+  padding: 0;
+}
+
+.favorite-trip-label-header {
+  font-family: var(--mono-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.favorite-trip-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin-bottom: 0;
+}
+
 .favorite-trip {
   flex: 1;
   min-height: 400px;

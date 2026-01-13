@@ -1,3 +1,32 @@
+.favorite-album-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Title header above the card */
+.favorite-album-header {
+  margin-bottom: 1rem;
+  padding: 0;
+}
+
+.favorite-album-label-header {
+  font-family: var(--mono-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.favorite-album-line {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin-bottom: 0;
+}
+
 .favorite-album {
   flex: 1;
   min-height: 400px;

@@ -145,7 +145,7 @@ const TripMap = forwardRef(({ route, albums = [], onMapReady }, ref) => {
       );
 
       if (albumsWithLocations.length > 0) {
-        const markerIcon = createMarkerIcon([28, 35]);
+        const markerIcon = createMarkerIcon([21, 28]); // 50% smaller: was [28, 35]
         
         albumsWithLocations.forEach((album) => {
           const { lat, lng } = album.primaryLocation;

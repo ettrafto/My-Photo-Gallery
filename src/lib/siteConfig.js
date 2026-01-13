@@ -98,6 +98,13 @@ export async function loadSiteConfig() {
         album: data.favorites?.album || null,
         trip: data.favorites?.trip || null,
       },
+      youtube: {
+        enabled: data.youtube?.enabled || false,
+        channelId: data.youtube?.channelId || null,
+        channelUsername: data.youtube?.channelUsername || null,
+        channelName: data.youtube?.channelName || null,
+        apiKey: data.youtube?.apiKey || null,
+      },
     };
 
     // Validate theme name
@@ -150,6 +157,13 @@ export async function loadSiteConfig() {
       favorites: {
         album: null,
         trip: null,
+      },
+      youtube: {
+        enabled: false,
+        channelId: null,
+        channelUsername: null,
+        channelName: null,
+        apiKey: null,
       },
     };
   }
@@ -297,6 +311,32 @@ export function getFavoriteTrip() {
   return {
     slug: favorite.slug,
     enabled: favorite.enabled
+  };
+}
+
+/**
+ * Get YouTube configuration from site config
+ * @returns {Object|null} YouTube config with enabled flag and channel info, or null if not enabled
+ */
+export function getYouTubeConfig() {
+  const config = getSiteConfig();
+  const youtube = config?.youtube;
+  
+  if (!youtube || !youtube.enabled) {
+    return null;
+  }
+  
+  if (!youtube.channelId && !youtube.channelUsername) {
+    console.warn('YouTube config is enabled but missing channelId or channelUsername');
+    return null;
+  }
+  
+  return {
+    enabled: youtube.enabled,
+    channelId: youtube.channelId || null,
+    channelUsername: youtube.channelUsername || null,
+    channelName: youtube.channelName || null,
+    apiKey: youtube.apiKey || null,
   };
 }
 

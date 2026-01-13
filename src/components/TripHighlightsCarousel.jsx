@@ -103,7 +103,7 @@ export default function TripHighlightsCarousel({
           disabled={currentIndex === 0}
           aria-label="Previous highlight"
         >
-          ‹
+          <span className="highlights-carousel-arrow">‹</span>
         </button>
         
         <div className="highlights-carousel-container" ref={carouselRef}>
@@ -152,7 +152,7 @@ export default function TripHighlightsCarousel({
           disabled={currentIndex === highlights.length - 1}
           aria-label="Next highlight"
         >
-          ›
+          <span className="highlights-carousel-arrow">›</span>
         </button>
       </div>
 

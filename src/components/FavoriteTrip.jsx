@@ -76,12 +76,18 @@ export default function FavoriteTrip() {
 
   if (loading) {
     return (
-      <div className="favorite-trip">
-        <div className="favorite-trip-skeleton">
-          <div className="favorite-trip-skeleton-image" />
-          <div className="favorite-trip-skeleton-content">
-            <div className="favorite-trip-skeleton-title" />
-            <div className="favorite-trip-skeleton-text" />
+      <div className="favorite-trip-wrapper">
+        <div className="favorite-trip-header">
+          <div className="favorite-trip-label-header">Featured Trip</div>
+          <div className="favorite-trip-line"></div>
+        </div>
+        <div className="favorite-trip">
+          <div className="favorite-trip-skeleton">
+            <div className="favorite-trip-skeleton-image" />
+            <div className="favorite-trip-skeleton-content">
+              <div className="favorite-trip-skeleton-title" />
+              <div className="favorite-trip-skeleton-text" />
+            </div>
           </div>
         </div>
       </div>
@@ -90,11 +96,17 @@ export default function FavoriteTrip() {
 
   if (error || !trip) {
     return (
-      <div className="favorite-trip">
-        <div className="favorite-trip-content">
-          <p className="favorite-trip-error">
-            {error || 'Trip not found'}
-          </p>
+      <div className="favorite-trip-wrapper">
+        <div className="favorite-trip-header">
+          <div className="favorite-trip-label-header">Featured Trip</div>
+          <div className="favorite-trip-line"></div>
+        </div>
+        <div className="favorite-trip">
+          <div className="favorite-trip-content">
+            <p className="favorite-trip-error">
+              {error || 'Trip not found'}
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -116,26 +128,30 @@ export default function FavoriteTrip() {
   const dateRange = `${formatDate(startDate)} - ${formatDate(endDate)}`;
 
   return (
-    <Link to={`/trips/${trip.slug}`} className="favorite-trip">
-      <div className="favorite-trip-cover">
-        {coverImageUrl ? (
-          <Photo
-            src={coverImageUrl}
-            alt={trip.title}
-            className="favorite-trip-cover-image"
-            loading="lazy"
-            decoding="async"
-            sizes="(max-width: 768px) 100vw, 50vw"
-          />
-        ) : (
-          <div className="favorite-trip-cover-placeholder">
-            <span>No Image</span>
-          </div>
-        )}
+    <div className="favorite-trip-wrapper">
+      <div className="favorite-trip-header">
+        <div className="favorite-trip-label-header">Featured Trip</div>
+        <div className="favorite-trip-line"></div>
       </div>
-      <div className="favorite-trip-content">
-        <div className="favorite-trip-label">Featured Trip</div>
-        <h2 className="favorite-trip-title">{trip.title}</h2>
+      <Link to={`/trips/${trip.slug}`} className="favorite-trip">
+        <div className="favorite-trip-cover">
+          {coverImageUrl ? (
+            <Photo
+              src={coverImageUrl}
+              alt={trip.title}
+              className="favorite-trip-cover-image"
+              loading="lazy"
+              decoding="async"
+              sizes="(max-width: 768px) 100vw, 50vw"
+            />
+          ) : (
+            <div className="favorite-trip-cover-placeholder">
+              <span>No Image</span>
+            </div>
+          )}
+        </div>
+        <div className="favorite-trip-content">
+          <h2 className="favorite-trip-title">{trip.title}</h2>
         {trip.summary && (
           <p className="favorite-trip-description">{trip.summary}</p>
         )}
@@ -147,6 +163,7 @@ export default function FavoriteTrip() {
           <span className="favorite-trip-duration">{durationDays} days</span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
