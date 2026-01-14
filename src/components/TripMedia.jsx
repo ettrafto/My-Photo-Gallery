@@ -107,6 +107,29 @@ export default function TripMedia({ mediaItems }) {
           </div>
         );
 
+      case 'playlist-link':
+        return (
+          <div key={index} className="trip-media-item trip-media-playlist-link">
+            <a 
+              href={item.href} 
+              className="trip-media-playlist-link-card"
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <div className="trip-media-playlist-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              <div className="trip-media-playlist-content">
+                <span className="trip-media-playlist-label">{item.label || item.caption || 'YouTube Playlist'}</span>
+                {item.caption && item.label && <span className="trip-media-playlist-caption">{item.caption}</span>}
+                <span className="trip-media-playlist-hint">Watch on YouTube →</span>
+              </div>
+            </a>
+          </div>
+        );
+
       case 'external-link':
         return (
           <div key={index} className="trip-media-item trip-media-external-link">

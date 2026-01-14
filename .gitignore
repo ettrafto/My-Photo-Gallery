@@ -51,4 +51,6 @@ photo-source/
 *.TIFF
 *.svg
 *.ico
+!public/favicons/*.ico
+!public/favicon.ico
 public/images/**

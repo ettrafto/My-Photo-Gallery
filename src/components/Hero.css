@@ -5,7 +5,7 @@
 .hero {
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  min-height: 68vh;
   background-color: #000000;
   overflow: hidden;
   display: flex;

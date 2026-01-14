@@ -87,11 +87,6 @@ export default function AlbumCard({ album }) {
             ))}
           </div>
         )}
-        
-        {/* Favorites indicator */}
-        {album.isFavorite && (
-          <span className="favorite-indicator">⭐</span>
-        )}
       </div>
       
       <div className="album-info">

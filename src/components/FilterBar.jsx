@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import DateFilterPresets from './DateFilterPresets';
 import YearDropdown from './YearDropdown';
-import YearTimeline from './YearTimeline';
 import './FilterBar.css';
 
 /**
@@ -260,12 +259,6 @@ export default function FilterBar({
           />
           
           <YearDropdown
-            selectedYear={filters.selectedYear}
-            availableYears={availableYears}
-            onYearChange={handleYearChange}
-          />
-
-          <YearTimeline
             selectedYear={filters.selectedYear}
             availableYears={availableYears}
             onYearChange={handleYearChange}

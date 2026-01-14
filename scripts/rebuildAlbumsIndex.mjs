@@ -2,10 +2,11 @@
 
 /**
  * Rebuild albums.json and map.json from individual album JSON files
- * Preserves manually entered geo data from albums.json - any primaryLocation
- * with valid coordinates in the existing albums.json will be kept and not
+ * Preserves manually entered geo data and isFavorite status from albums.json - any primaryLocation
+ * with valid coordinates and isFavorite values in the existing albums.json will be kept and not
  * overwritten by data from individual album files.
- * Also generates map.json for the Globe component with all albums that have geo data.
+ * Also syncs preserved isFavorite values back to individual album files so they stay in sync.
+ * Generates map.json for the Globe component with all albums that have geo data.
  */
 
 import fs from 'fs';
@@ -29,21 +30,38 @@ async function rebuildAlbumsIndex() {
     process.exit(1);
   }
 
-  // Load existing albums.json to preserve manually entered geo data
-  let existingAlbums = new Map();
+  // Load existing albums.json to preserve manually entered geo data and favorites
+  let existingAlbums = new Map(); // Map<slug, { primaryLocation?, isFavorite? }>
   if (fs.existsSync(INDEX_PATH)) {
     try {
       const existingData = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf-8'));
       if (existingData.albums && Array.isArray(existingData.albums)) {
         existingData.albums.forEach(album => {
-          // Only preserve albums with valid coordinates (manual input)
+          const preserved = {};
+          let hasPreservedData = false;
+          
+          // Preserve geo data if valid coordinates exist (manual input)
           if (album.primaryLocation && 
               typeof album.primaryLocation.lat === 'number' && 
               typeof album.primaryLocation.lng === 'number' &&
               !isNaN(album.primaryLocation.lat) &&
               !isNaN(album.primaryLocation.lng)) {
-            existingAlbums.set(album.slug, album.primaryLocation);
-            console.log(`  📍 Preserving manual geo data for: ${album.slug}`);
+            preserved.primaryLocation = album.primaryLocation;
+            hasPreservedData = true;
+          }
+          
+          // Preserve isFavorite if it's explicitly set (true or false)
+          if (typeof album.isFavorite === 'boolean') {
+            preserved.isFavorite = album.isFavorite;
+            hasPreservedData = true;
+          }
+          
+          if (hasPreservedData) {
+            existingAlbums.set(album.slug, preserved);
+            const preservedItems = [];
+            if (preserved.primaryLocation) preservedItems.push('geo data');
+            if (preserved.isFavorite !== undefined) preservedItems.push('favorite status');
+            console.log(`  💾 Preserving ${preservedItems.join(' and ')} for: ${album.slug}`);
           }
         });
       }
@@ -85,13 +103,14 @@ async function rebuildAlbumsIndex() {
     try {
       const albumData = JSON.parse(fs.readFileSync(albumFile, 'utf-8'));
       
-      // Check if we have manually entered geo data to preserve
-      const existingLocation = existingAlbums.get(albumData.slug);
+      // Check if we have manually entered data to preserve
+      const existingData = existingAlbums.get(albumData.slug);
       let primaryLocation;
+      let isFavorite;
       
-      if (existingLocation) {
+      if (existingData?.primaryLocation) {
         // Use preserved manual geo data from albums.json
-        primaryLocation = existingLocation;
+        primaryLocation = existingData.primaryLocation;
         preservedCount++;
       } else {
         // Use geo data from individual album file
@@ -122,6 +141,19 @@ async function rebuildAlbumsIndex() {
         updatedCount++;
       }
       
+      // Use preserved isFavorite from albums.json, or fall back to individual album file
+      if (existingData?.isFavorite !== undefined) {
+        isFavorite = existingData.isFavorite;
+        // Sync the isFavorite value back to the individual album file
+        if (albumData.isFavorite !== isFavorite) {
+          albumData.isFavorite = isFavorite;
+          fs.writeFileSync(albumFile, JSON.stringify(albumData, null, 2));
+          console.log(`  ⭐ Updated isFavorite in ${path.basename(albumFile)} to ${isFavorite}`);
+        }
+      } else {
+        isFavorite = albumData.isFavorite;
+      }
+      
       // Extract only the summary fields (exclude photos array)
       const albumSummary = {
         id: albumData.id,
@@ -135,7 +167,7 @@ async function rebuildAlbumsIndex() {
         cover: albumData.cover,
         coverAspectRatio: albumData.coverAspectRatio,
         count: albumData.count,
-        isFavorite: albumData.isFavorite,
+        isFavorite: isFavorite,
         primaryLocation: primaryLocation
       };
 
@@ -171,6 +203,13 @@ async function rebuildAlbumsIndex() {
   console.log(`\n✅ Rebuilt albums.json with ${albumsList.length} album(s)`);
   if (preservedCount > 0) {
     console.log(`   ${preservedCount} with preserved manual geo data from albums.json`);
+  }
+  const favoritesPreserved = albumsList.filter(a => {
+    const existing = existingAlbums.get(a.slug);
+    return existing?.isFavorite !== undefined;
+  }).length;
+  if (favoritesPreserved > 0) {
+    console.log(`   ${favoritesPreserved} with preserved favorite status from albums.json`);
   }
   if (fromAlbumLocationsCount > 0) {
     console.log(`   ${fromAlbumLocationsCount} with coordinates from album-locations.json`);

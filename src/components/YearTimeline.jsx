@@ -23,7 +23,6 @@ export default function YearTimeline({ selectedYear, availableYears = [], onYear
               left: `${(index / (availableYears.length - 1)) * 100}%`
             }}
           >
-            <span className="tick-mark"></span>
             <span className="tick-label">{year}</span>
           </button>
         ))}

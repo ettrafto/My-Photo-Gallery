@@ -152,6 +152,72 @@
   color: rgba(150, 200, 255, 1);
 }
 
+/* Playlist Link */
+.trip-media-playlist-link {
+  display: block;
+}
+
+.trip-media-playlist-link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s ease-out;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure the item hover works when hovering over the link */
+.trip-media-playlist-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.trip-media-playlist-icon {
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF0000; /* YouTube red */
+}
+
+.trip-media-playlist-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.trip-media-playlist-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.trip-media-playlist-label {
+  font-family: var(--mono-display);
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.trip-media-playlist-caption {
+  font-family: var(--mono-ui);
+  font-size: 0.85rem;
+  opacity: 0.75;
+  letter-spacing: 0.05em;
+}
+
+.trip-media-playlist-hint {
+  font-family: var(--mono-ui);
+  font-size: 0.75rem;
+  opacity: 0.6;
+  letter-spacing: 0.05em;
+}
+
 /* External Link */
 .trip-media-external-link-card {
   display: flex;
