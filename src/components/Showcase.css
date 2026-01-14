@@ -13,7 +13,7 @@
 .showcase-container {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 5%;
 }
 
 .showcase-title {
@@ -48,7 +48,7 @@
 
 .showcase-image-wrapper {
   position: relative;
-  width: 100%;
+  width: 80%;
   height: 100%;
   overflow: hidden;
   border-radius: 4px;
@@ -58,7 +58,7 @@
     0 4px 16px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
   transition: box-shadow 0.3s ease;
-  max-width: 100%;
+  max-width: 80%;
   margin: 0 auto;
 }
 
@@ -86,8 +86,8 @@
 .showcase-image-portrait .showcase-image-wrapper {
   max-height: 85vh;
   height: auto;
-  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
-  max-width: 100%;
+  width: min(80%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 80%;
   margin-left: auto;
   margin-right: auto;
   aspect-ratio: var(--portrait-aspect-ratio, 9/14);
@@ -101,15 +101,15 @@
 
 /* Make location header and EXIF info match portrait image width */
 .showcase-image-portrait .showcase-location-header {
-  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
-  max-width: 100%;
+  width: min(80%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 80%;
   margin-left: auto;
   margin-right: auto;
 }
 
 .showcase-image-portrait .showcase-exif-info {
-  width: min(100%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
-  max-width: 100%;
+  width: min(80%, calc(85vh * var(--portrait-aspect-ratio, 0.643)));
+  max-width: 80%;
   margin-left: auto;
   margin-right: auto;
 }
@@ -117,6 +117,10 @@
 /* Location header at the top */
 .showcase-location-header {
   margin-bottom: 1rem;
+  width: 80%;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .showcase-location-name {
@@ -170,7 +174,10 @@
   line-height: 1.4;
   border-radius: 0 0 4px 4px;
   margin-top: -4px; /* Overlap with image wrapper border */
-  max-width: 100%;
+  width: 80%;
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-top: none; /* Connect with image wrapper above */
   box-shadow: 
@@ -241,7 +248,7 @@
 /* Responsive: Tablet */
 @media (max-width: 1024px) {
   .showcase-container {
-    padding: 0 2rem;
+    padding: 0 5%;
   }
 
   .showcase-title {
@@ -261,7 +268,7 @@
   }
 
   .showcase-container {
-    padding: 0 1.25rem;
+    padding: 0 5%;
   }
 
   .showcase-title {
