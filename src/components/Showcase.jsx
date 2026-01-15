@@ -297,7 +297,7 @@ export default function Showcase() {
         <div className="showcase-items-container">
           {images.map((image, index) => (
             <ShowcaseImage
-              key={`image-${image.id}`}
+              key={`image-${image.id}-${index}-${image.src?.replace(/[^a-zA-Z0-9]/g, '-') || index}`}
               image={image}
               index={index}
               total={images.length}

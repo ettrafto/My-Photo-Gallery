@@ -3,9 +3,22 @@ import './Page.css';
 import './About.css';
 
 function AccordionSection({ id, label, title, description, children, isOpen, onToggle }) {
+  const handleHeaderClick = (e) => {
+    // Only toggle if clicking on the header content, not the button
+    if (e.target.closest('.accordion-toggle')) {
+      return;
+    }
+    onToggle();
+  };
+
+  const handleButtonClick = (e) => {
+    e.stopPropagation();
+    onToggle();
+  };
+
   return (
     <section className="page-block accordion-section">
-      <div className="accordion-header" onClick={onToggle}>
+      <div className="accordion-header" onClick={handleHeaderClick}>
         <div className="accordion-header-content">
           <p className="page-label">{label}</p>
           <h2 className="page-subtitle">{title}</h2>
@@ -15,6 +28,8 @@ function AccordionSection({ id, label, title, description, children, isOpen, onT
           className={`accordion-toggle ${isOpen ? 'open' : ''}`}
           aria-expanded={isOpen}
           aria-controls={`accordion-content-${id}`}
+          onClick={handleButtonClick}
+          type="button"
         >
           <span className="accordion-arrow">{isOpen ? '▲' : '▼'}</span>
         </button>
