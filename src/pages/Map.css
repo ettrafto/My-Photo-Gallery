@@ -28,13 +28,14 @@
   opacity: 0.85;
 }
 
-/* Map page full width on medium+ screens with 5% margins */
+/* Map page wider than other pages but constrained to prevent overflow */
 .map-page-shell {
-  max-width: none;
-  margin-left: 5%;
-  margin-right: 5%;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  max-width: 1600px; /* Wider than regular page-shell (1200px) but constrained */
+  margin: 0 auto;
+  padding: 0 1.5rem 2.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Map Layout Container - side by side layout */
@@ -42,16 +43,23 @@
   display: flex;
   gap: 1.5rem;
   align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .map-layout-left {
   flex: 2;
   min-width: 0; /* Allows flex item to shrink below content size */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .map-layout-right {
   flex: 1;
   min-width: 0; /* Allows flex item to shrink below content size */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .map-container {
@@ -60,6 +68,9 @@
   overflow: hidden;
   height: 600px;
   background: #050505;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .albums-panel {

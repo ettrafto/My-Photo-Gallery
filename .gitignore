@@ -52,5 +52,6 @@ photo-source/
 *.svg
 *.ico
 !public/favicons/*.ico
+!public/icons/marker.svg
 !public/favicon.ico
 public/images/**

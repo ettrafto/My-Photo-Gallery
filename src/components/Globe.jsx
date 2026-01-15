@@ -134,14 +134,21 @@ export default function Globe() {
         .attr('class', 'globe-land-path');
     }
 
-    // Draw album markers (even if empty array - allows for later updates)
-    markersGroup
+    // Draw album markers using proper D3 data join pattern (enter/update/exit)
+    const markerSelection = markersGroup
       .selectAll('circle.globe-marker')
-      .data(albums || [])
+      .data(albums || [], d => d.albumSlug || `${d.lat}-${d.lng}`); // Use key function for proper data binding
+    
+    // Remove markers that are no longer in data
+    markerSelection.exit().remove();
+    
+    // Add new markers
+    markerSelection
       .enter()
       .append('circle')
       .attr('class', 'globe-marker')
-      .attr('r', 4);
+      .attr('r', 4)
+      .merge(markerSelection); // Merge enter and update selections
     
     // Test node removed - commented out for now
     // markersGroup
@@ -261,38 +268,56 @@ export default function Globe() {
         });
     }
     
-    // Update markers
+    // Update markers - ensure markers exist and are properly bound to data
     if (markersGroupRef.current) {
-      // Update all markers (both regular and test)
-      markersGroupRef.current
-        .selectAll('circle')
-        .each(function(d) {
-          const marker = select(this);
-          const isTest = marker.classed('globe-marker-test');
-          
-          // Primary check: Use our custom visibility calculation
-          // This accurately determines if point is on front hemisphere
-          const isVisible = isPointVisible(d.lat, d.lng, isTest);
-          if (!isVisible) {
-            hideMarker(marker);
-            return;
-          }
-          
-          // Secondary check: Get projected coordinates
-          // If projection fails, definitely hide (though this should match our check)
-          const coords = projectionRef.current([d.lng, d.lat]);
-          if (!coords) {
-            hideMarker(marker);
-            return;
-          }
-          
-          // All checks passed - show marker
-          marker.attr('transform', `translate(${coords[0]},${coords[1]})`)
-            .style('opacity', 1)
-            .style('visibility', 'visible')
-            .style('display', 'block')
-            .style('pointer-events', 'auto');
-        });
+      // Use proper D3 data join to ensure all markers exist
+      const markerSelection = markersGroupRef.current
+        .selectAll('circle.globe-marker')
+        .data(albums || [], d => d.albumSlug || `${d.lat}-${d.lng}`);
+      
+      // Remove markers that are no longer in data
+      markerSelection.exit().remove();
+      
+      // Add new markers if needed
+      const newMarkers = markerSelection
+        .enter()
+        .append('circle')
+        .attr('class', 'globe-marker')
+        .attr('r', 4);
+      
+      // Merge enter and update selections, then update all markers
+      markerSelection.merge(newMarkers).each(function(d) {
+        if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') {
+          hideMarker(select(this));
+          return;
+        }
+        
+        const marker = select(this);
+        const isTest = marker.classed('globe-marker-test');
+        
+        // Primary check: Use our custom visibility calculation
+        // This accurately determines if point is on front hemisphere
+        const isVisible = isPointVisible(d.lat, d.lng, isTest);
+        if (!isVisible) {
+          hideMarker(marker);
+          return;
+        }
+        
+        // Secondary check: Get projected coordinates
+        // If projection fails, definitely hide (though this should match our check)
+        const coords = projectionRef.current([d.lng, d.lat]);
+        if (!coords) {
+          hideMarker(marker);
+          return;
+        }
+        
+        // All checks passed - show marker
+        marker.attr('transform', `translate(${coords[0]},${coords[1]})`)
+          .style('opacity', 1)
+          .style('visibility', 'visible')
+          .style('display', 'block')
+          .style('pointer-events', 'auto');
+      });
     }
     
     // Update sphere outline - explicitly call path generator with sphere datum
@@ -447,17 +472,30 @@ export default function Globe() {
 
   // Load album markers data
   useEffect(() => {
-    fetch(`${import.meta.env.BASE_URL}content/map.json`)
+    const mapUrl = `${import.meta.env.BASE_URL}content/map.json`;
+    fetch(mapUrl)
       .then(res => {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         return res.json();
       })
       .then(data => {
         const albumsData = data.albums || [];
-        setAlbums(albumsData);
+        // Filter to ensure we only have albums with valid lat/lng
+        const validAlbums = albumsData.filter(album => 
+          album && 
+          typeof album.lat === 'number' && 
+          typeof album.lng === 'number' &&
+          !isNaN(album.lat) && 
+          !isNaN(album.lng)
+        );
+        if (validAlbums.length > 0) {
+          console.log(`🌍 Globe: Loaded ${validAlbums.length} album marker(s) from map.json`);
+        }
+        setAlbums(validAlbums);
       })
       .catch(err => {
         console.error('🌍 Globe: Failed to load album markers:', err);
+        console.error('🌍 Globe: Attempted URL:', mapUrl);
         // Continue with empty array - globe should still render without markers
         setAlbums([]);
       });
