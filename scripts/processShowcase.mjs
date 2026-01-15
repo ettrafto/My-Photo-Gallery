@@ -299,6 +299,7 @@ async function processShowcaseImage(imageFile, index, force = false, metadata = 
 
     return {
       id: index + 1,
+      filename: imageFile, // Include filename for matching
       type: imageType,
       side: side,
       src: `/photos/showcase/${baseName}-large.webp`,
@@ -339,21 +340,123 @@ async function loadMetadata() {
 }
 
 /**
- * Write showcase.json configuration
+ * Load existing showcase config if it exists
  */
-async function writeShowcaseConfig(images, metadata) {
+async function loadExistingShowcaseConfig() {
+  const configPath = path.join(ROOT, CONFIG.SHOWCASE_CONFIG);
+  if (!existsSync(configPath)) {
+    return { images: [] };
+  }
+
+  try {
+    const content = await fsp.readFile(configPath, 'utf-8');
+    const config = JSON.parse(content);
+    return config.images ? config : { images: [] };
+  } catch (error) {
+    console.warn(`  ⚠️  Could not load existing showcase config: ${error.message}`);
+    return { images: [] };
+  }
+}
+
+/**
+ * Extract base name from src path for matching
+ */
+function extractBaseNameFromSrc(src) {
+  if (!src) return null;
+  const match = src.match(/\/([^/]+)-large\.webp$/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Extract base name from filename for matching
+ */
+function extractBaseNameFromFilename(filename) {
+  if (!filename) return null;
+  return path.parse(filename).name;
+}
+
+/**
+ * Write showcase.json configuration, preserving existing data
+ */
+async function writeShowcaseConfig(processedImages, existingConfig, metadata) {
   const configPath = path.join(ROOT, CONFIG.SHOWCASE_CONFIG);
   const configDir = path.dirname(configPath);
   
   await fsp.mkdir(configDir, { recursive: true });
 
+  const existingImages = existingConfig.images || [];
+  const newImages = processedImages.filter(img => img !== null);
+  
+  // Create a map of existing images by base name for quick lookup
+  const existingByBaseName = new Map();
+  for (const existing of existingImages) {
+    const baseName = extractBaseNameFromSrc(existing.src) || extractBaseNameFromFilename(existing.filename);
+    if (baseName) {
+      existingByBaseName.set(baseName.toLowerCase(), existing);
+    }
+  }
+  
+  // Merge processed images with existing config data
+  const mergedImages = [];
+  const processedBaseNames = new Set();
+  
+  // First, preserve existing images in their original order
+  // Update them if we have new processed data, otherwise keep as-is
+  for (const existing of existingImages) {
+    const baseName = extractBaseNameFromSrc(existing.src) || extractBaseNameFromFilename(existing.filename);
+    const baseNameKey = baseName ? baseName.toLowerCase() : null;
+    
+    if (baseNameKey) {
+      const processed = newImages.find(img => {
+        const imgBaseName = extractBaseNameFromSrc(img.src) || extractBaseNameFromFilename(img.filename);
+        return imgBaseName && imgBaseName.toLowerCase() === baseNameKey;
+      });
+      
+      if (processed) {
+        // Merge: preserve existing custom fields, update paths/dimensions/exif
+        mergedImages.push({
+          ...existing, // Preserve all existing fields (order, side, location, label, alt, etc.)
+          src: processed.src, // Update image path
+          dimensions: processed.dimensions, // Update dimensions
+          exif: processed.exif, // Update EXIF from image
+          type: processed.type // Update type from dimensions
+        });
+        processedBaseNames.add(baseNameKey);
+      } else {
+        // Image exists in config but not in source - preserve it (might be removed from source but user wants to keep)
+        mergedImages.push(existing);
+      }
+    } else {
+      // Can't match - preserve as-is
+      mergedImages.push(existing);
+    }
+  }
+  
+  // Add new images that don't exist in config
+  for (const newImage of newImages) {
+    const baseName = extractBaseNameFromSrc(newImage.src) || extractBaseNameFromFilename(newImage.filename);
+    const baseNameKey = baseName ? baseName.toLowerCase() : null;
+    
+    if (baseNameKey && !processedBaseNames.has(baseNameKey)) {
+      // Assign order based on highest existing order + 1
+      const maxOrder = mergedImages.length > 0 
+        ? Math.max(...mergedImages.map(img => img.order || 0), 0)
+        : 0;
+      mergedImages.push({
+        ...newImage,
+        order: maxOrder + 1
+      });
+      processedBaseNames.add(baseNameKey);
+    }
+  }
+
   const config = {
-    images: images.filter(img => img !== null)
+    images: mergedImages
   };
 
   await fsp.writeFile(configPath, JSON.stringify(config, null, 2));
-  console.log(`  ✅ Generated ${configPath}`);
-  console.log(`     - ${config.images.length} images with EXIF and location data`);
+  console.log(`  ✅ Updated ${configPath}`);
+  console.log(`     - ${mergedImages.length} images (preserved existing data, updated image paths)`);
 }
 
 /**
@@ -393,6 +496,9 @@ async function main() {
 
   // Load metadata if available
   const metadata = await loadMetadata();
+  
+  // Load existing config to preserve custom data
+  const existingConfig = await loadExistingShowcaseConfig();
 
   // Process images in parallel with concurrency limit
   console.log('🔄 Processing images...');
@@ -454,9 +560,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Generate showcase.json
-  console.log('📝 Generating showcase.json...');
-  await writeShowcaseConfig(images, metadata);
+  // Generate showcase.json, preserving existing data
+  console.log('📝 Updating showcase.json...');
+  await writeShowcaseConfig(images, existingConfig, metadata);
 
   console.log('');
   console.log('✅ Showcase processing complete!');

@@ -322,23 +322,69 @@ async function writeSiteConfig(siteConfig, heroImages) {
 
   const existingImages = siteConfig.hero.images || [];
   
-  // Preserve existing order values by matching images by src
-  const updatedImages = heroImages
-    .filter(img => img !== null)
-    .map((newImage, index) => {
-      // Try to find existing image with same src
-      const existingImage = existingImages.find(existing => existing.src === newImage.src);
+  // Create a map of existing images by base name for quick lookup
+  const existingByBaseName = new Map();
+  for (const existing of existingImages) {
+    const baseName = existing.src ? existing.src.match(/\/([^/]+)-large\.webp$/) : null;
+    if (baseName && baseName[1]) {
+      existingByBaseName.set(baseName[1].toLowerCase(), existing);
+    }
+  }
+  
+  // Merge processed images with existing config data
+  const mergedImages = [];
+  const processedBaseNames = new Set();
+  
+  // First, preserve existing images in their original order
+  // Update them if we have new processed data, otherwise keep as-is
+  for (const existing of existingImages) {
+    const baseNameMatch = existing.src ? existing.src.match(/\/([^/]+)-large\.webp$/) : null;
+    const baseNameKey = baseNameMatch && baseNameMatch[1] ? baseNameMatch[1].toLowerCase() : null;
+    
+    if (baseNameKey) {
+      const processed = heroImages.find(img => {
+        if (!img || !img.src) return false;
+        const imgBaseNameMatch = img.src.match(/\/([^/]+)-large\.webp$/);
+        const imgBaseNameKey = imgBaseNameMatch && imgBaseNameMatch[1] ? imgBaseNameMatch[1].toLowerCase() : null;
+        return imgBaseNameKey === baseNameKey;
+      });
       
-      // Preserve order if it exists, otherwise use index + 1
-      const order = existingImage?.order !== undefined ? existingImage.order : newImage.order;
-      
-      return {
+      if (processed) {
+        // Merge: preserve existing custom fields, update paths only
+        mergedImages.push({
+          ...existing, // Preserve all existing fields (order, alt, caption, etc.)
+          src: processed.src // Update image path
+        });
+        processedBaseNames.add(baseNameKey);
+      } else {
+        // Image exists in config but not in source - preserve it
+        mergedImages.push(existing);
+      }
+    } else {
+      // Can't match - preserve as-is
+      mergedImages.push(existing);
+    }
+  }
+  
+  // Add new images that don't exist in config
+  for (const newImage of heroImages.filter(img => img !== null)) {
+    const baseNameMatch = newImage.src ? newImage.src.match(/\/([^/]+)-large\.webp$/) : null;
+    const baseNameKey = baseNameMatch && baseNameMatch[1] ? baseNameMatch[1].toLowerCase() : null;
+    
+    if (baseNameKey && !processedBaseNames.has(baseNameKey)) {
+      // Assign order based on highest existing order + 1
+      const maxOrder = mergedImages.length > 0 
+        ? Math.max(...mergedImages.map(img => img.order || 0), 0)
+        : 0;
+      mergedImages.push({
         ...newImage,
-        order: order
-      };
-    });
+        order: maxOrder + 1
+      });
+      processedBaseNames.add(baseNameKey);
+    }
+  }
 
-  siteConfig.hero.images = updatedImages;
+  siteConfig.hero.images = mergedImages;
 
   await fsp.writeFile(configPath, JSON.stringify(siteConfig, null, 2));
   console.log(`  ✅ Updated ${configPath}`);

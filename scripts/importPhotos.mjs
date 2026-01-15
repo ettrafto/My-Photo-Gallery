@@ -376,6 +376,21 @@ async function loadAlbumLocations(contentDir) {
   }
 }
 
+async function loadExistingAlbumJson(albumSlug, contentDir) {
+  const albumJsonPath = path.join(contentDir, 'albums', `${albumSlug}.json`);
+  if (!existsSync(albumJsonPath)) {
+    return null;
+  }
+  
+  try {
+    const content = await fsp.readFile(albumJsonPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (err) {
+    console.warn(`  ⚠ Could not load existing album JSON: ${err.message}`);
+    return null;
+  }
+}
+
 async function processAlbum({ albumName, options, albumLocations }) {
   const albumPath = path.join(options.inputDir, albumName);
   const albumSlug = slugify(albumName, { lower: true, strict: true });
@@ -392,6 +407,9 @@ async function processAlbum({ albumName, options, albumLocations }) {
 
   console.log(`  Found ${imageFiles.length} image(s)`);
 
+  // Load existing album JSON to preserve custom data
+  const existingAlbumData = await loadExistingAlbumJson(albumSlug, options.contentDir);
+
   const photos = [];
   for (const filename of imageFiles) {
     const photo = await processImageFile({
@@ -404,55 +422,100 @@ async function processAlbum({ albumName, options, albumLocations }) {
     photos.push(photo);
   }
 
-  // Cover
-  const coverPhoto = metadata.cover
-    ? photos.find((p) => p.filename === metadata.cover) || photos[0]
-    : photos[0];
-
-  // Dates
-  if (!metadata.date && photos[0]?.exif?.dateTaken) {
-    metadata.date = normalizeDate(photos[0].exif.dateTaken);
+  // Merge processed photos with existing photo data
+  const existingPhotos = existingAlbumData?.photos || [];
+  const existingPhotosByPath = new Map();
+  for (const existing of existingPhotos) {
+    // Match by path (pathLarge or path)
+    const key = existing.pathLarge || existing.path || existing.filename;
+    if (key) {
+      existingPhotosByPath.set(key.toLowerCase(), existing);
+    }
   }
 
-  const photoDates = photos
+  // Merge photos: preserve existing custom data, update paths/dimensions
+  const mergedPhotos = [];
+  const processedPaths = new Set();
+  
+  for (const photo of photos) {
+    const key = (photo.pathLarge || photo.path || photo.filename)?.toLowerCase();
+    const existing = key ? existingPhotosByPath.get(key) : null;
+    
+    if (existing) {
+      // Merge: preserve existing custom data, update image paths/dimensions
+      mergedPhotos.push({
+        ...existing, // Preserve all existing fields (custom EXIF edits, etc.)
+        path: photo.path, // Update image paths
+        pathLarge: photo.pathLarge,
+        pathSmall: photo.pathSmall,
+        pathBlur: photo.pathBlur,
+        width: photo.width, // Update dimensions
+        height: photo.height,
+        aspectRatio: photo.aspectRatio,
+        lat: photo.lat !== null ? photo.lat : existing.lat, // Preserve existing GPS if new is null
+        lng: photo.lng !== null ? photo.lng : existing.lng,
+        // Only update EXIF if it's not manually edited (preserve existing if it exists)
+        exif: existing.exif && Object.keys(existing.exif).length > 0 ? existing.exif : photo.exif
+      });
+      processedPaths.add(key);
+    } else {
+      // New photo - add as-is
+      mergedPhotos.push(photo);
+      if (key) processedPaths.add(key);
+    }
+  }
+  
+  // Preserve photos that exist in config but not in source (might have been removed from source)
+  for (const existing of existingPhotos) {
+    const key = (existing.pathLarge || existing.path || existing.filename)?.toLowerCase();
+    if (key && !processedPaths.has(key)) {
+      mergedPhotos.push(existing);
+    }
+  }
+
+  // Cover - preserve existing if it exists in merged photos
+  const existingCover = existingAlbumData?.cover;
+  const coverPhoto = existingCover && mergedPhotos.find(p => 
+    (p.pathLarge || p.path) === existingCover
+  ) 
+    ? mergedPhotos.find(p => (p.pathLarge || p.path) === existingCover)
+    : metadata.cover
+    ? mergedPhotos.find((p) => p.filename === metadata.cover) || mergedPhotos[0]
+    : mergedPhotos[0];
+
+  // Dates - preserve existing if set, otherwise calculate from photos
+  const albumDate = existingAlbumData?.date || 
+    (!metadata.date && mergedPhotos[0]?.exif?.dateTaken 
+      ? normalizeDate(mergedPhotos[0].exif.dateTaken) 
+      : metadata.date);
+
+  const photoDates = mergedPhotos
     .map((p) => normalizeDate(p.exif?.dateTaken))
     .filter(Boolean)
     .sort();
 
-  const startDate = photoDates[0] || null;
-  const endDate = photoDates[photoDates.length - 1] || null;
+  const startDate = existingAlbumData?.startDate || photoDates[0] || null;
+  const endDate = existingAlbumData?.endDate || photoDates[photoDates.length - 1] || null;
 
-  // Tags
+  // Tags - merge existing with new auto-generated tags
   const autoTags = new Set();
-  photos.forEach((p) => {
+  mergedPhotos.forEach((p) => {
     if (p.exif?.camera) {
       const brand = p.exif.camera.split(' ')[0];
       if (brand) autoTags.add(brand);
     }
   });
-  const allTags = [...new Set([...(metadata.tags || []), ...Array.from(autoTags)])];
+  const existingTags = existingAlbumData?.tags || metadata.tags || [];
+  const allTags = [...new Set([...existingTags, ...Array.from(autoTags)])];
 
-  // Location fallback - preserve existing coordinates from albums.json if they exist
-  const existingAlbumsPath = path.join(options.contentDir, 'albums.json');
-  let existingPrimaryLocation = null;
-  if (existsSync(existingAlbumsPath)) {
-    try {
-      const existingAlbums = JSON.parse(fs.readFileSync(existingAlbumsPath, 'utf-8'));
-      const existingAlbum = existingAlbums.albums?.find(a => a.slug === albumSlug);
-      if (existingAlbum?.primaryLocation && 
-          typeof existingAlbum.primaryLocation.lat === 'number' && 
-          typeof existingAlbum.primaryLocation.lng === 'number') {
-        existingPrimaryLocation = existingAlbum.primaryLocation;
-      }
-    } catch (err) {
-      // Silently continue if albums.json can't be read
-    }
-  }
-
+  // Location - preserve existing coordinates
+  const existingPrimaryLocation = existingAlbumData?.primaryLocation;
   const locationData = albumLocations[albumSlug];
-  const primaryLocation = existingPrimaryLocation
+  const primaryLocation = (existingPrimaryLocation && 
+      typeof existingPrimaryLocation.lat === 'number' && 
+      typeof existingPrimaryLocation.lng === 'number')
     ? existingPrimaryLocation // Preserve existing coordinates
-    : locationData?.defaultLocation
+    : locationData?.defaultLocation?.lat !== null && locationData?.defaultLocation?.lng !== null
     ? {
         name: locationData.albumTitle || metadata.title,
         lat: locationData.defaultLocation.lat,
@@ -464,21 +527,23 @@ async function processAlbum({ albumName, options, albumLocations }) {
         lng: null
       };
 
+  // Preserve all existing album metadata, only update what's necessary
   const albumData = {
+    ...existingAlbumData, // Preserve any other custom fields
     id: albumSlug,
     slug: albumSlug,
-    title: metadata.title,
-    description: metadata.description,
+    title: metadata.title || existingAlbumData?.title || albumSlug,
+    description: metadata.description !== undefined ? metadata.description : (existingAlbumData?.description || null),
     tags: allTags,
-    date: metadata.date,
+    date: albumDate,
     startDate,
     endDate,
-    cover: coverPhoto.path,
+    cover: coverPhoto.path || coverPhoto.pathLarge || coverPhoto.path,
     coverAspectRatio: coverPhoto.aspectRatio,
-    count: photos.length,
-    isFavorite: metadata.isFavorite,
+    count: mergedPhotos.length,
+    isFavorite: metadata.isFavorite !== undefined ? metadata.isFavorite : (existingAlbumData?.isFavorite || false),
     primaryLocation,
-    photos
+    photos: mergedPhotos
   };
 
   const albumJsonPath = path.join(options.contentDir, 'albums', `${albumSlug}.json`);

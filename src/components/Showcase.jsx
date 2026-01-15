@@ -10,6 +10,7 @@
 
 import { motion, useInView, useReducedMotion } from 'framer-motion';
 import { useState, useEffect, useRef } from 'react';
+import Photo from './Photo';
 import './Showcase.css';
 
 // Animation variants for images based on entry side
@@ -131,6 +132,47 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
     ? image.src.split('/').pop().replace(/-large\.webp$/, '').replace(/\.webp$/, '')
     : (image.alt || `Image ${index + 1}`);
 
+  // Derive responsive image paths from src
+  const deriveImagePaths = (src) => {
+    if (!src) return { src, srcSmall: undefined, srcLarge: undefined };
+    
+    const isLargeWebp = src.toLowerCase().endsWith('-large.webp');
+    const isSmallWebp = src.toLowerCase().endsWith('-small.webp');
+    
+    if (isLargeWebp) {
+      return {
+        src: src,
+        srcSmall: src.replace(/-large\.webp$/i, '-small.webp'),
+        srcLarge: src
+      };
+    } else if (isSmallWebp) {
+      return {
+        src: src,
+        srcSmall: src,
+        srcLarge: src.replace(/-small\.webp$/i, '-large.webp')
+      };
+    } else {
+      // Fallback: assume large format, derive small
+      const withoutExt = src.replace(/\.[^/.]+$/i, '');
+      return {
+        src: src,
+        srcSmall: `${withoutExt}-small.webp`,
+        srcLarge: src
+      };
+    }
+  };
+
+  const imagePaths = deriveImagePaths(image.src);
+  
+  // Determine loading strategy - first 2 images load eagerly
+  const loadingStrategy = index < 2 ? {
+    loading: 'eager',
+    fetchPriority: 'high'
+  } : {
+    loading: 'lazy',
+    fetchPriority: undefined
+  };
+
   return (
     <motion.div
       ref={ref}
@@ -155,11 +197,19 @@ function ShowcaseImage({ image, index, total, reducedMotion }) {
       <motion.div
         className={`showcase-image-wrapper ${aspectClass}`}
       >
-        <img
-          src={image.src}
+        <Photo
+          src={imagePaths.src}
+          srcSmall={imagePaths.srcSmall}
+          srcLarge={imagePaths.srcLarge}
           alt={image.alt || 'Showcase image'}
           className="showcase-image-img"
-          loading="lazy"
+          loading={loadingStrategy.loading}
+          fetchPriority={loadingStrategy.fetchPriority}
+          decoding="async"
+          width={image.dimensions?.width}
+          height={image.dimensions?.height}
+          aspectRatio={aspectRatio}
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1120px"
         />
         {image.label && (
           <div className="showcase-image-overlay">

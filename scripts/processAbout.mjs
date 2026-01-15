@@ -302,20 +302,86 @@ async function loadAboutConfig() {
 }
 
 /**
- * Write about.json configuration
+ * Extract base name from src path for matching
  */
-async function writeAboutConfig(aboutImages) {
+function extractBaseNameFromSrc(src) {
+  if (!src) return null;
+  const match = src.match(/\/([^/]+)-large\.webp$/);
+  return match ? match[1] : null;
+}
+
+/**
+ * Write about.json configuration, preserving existing data
+ */
+async function writeAboutConfig(processedImages, existingConfig) {
   const configPath = path.join(ROOT, CONFIG.ABOUT_CONFIG);
   const configDir = path.dirname(configPath);
   
   await fsp.mkdir(configDir, { recursive: true });
 
+  const existingImages = existingConfig.images || [];
+  const newImages = processedImages.filter(img => img !== null);
+  
+  // Create a map of existing images by base name for quick lookup
+  const existingByBaseName = new Map();
+  for (const existing of existingImages) {
+    const baseName = extractBaseNameFromSrc(existing.src);
+    if (baseName) {
+      existingByBaseName.set(baseName.toLowerCase(), existing);
+    }
+  }
+  
+  // Merge processed images with existing config data
+  const mergedImages = [];
+  const processedBaseNames = new Set();
+  
+  // First, preserve existing images in their original order
+  // Update them if we have new processed data, otherwise keep as-is
+  for (const existing of existingImages) {
+    const baseName = extractBaseNameFromSrc(existing.src);
+    const baseNameKey = baseName ? baseName.toLowerCase() : null;
+    
+    if (baseNameKey) {
+      const processed = newImages.find(img => {
+        const imgBaseName = extractBaseNameFromSrc(img.src);
+        return imgBaseName && imgBaseName.toLowerCase() === baseNameKey;
+      });
+      
+      if (processed) {
+        // Merge: preserve existing custom fields, update paths only
+        mergedImages.push({
+          ...existing, // Preserve all existing fields (alt, caption, etc.)
+          src: processed.src // Update image path
+        });
+        processedBaseNames.add(baseNameKey);
+      } else {
+        // Image exists in config but not in source - preserve it
+        mergedImages.push(existing);
+      }
+    } else {
+      // Can't match - preserve as-is
+      mergedImages.push(existing);
+    }
+  }
+  
+  // Add new images that don't exist in config
+  for (const newImage of newImages) {
+    const baseName = extractBaseNameFromSrc(newImage.src);
+    const baseNameKey = baseName ? baseName.toLowerCase() : null;
+    
+    if (baseNameKey && !processedBaseNames.has(baseNameKey)) {
+      mergedImages.push(newImage);
+      processedBaseNames.add(baseNameKey);
+    }
+  }
+
   const config = {
-    images: aboutImages.filter(img => img !== null)
+    images: mergedImages
   };
 
   await fsp.writeFile(configPath, JSON.stringify(config, null, 2));
-  console.log(`  ✅ Generated ${configPath}`);
+  console.log(`  ✅ Updated ${configPath}`);
+  console.log(`     - ${mergedImages.length} images (preserved existing data, updated image paths)`);
 }
 
 /**
@@ -355,6 +421,9 @@ async function main() {
 
   // Load metadata
   const metadata = await loadMetadata();
+  
+  // Load existing config to preserve custom data
+  const existingConfig = await loadAboutConfig();
 
   // Process images in parallel with concurrency limit
   console.log('🔄 Processing images...');
@@ -416,9 +485,9 @@ async function main() {
     process.exit(1);
   }
 
-  // Generate about.json
-  console.log('📝 Generating about.json...');
-  await writeAboutConfig(aboutImages);
+  // Generate about.json, preserving existing data
+  console.log('📝 Updating about.json...');
+  await writeAboutConfig(aboutImages, existingConfig);
 
   console.log('');
   console.log('✅ About processing complete!');
