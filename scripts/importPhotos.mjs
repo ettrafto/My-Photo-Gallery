@@ -515,7 +515,10 @@ async function processAlbum({ albumName, options, albumLocations }) {
       typeof existingPrimaryLocation.lat === 'number' && 
       typeof existingPrimaryLocation.lng === 'number')
     ? existingPrimaryLocation // Preserve existing coordinates
-    : locationData?.defaultLocation?.lat !== null && locationData?.defaultLocation?.lng !== null
+    : locationData && 
+      locationData.defaultLocation && 
+      locationData.defaultLocation.lat !== null && 
+      locationData.defaultLocation.lng !== null
     ? {
         name: locationData.albumTitle || metadata.title,
         lat: locationData.defaultLocation.lat,
