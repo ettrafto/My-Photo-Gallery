@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import Lightbox from './Lightbox';
 import LayoutControls from './LayoutControls';
 import ExifOverlay from './ExifOverlay';
@@ -19,6 +20,13 @@ export default function AlbumPage() {
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
   const [imagesAcross, setImagesAcross] = useState(3);
   const [layoutMode, setLayoutMode] = useState('masonry');
+
+  // SEO with dynamic album data
+  useSEO({ 
+    pageTitle: album?.title || "Album",
+    description: album?.description || (album ? `View ${album.count || 0} photos from ${album.title}.` : undefined),
+    ogImage: album?.cover ? album.cover : undefined
+  });
 
   useEffect(() => {
     setLoading(true);

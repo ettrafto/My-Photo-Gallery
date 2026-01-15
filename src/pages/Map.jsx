@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useSEO } from '../hooks/useSEO';
 import L from 'leaflet';
 import './Map.css';
 
@@ -21,6 +22,11 @@ function getDistanceKm(lat1, lng1, lat2, lng2) {
 }
 
 export default function MapPage() {
+  useSEO({ 
+    pageTitle: "Map",
+    description: "Explore photo locations on an interactive map. See where photos were taken around the world."
+  });
+
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const markersRef = useRef([]); // Store markers for dynamic scaling

@@ -305,6 +305,18 @@ export function getHeroImages() {
 }
 
 /**
+ * Get default OpenGraph image from first hero image
+ * @returns {string|null} First hero image src, or null if no hero images
+ */
+export function getDefaultOGImage() {
+  const heroImages = getHeroImages();
+  if (heroImages.length > 0) {
+    return heroImages[0].src || null;
+  }
+  return null;
+}
+
+/**
  * Get favorite album configuration from site config
  * @returns {Object|null} Favorite album config with slug and enabled flag, or null if not configured
  */

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { getSiteConfig } from '../lib/siteConfig';
+import { getSiteConfig, getDefaultOGImage } from '../lib/siteConfig';
 
 /**
  * SEO Hook - Sets document title and meta tags from site config
@@ -61,10 +61,21 @@ export function useSEO({
     // Set robots
     setMetaTag('robots', robots || seo.robots);
 
+    // Determine OG image (page-specific > config > default hero image)
+    const defaultOGImage = ogImage || seo.ogImage || getDefaultOGImage();
+    
+    // Make OG image absolute URL if siteUrl is configured and image is relative
+    let ogImageUrl = defaultOGImage;
+    if (ogImageUrl && siteUrl && !ogImageUrl.startsWith('http')) {
+      // Remove leading slash if present to avoid double slash
+      const imagePath = ogImageUrl.startsWith('/') ? ogImageUrl.slice(1) : ogImageUrl;
+      ogImageUrl = siteUrl.replace(/\/$/, '') + '/' + imagePath;
+    }
+
     // Open Graph tags
     setMetaTag('og:title', pageTitle ? seo.titleTemplate.replace('%s', pageTitle) : seo.defaultTitle, true);
     setMetaTag('og:description', description || seo.description, true);
-    setMetaTag('og:image', ogImage || seo.ogImage, true);
+    setMetaTag('og:image', ogImageUrl, true);
     setMetaTag('og:url', currentUrl, true);
     setMetaTag('og:type', 'website', true);
 
@@ -75,7 +86,7 @@ export function useSEO({
     }
     setMetaTag('twitter:title', pageTitle ? seo.titleTemplate.replace('%s', pageTitle) : seo.defaultTitle);
     setMetaTag('twitter:description', description || seo.description);
-    setMetaTag('twitter:image', ogImage || seo.ogImage);
+    setMetaTag('twitter:image', ogImageUrl);
 
   }, [location.pathname, pageTitle, description, ogImage, robots]);
 }

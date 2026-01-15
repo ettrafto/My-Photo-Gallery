@@ -1,3 +1,4 @@
+import { useSEO } from '../hooks/useSEO';
 import Hero from '../components/Hero';
 import FavoriteAlbum from '../components/FavoriteAlbum';
 import FavoriteTrip from '../components/FavoriteTrip';
@@ -7,6 +8,11 @@ import YouTubeCard from '../components/YouTubeCard';
 import './Page.css';
 
 export default function Home() {
+  useSEO({ 
+    pageTitle: "Home",
+    description: "A minimal photo archive of trips, places, and light. Explore photography collections from adventures around the world."
+  });
+
   return (
     <>
       <Hero />

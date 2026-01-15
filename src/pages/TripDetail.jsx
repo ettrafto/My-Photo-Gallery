@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useSEO } from '../hooks/useSEO';
 import TripMap from '../components/TripMap';
 import TripHighlightsCarousel from '../components/TripHighlightsCarousel';
 import TripsScrollWheelTimeline from '../components/TripsScrollWheelTimeline';
@@ -44,6 +45,13 @@ export default function TripDetail() {
   
   // Lightbox state for photo viewing (like AlbumPage)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(null);
+
+  // SEO with dynamic trip data
+  useSEO({ 
+    pageTitle: trip?.title || "Trip",
+    description: trip?.summary || (trip ? `Explore ${trip.title} through photos, maps, and highlights.` : undefined),
+    ogImage: trip?.coverImage || undefined
+  });
 
   // Load trip data and photos
   useEffect(() => {

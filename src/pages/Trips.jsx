@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSEO } from '../hooks/useSEO';
 import { TRIP_SLUGS } from '../data/trips';
 import TripCard from '../components/TripCard';
 import './Page.css';
@@ -8,6 +9,10 @@ import './Trips.css';
  * Trips index page - displays all available trips
  */
 export default function Trips() {
+  useSEO({ 
+    pageTitle: "Trips",
+    description: "Journeys through beautiful places. Each trip brings together albums from a specific adventure, showing the route, highlights, and stories along the way."
+  });
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

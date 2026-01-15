@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSEO } from '../hooks/useSEO';
 import AboutCameraFocus from '../components/AboutCameraFocus';
 import AboutSocialLinks from '../components/AboutSocialLinks';
 import { loadSiteConfig, getAboutCameraConfig } from '../lib/siteConfig';
@@ -50,6 +51,11 @@ function AccordionSection({ id, label, title, description, children, isOpen, onT
 }
 
 export default function About() {
+  useSEO({ 
+    pageTitle: "About",
+    description: "Learn about the photographer, the site, and how this photo archive was built."
+  });
+
   const [openSections, setOpenSections] = useState({});
   const [cameraConfig, setCameraConfig] = useState(null);
 
