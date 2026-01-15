@@ -110,6 +110,14 @@ export async function loadSiteConfig() {
         credit: data.footer?.credit || '© {year} {ownerName}. All rights reserved.',
         showSocialLinks: data.footer?.showSocialLinks !== false, // Default to true
       },
+      about: {
+        camera: {
+          imageSrc: data.about?.camera?.imageSrc || null,
+          title: data.about?.camera?.title || null,
+          subtitle: data.about?.camera?.subtitle || null,
+          body: data.about?.camera?.body || null,
+        },
+      },
     };
 
     // Validate theme name
@@ -174,6 +182,14 @@ export async function loadSiteConfig() {
         enabled: true,
         credit: '© {year} {ownerName}. All rights reserved.',
         showSocialLinks: true,
+      },
+      about: {
+        camera: {
+          imageSrc: null,
+          title: null,
+          subtitle: null,
+          body: null,
+        },
       },
     };
   }
@@ -366,6 +382,26 @@ export function getFooterConfig() {
     enabled: footer.enabled,
     credit: footer.credit || '© {year} {ownerName}. All rights reserved.',
     showSocialLinks: footer.showSocialLinks !== false,
+  };
+}
+
+/**
+ * Get about camera configuration from site config
+ * @returns {Object|null} About camera config with imageSrc, title, subtitle, and body, or null if not configured
+ */
+export function getAboutCameraConfig() {
+  const config = getSiteConfig();
+  const about = config?.about?.camera;
+  
+  if (!about || !about.imageSrc || !about.title) {
+    return null;
+  }
+  
+  return {
+    imageSrc: about.imageSrc,
+    title: about.title,
+    subtitle: about.subtitle || null,
+    body: about.body || null,
   };
 }
 

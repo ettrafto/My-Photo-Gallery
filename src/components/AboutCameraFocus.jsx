@@ -55,19 +55,9 @@ export default function AboutCameraFocus({
     restDelta: 0.001 // Ensure it reaches exactly 0
   });
   
-  // Log initial blur changes
-  useEffect(() => {
-    const unsubscribe = initialBlurSpring.on('change', (value) => {
-      console.log('[AboutCameraFocus] Initial blur spring:', value.toFixed(3));
-    });
-    return unsubscribe;
-  }, [initialBlurSpring]);
-  
   // Animate initial blur from max to exactly 0 over 1 second
   useEffect(() => {
-    console.log('[AboutCameraFocus] Component mounted, starting initial blur fade');
     const timer = setTimeout(() => {
-      console.log('[AboutCameraFocus] Setting initial blur to 0 after 1 second');
       initialBlur.set(0); // Transition to completely unblurred (0px)
     }, 1000);
     
@@ -80,13 +70,6 @@ export default function AboutCameraFocus({
     offset: ['start end', 'end start']
   });
   
-  // Log scroll progress changes
-  useEffect(() => {
-    const unsubscribe = scrollYProgress.on('change', (value) => {
-      console.log('[AboutCameraFocus] Scroll progress:', value.toFixed(3));
-    });
-    return unsubscribe;
-  }, [scrollYProgress]);
 
   // Track scroll velocity for pulse effect
   const scrollVelocity = useVelocity(scrollYProgress);
@@ -117,11 +100,6 @@ export default function AboutCameraFocus({
     // After initial fade: if page is at top (user hasn't scrolled), always use 0 blur
     // This ensures the image is sharp when the page first loads and user is at the top
     if (scrollY < 10) {
-      console.log('[AboutCameraFocus] At top of page - using 0 blur:', {
-        progress: progress.toFixed(3),
-        scroll: scroll.toFixed(3),
-        scrollY: scrollY.toFixed(1)
-      });
       return 0;
     }
     
@@ -129,20 +107,10 @@ export default function AboutCameraFocus({
     // At the very top (progress ≈ 0) or bottom (progress ≈ 1), use 0 blur for sharpness
     // Also check if scroll blur is at maximum (8px), which indicates we're at the edge
     if (progress <= 0.02 || progress >= 0.98 || scroll >= maxBlur - 0.5) {
-      console.log('[AboutCameraFocus] At component edge - using 0 blur:', {
-        progress: progress.toFixed(3),
-        scroll: scroll.toFixed(3),
-        maxBlur
-      });
       return 0;
     }
     
     // Otherwise, use scroll blur (which has min blur of 0.75px for retro feel)
-    console.log('[AboutCameraFocus] Using scroll blur:', {
-      progress: progress.toFixed(3),
-      scroll: scroll.toFixed(3),
-      scrollY: scrollY.toFixed(1)
-    });
     return scroll;
   });
 
@@ -250,9 +218,9 @@ export default function AboutCameraFocus({
 
         {/* Right: Text Content */}
         <div className="about-camera-text">
-          {title && <h1 className="about-camera-title">{title}</h1>}
-          {subtitle && <h2 className="about-camera-subtitle">{subtitle}</h2>}
-          {body && <p className="about-camera-body">{body}</p>}
+          {title && <h1 className="page-title">{title}</h1>}
+          {subtitle && <h2 className="page-subtitle">{subtitle}</h2>}
+          {body && <p className="page-body">{body}</p>}
         </div>
       </div>
     </section>

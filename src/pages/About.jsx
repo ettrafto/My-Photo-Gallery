@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import AboutCameraFocus from '../components/AboutCameraFocus';
+import { loadSiteConfig, getAboutCameraConfig } from '../lib/siteConfig';
 import './Page.css';
 import './About.css';
 
@@ -49,6 +50,16 @@ function AccordionSection({ id, label, title, description, children, isOpen, onT
 
 export default function About() {
   const [openSections, setOpenSections] = useState({});
+  const [cameraConfig, setCameraConfig] = useState(null);
+
+  useEffect(() => {
+    async function loadConfig() {
+      await loadSiteConfig();
+      const config = getAboutCameraConfig();
+      setCameraConfig(config);
+    }
+    loadConfig();
+  }, []);
 
   const toggleSection = (id) => {
     setOpenSections(prev => ({
@@ -59,12 +70,14 @@ export default function About() {
 
   return (
     <main className="page-shell">
-      <AboutCameraFocus
-        imageSrc="/about/portrait-large.webp"
-        title="About this archive"
-        subtitle="A modern photo portfolio"
-        body="A modern, minimalist static photo portfolio built with React, inspired by vintage camera UI aesthetics. This site automatically processes raw image files, extracts comprehensive EXIF metadata, optimizes images for web delivery, and generates a complete static site with no backend or database required."
-      />
+      {cameraConfig && (
+        <AboutCameraFocus
+          imageSrc={cameraConfig.imageSrc}
+          title={cameraConfig.title}
+          subtitle={cameraConfig.subtitle}
+          body={cameraConfig.body}
+        />
+      )}
 
       <AccordionSection
         id="tech-stack"

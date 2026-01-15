@@ -127,6 +127,15 @@
   }
 }
 
+/* Make h1 and h2 20% larger on About page */
+.page-shell .page-title {
+  font-size: 2.765rem; /* 2.304rem * 1.2 */
+}
+
+.page-shell .page-subtitle {
+  font-size: 1.801rem; /* 1.584rem * 1.2 */
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .accordion-section,

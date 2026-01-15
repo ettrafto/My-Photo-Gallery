@@ -211,31 +211,22 @@
   min-width: 0;
 }
 
-.about-camera-title {
-  font-family: var(--mono-display);
-  font-size: 1.6rem;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.87);
+/* Add breathing room between text elements and increase font sizes by 20% */
+.about-camera-text .page-title {
+  margin-bottom: 1rem;
+  font-size: 1.92rem; /* 1.6rem * 1.2 */
 }
 
-.about-camera-subtitle {
-  font-family: var(--mono-display);
-  font-size: 1.1rem;
-  margin-bottom: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.87);
+.about-camera-text .page-subtitle {
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+  font-size: 1.32rem; /* 1.1rem * 1.2 */
 }
 
-.about-camera-body {
-  font-family: var(--mono-ui);
-  font-size: 0.95rem;
-  max-width: 52rem;
-  opacity: 0.85;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.87);
+.about-camera-text .page-body {
+  margin-top: 0.75rem;
+  font-size: 1.14rem; /* 0.95rem * 1.2 */
+  white-space: pre-line; /* Preserve line breaks from \n in JSON */
 }
 
 /* Responsive: Stack vertically on mobile */
