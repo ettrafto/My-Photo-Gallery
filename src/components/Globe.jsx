@@ -135,6 +135,7 @@ export default function Globe() {
     }
 
     // Draw album markers using proper D3 data join pattern (enter/update/exit)
+    // Note: Markers will be positioned in render() function after projection is set up
     const markerSelection = markersGroup
       .selectAll('circle.globe-marker')
       .data(albums || [], d => d.albumSlug || `${d.lat}-${d.lng}`); // Use key function for proper data binding
@@ -142,12 +143,13 @@ export default function Globe() {
     // Remove markers that are no longer in data
     markerSelection.exit().remove();
     
-    // Add new markers
+    // Add new markers (positioning will be done in render())
     markerSelection
       .enter()
       .append('circle')
       .attr('class', 'globe-marker')
       .attr('r', 4)
+      .style('opacity', 0) // Start hidden, render() will position and show them
       .merge(markerSelection); // Merge enter and update selections
     
     // Test node removed - commented out for now
@@ -572,7 +574,11 @@ export default function Globe() {
     }
     
     initGlobe();
-    render();
+    // Always call render after initGlobe to ensure markers are positioned
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      render();
+    });
 
     // Setup pointer event handlers
     const svg = svgRef.current;
@@ -608,7 +614,9 @@ export default function Globe() {
 
     const resizeObserver = new ResizeObserver(() => {
       initGlobe();
-      render();
+      requestAnimationFrame(() => {
+        render();
+      });
     });
 
     resizeObserver.observe(containerRef.current);
@@ -617,6 +625,33 @@ export default function Globe() {
       resizeObserver.disconnect();
     };
   }, [worldData]); // Removed albums dependency - resize should work without markers
+
+  // Ensure markers are updated when albums change (separate from globe initialization)
+  useEffect(() => {
+    // Only update markers if globe is already initialized
+    if (!worldData || !projectionRef.current) {
+      return;
+    }
+    
+    // Ensure markers group exists - if not, we need to reinitialize
+    if (!markersGroupRef.current) {
+      // If markers group doesn't exist, we need to reinitialize the globe
+      if (containerRef.current && svgRef.current) {
+        initGlobe();
+        // Wait for next frame to ensure initGlobe completes before rendering
+        requestAnimationFrame(() => {
+          render();
+        });
+      }
+      return;
+    }
+    
+    // Force marker update by calling render
+    // This ensures markers are created/updated when albums load
+    requestAnimationFrame(() => {
+      render();
+    });
+  }, [albums]); // Only depend on albums, not worldData
 
   // Auto-spin animation
   useEffect(() => {
