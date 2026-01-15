@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import AboutCameraFocus from '../components/AboutCameraFocus';
+import AboutSocialLinks from '../components/AboutSocialLinks';
 import { loadSiteConfig, getAboutCameraConfig } from '../lib/siteConfig';
 import './Page.css';
 import './About.css';
@@ -78,6 +79,12 @@ export default function About() {
           body={cameraConfig.body}
         />
       )}
+
+      <AboutSocialLinks />
+
+      <section className="about-section-header">
+        <p className="page-label">how I built this</p>
+      </section>
 
       <AccordionSection
         id="tech-stack"

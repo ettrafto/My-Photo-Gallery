@@ -136,6 +136,12 @@
   font-size: 1.801rem; /* 1.584rem * 1.2 */
 }
 
+/* Section Header (no box styling) */
+.about-section-header {
+  margin: 2rem 0 1.5rem;
+  padding: 0 1.25rem;
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .accordion-section,

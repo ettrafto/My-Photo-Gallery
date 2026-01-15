@@ -1,476 +1,230 @@
-# Architecture Guide
-
-**Last Updated**: 2025-01-XX
-
-This document describes the high-level architecture, data flow, and system design of the Photo Log application.
-
-> 📚 **See also**: [Configuration Guide](CONFIGURATION.md) | [Development Guide](DEVELOPMENT.md) | [README](../README.md)
-
----
+# Site Architecture
 
 ## Overview
 
-Photo Log is a static React application that generates JSON manifests from photo folders and renders them in a gallery interface. The architecture separates content generation (build-time scripts) from content consumption (runtime React app).
-
----
+Photo-Log is a **fully static** photo portfolio built with React. It has no backend, no database, and no API. All content is generated at build time from source images and JSON configuration files.
 
 ## System Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    Build-Time (Scripts)                     │
+│                    BUILD TIME                               │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  photo-source/originals/  →  importPhotos.mjs  →  content/ │
-│  ├── album-1/              (process images,       ├── albums.json
-│  │   ├── *.JPG              extract EXIF,          ├── albums/
-│  │   └── _album.json        generate JSON)         │   └── *.json
-│                                                      └── map.json
-│                                                              │
+│                                                             │
+│  photo-source/originals/                                    │
+│    └── {album}/                                             │
+│        ├── IMG_001.jpg                                      │
+│        └── _album.json (optional)                           │
+│                                                             │
+│         ↓ Processing Scripts                                │
+│                                                             │
+│  scripts/importPhotos.mjs                                   │
+│  scripts/processHero.mjs                                    │
+│  scripts/processShowcase.mjs                                │
+│  scripts/processAbout.mjs                                   │
+│  scripts/rebuildAlbumsIndex.mjs                            │
+│                                                             │
+│         ↓ Generates                                          │
+│                                                             │
+│  public/photos/{album}/                                     │
+│    ├── IMG_001-large.webp (1800px)                         │
+│    ├── IMG_001-small.webp (800px)                          │
+│    └── IMG_001-blur.webp (40px)                            │
+│                                                             │
+│  content/                                                    │
+│    ├── site/site.json                                       │
+│    ├── albums.json (index)                                  │
+│    ├── albums/{slug}.json (full album data)                │
+│    ├── trips/{slug}.json                                    │
+│    └── map.json                                             │
+│                                                             │
+│         ↓ Vite Build                                        │
+│                                                             │
+│  vite build                                                  │
+│                                                             │
+│         ↓ Copy Content                                      │
+│                                                             │
+│  scripts/copy-content.mjs                                   │
+│                                                             │
+│         ↓                                                    │
+│                                                             │
+│  dist/                                                      │
+│    ├── index.html                                           │
+│    ├── assets/ (JS/CSS bundles)                            │
+│    ├── photos/ (processed images)                          │
+│    └── content/ (JSON files)                               │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
-                           │
-                           │ (deploy)
-                           ▼
+
 ┌─────────────────────────────────────────────────────────────┐
-│                 Runtime (React Application)                 │
+│                    RUNTIME                                  │
 ├─────────────────────────────────────────────────────────────┤
-│                                                              │
-│  App.jsx                                                     │
-│  ├── loadSiteConfig()  →  siteConfig.js  →  content/site/  │
-│  ├── Router                                                  │
-│  │   ├── / → Home → Hero + AlbumGrid                        │
-│  │   ├── /albums → Albums → AlbumGrid                       │
-│  │   ├── /album/:slug → AlbumPage                           │
-│  │   ├── /trips → Trips → TripCard grid                     │
-│  │   ├── /trips/:slug → TripDetail                          │
-│  │   ├── /map → Map → Leaflet map                           │
-│  │   └── /about → About                                     │
-│  │                                                           │
-│  └── Components                                              │
-│      ├── NavBar (site config)                                │
-│      ├── Hero (site config)                                  │
-│      ├── AlbumGrid (content/albums.json)                     │
-│      ├── AlbumPage (content/albums/{slug}.json)              │
-│      └── ...                                                 │
-│                                                              │
+│                                                             │
+│  Browser loads dist/index.html                              │
+│         ↓                                                   │
+│  React app initializes (src/main.jsx)                      │
+│         ↓                                                   │
+│  Router loads page component                               │
+│         ↓                                                   │
+│  Component fetches JSON from dist/content/                 │
+│    - fetch('content/albums.json')                          │
+│    - fetch('content/albums/{slug}.json')                   │
+│    - fetch('content/site/site.json')                       │
+│         ↓                                                   │
+│  Component renders with data                                │
+│                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
----
+## Core Principles
 
-## Data Flow
+1. **Static Generation**: All content is pre-processed at build time
+2. **JSON-Driven**: Content is stored as JSON files, not a database
+3. **Data Preservation**: Scripts never overwrite manual edits to JSON files
+4. **Incremental Processing**: Only processes new or changed images
+5. **No Backend**: Fully static - deploy `dist/` folder to any static host
 
-### Configuration Loading Flow
-
-```
-1. App.jsx mounts
-   ↓
-2. loadSiteConfig() called
-   ↓
-3. fetch('content/site/site.json')
-   ↓
-4. siteConfig.js validates and caches
-   ↓
-5. Components consume via getSiteConfig(), getNavItems(), etc.
-```
-
-**Key Points:**
-- Configuration is fetched at runtime (not bundled)
-- First load caches config in memory
-- Fallback config prevents crashes if file missing
-- Components use getter functions, not direct fetch
-
-### Album Data Flow
+## Directory Structure
 
 ```
-1. AlbumGrid component mounts
-   ↓
-2. fetch('content/albums.json') → gets album summaries
-   ↓
-3. For each album: fetch('content/albums/{slug}.json')
-   ↓
-4. State updates with full album data (including photos)
-   ↓
-5. Filtering/search applied client-side
-   ↓
-6. AlbumCard components render
+Photo-Log/
+├── photo-source/originals/          # Source images (not in git)
+│   ├── {album}/                     # Album folders
+│   │   ├── IMG_001.jpg
+│   │   └── _album.json (optional)
+│   └── config/                      # Special images
+│       ├── hero/
+│       ├── showcase/
+│       └── about/
+├── public/                          # Processed images (in git)
+│   └── photos/{album-slug}/
+│       ├── IMG_001-large.webp
+│       ├── IMG_001-small.webp
+│       └── IMG_001-blur.webp
+├── content/                         # JSON manifests (in git)
+│   ├── site/
+│   │   ├── site.json
+│   │   ├── showcase.json
+│   │   └── about.json
+│   ├── albums.json                  # Album index
+│   ├── albums/{slug}.json           # Full album data
+│   ├── trips/{slug}.json            # Trip definitions
+│   └── map.json                     # Global map data
+├── src/                             # React application
+│   ├── pages/                       # Route pages
+│   ├── components/                  # Reusable components
+│   ├── lib/                         # Utilities (siteConfig, etc.)
+│   ├── hooks/                       # Custom React hooks
+│   └── utils/                       # Helper functions
+├── scripts/                          # Build-time processing
+│   ├── importPhotos.mjs             # Main photo pipeline
+│   ├── processHero.mjs
+│   ├── processShowcase.mjs
+│   ├── processAbout.mjs
+│   ├── rebuildAlbumsIndex.mjs
+│   └── copy-content.mjs
+└── dist/                            # Production build (generated)
+    ├── index.html
+    ├── assets/
+    ├── photos/
+    └── content/
 ```
 
-**Key Points:**
-- Two-step loading: index first, then individual albums
-- Full album data needed for collage feature
-- All filtering done client-side (no backend)
+## Build Pipeline
 
-### Trip Data Flow
+1. **Photo Processing**: `npm run import:photos`
+   - Scans `photo-source/originals/{album}/`
+   - Generates WebP variants to `public/photos/{album-slug}/`
+   - Extracts EXIF metadata
+   - Creates/updates `content/albums/{slug}.json`
+   - Updates `content/albums.json` index
 
-```
-1. Trips page mounts
-   ↓
-2. Read TRIP_SLUGS from src/data/trips.js (static)
-   ↓
-3. For each slug: fetch('content/trips/{slug}.json')
-   ↓
-4. TripDetail: Also fetch('content/map.json') for photo locations
-   ↓
-5. Filter map.json photos by trip's albumIds
-   ↓
-6. Render trip with map, timeline, gallery
-```
+2. **Special Images**: `npm run process:hero`, `process:showcase`, `process:about`
+   - Process images from `photo-source/originals/config/{type}/`
+   - Generate variants to `public/{type}/`
+   - Update `content/site/{type}.json`
 
-**Key Points:**
-- Trip slugs are hardcoded in source (not discovered dynamically)
-- Trip photos come from map.json, filtered by album membership
-- Map data provides GPS coordinates for route visualization
+3. **React Build**: `vite build`
+   - Bundles React app to `dist/`
+   - Code splitting (React, Framer Motion, Leaflet, D3)
+   - Minification and optimization
 
----
+4. **Content Copy**: `scripts/copy-content.mjs`
+   - Copies `content/` to `dist/content/`
+   - Makes JSON available at runtime
 
-## Configuration System
+## React Application
 
-### Site Configuration (`content/site/site.json`)
+### Entry Point
+- `src/main.jsx` - Renders `App.jsx` into DOM
 
-**Loaded by**: `src/lib/siteConfig.js`
+### Routing (`src/App.jsx`)
+- `/` - Home (Hero, Globe, Showcase, Favorites)
+- `/albums` - Album grid with filters
+- `/albums/:slug` - Individual album page
+- `/trips` - Trip index
+- `/trips/:slug` - Trip detail page
+- `/map` - Global map view
+- `/about` - About page
 
-**Consumed by**:
-- `NavBar.jsx` - site title, owner name, nav items
-- `Hero.jsx` - headline, subheadline, layout, hero images
-- `SocialLinks.jsx` - social items
-- `CopyrightNotice.jsx` - owner name
-- `useSEO.js` - SEO defaults
-- `App.jsx` - theme name
-
-**Validation**: 
-- Required fields throw errors
-- Optional fields have defaults
-- Invalid values log warnings and use fallbacks
-
-**Caching**: In-memory cache after first load
-
-See `docs/CONFIGURATION.md` for complete reference.
-
----
-
-## Theme System
-
-### Implementation
-
-1. **Config Source**: `content/site/site.json` → `theme.name`
-2. **Validation**: Whitelist (`"mono"`, `"paper"`)
-3. **Application**: CSS class on app root (`theme-{name}`)
-4. **Location**: `App.jsx` applies class, CSS files define theme styles
-
-### How It Works
-
-```jsx
-// App.jsx
-<div className={`app-shell theme-${themeName}`}>
-  {/* App content */}
-</div>
-```
-
-CSS uses class-based selectors:
-```css
-.theme-mono { /* mono theme styles */ }
-.theme-paper { /* paper theme styles */ }
-```
-
----
-
-## Hero Layout System
-
-### Architecture
-
-1. **Config Source**: `content/site/site.json` → `hero.layout`
-2. **Current Implementation**: Only `"default"` layout exists
-3. **CSS Application**: Class `hero-layout-{layout}` applied to hero images container
-4. **Grid Override**: If `hero.grid.enabled === true`, grid items replace default image cluster
-
-### Data Flow
-
-```
-Hero.jsx mounts
-  ↓
-loadSiteConfig() → get hero.* fields
-  ↓
-If hero.grid.enabled === true:
-  getHeroGridItems() → filters/validates grid items (max 3)
-  ↓
-  Render grid items
-Else:
-  Use default image cluster (props.images)
-```
-
-**Code Reference**: `src/components/Hero.jsx`, `src/lib/siteConfig.js:228-253`
-
----
-
-## Image Rendering Pipeline
+### Data Loading
+- Components fetch JSON via `fetch()` at runtime
+- Site config loaded once and cached (`src/lib/siteConfig.js`)
+- No API calls - all data is static JSON files
 
 ### Component Hierarchy
-
 ```
-LazyImage (IntersectionObserver)
-  ↓
-Photo (quality selection, srcSet building)
-  ↓
-<img> (native browser image)
-```
-
-### Quality Selection
-
-1. **Viewport-based**: `useLowQualityMode()` hook checks window width
-   - < 768px → use small images
-   - ≥ 768px → use large images
-
-2. **Network-aware** (optional): `useAdaptiveQuality()` considers:
-   - Connection speed
-   - Data saver mode
-   - Viewport size
-
-3. **SrcSet Generation**: Builds responsive srcSet for optimal loading
-
-**Code Reference**: 
-- `src/components/LazyImage.jsx`
-- `src/components/Photo.jsx`
-- `src/hooks/useLowQualityMode.js`
-
-### Image Paths
-
-**Modern pipeline** (`import:photos`):
-- `public/photos/{album}/{filename}-large.webp`
-- `public/photos/{album}/{filename}-small.webp`
-- `public/photos/{album}/{filename}-blur.webp`
-
-**Legacy pipeline** (`scan`):
-- `public/images/{album}/{filename}` (original files)
-
----
-
-## Routing Architecture
-
-### Route Structure
-
-```jsx
-<Router>
-  <Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/albums" element={<Albums />} />
-    <Route path="/album/:slug" element={<AlbumPage />} />
-    <Route path="/trips" element={<Trips />} />
-    <Route path="/trips/:slug" element={<TripDetail />} />
-    <Route path="/map" element={<Map />} />
-    <Route path="/about" element={<About />} />
-  </Routes>
-</Router>
+App
+├── NavBar (loads site config)
+├── Routes
+│   ├── Home
+│   │   ├── Hero
+│   │   ├── Globe
+│   │   ├── Showcase
+│   │   └── Favorites
+│   ├── Albums
+│   │   └── AlbumGrid (fetches albums.json)
+│   ├── AlbumPage (fetches albums/{slug}.json)
+│   ├── Trips
+│   │   └── TripCard (fetches trips/{slug}.json)
+│   ├── TripDetail (fetches trip + album JSONs)
+│   ├── Map (fetches albums.json)
+│   └── About
+│       ├── AboutCameraFocus
+│       └── AboutSocialLinks
+└── Footer (loads site config)
 ```
 
-**Dynamic Routes**: 
-- `/album/:slug` - loads `content/albums/{slug}.json`
-- `/trips/:slug` - loads `content/trips/{slug}.json`
-
-**Static Routes**: All other routes render static page components
-
----
-
-## SEO System
-
-### Implementation
-
-1. **Hook**: `useSEO()` in `src/hooks/useSEO.js`
-2. **Default Config**: Loaded from `siteConfig.seo`
-3. **Per-Page Override**: Components can pass options to `useSEO()`
-
-### How It Works
-
-```jsx
-// Default SEO (all pages)
-useSEO(); // Uses config defaults
-
-// Per-page override
-useSEO({
-  pageTitle: "Album Name",
-  description: "Custom description",
-  ogImage: "/custom-image.jpg"
-});
-```
-
-### Meta Tags Set
-
-- Document title (with template support)
-- Meta description
-- Robots meta
-- Open Graph tags (og:title, og:description, og:image, og:url, og:type)
-- Twitter Card tags
-
-**Implementation**: Direct DOM manipulation (no React Helmet dependency)
-
----
-
-## Build Process
-
-### Production Build Pipeline
-
-```bash
-npm run build
-```
-
-1. **Image Processing**: `import:photos`
-   - Processes `photo-source/originals/`
-   - Generates optimized images in `public/photos/`
-   - Extracts EXIF data
-   - Generates `content/albums.json` and `content/albums/*.json`
-   - Generates `content/map.json`
-
-2. **React Build**: `vite build`
-   - Bundles React app
-   - Minifies and optimizes
-   - Outputs to `dist/`
-
-3. **Content Copy**: `copy-content.mjs`
-   - Copies `content/` to `dist/content/`
-   - Ensures JSON files are available at runtime
-
-### Build Output Structure
+## Content Relationships
 
 ```
-dist/
-├── assets/          # Bundled JS/CSS (hashed filenames)
-├── index.html       # Entry HTML
-└── content/         # JSON manifests (copied from content/)
-    ├── site/
-    ├── albums.json
-    ├── albums/
-    ├── trips/
-    └── map.json
+site.json
+  ├── hero.images → public/hero/
+  ├── showcase → content/site/showcase.json
+  ├── about.camera → content/site/about.json
+  └── favorites → albums.json / trips/{slug}.json
+
+albums.json (index)
+  └── albums[] → albums/{slug}.json (full data)
+
+albums/{slug}.json
+  ├── photos[] → public/photos/{album-slug}/
+  └── primaryLocation → map.json
+
+trips/{slug}.json
+  └── albumIds[] → albums/{slug}.json
+
+map.json (generated)
+  └── albums[] (from albums with geo data)
 ```
 
-**Note**: Images in `public/photos/` are copied automatically by Vite.
+## Key Technologies
 
----
-
-## Performance Architecture
-
-### Image Loading Strategy
-
-1. **Lazy Loading**: `IntersectionObserver` watches for viewport entry
-2. **Skeleton States**: Placeholder UI while images load
-3. **Responsive Images**: `srcSet` and `sizes` attributes for optimal loading
-4. **Blur Placeholders**: Tiny blurred images shown during load
-
-### Code Splitting
-
-- Vite automatically code-splits routes
-- Components loaded on-demand via React Router
-
-### Caching
-
-- **Config Cache**: In-memory after first load
-- **Browser Cache**: JSON files and images cached by browser
-- **Build Cache**: Vite cache for faster rebuilds
-
----
-
-## Data Models
-
-### Album JSON Schema
-
-```typescript
-{
-  id: string;
-  slug: string;
-  title: string;
-  description?: string;
-  tags?: string[];
-  date: string;
-  startDate?: string;
-  endDate?: string;
-  cover: string;
-  coverAspectRatio: number;
-  count: number;
-  isFavorite: boolean;
-  primaryLocation?: {
-    name: string;
-    lat?: number;
-    lng?: number;
-  };
-  photos: Array<{
-    filename: string;
-    path: string;
-    pathSmall?: string;
-    pathLarge?: string;
-    aspectRatio: number;
-    width?: number;
-    height?: number;
-    exif?: { ... };
-  }>;
-}
-```
-
-### Trip JSON Schema
-
-See `src/types/trips.jsdoc.js` for complete type definitions.
-
-Key fields:
-- `slug`, `title`, `dateStart`, `dateEnd`
-- `albumIds` - array of album slugs
-- `route` - polyline points for map
-- `highlights` - key moments with GPS
-- `media` - supplemental content
-
-### Site Config Schema
-
-See `docs/CONFIGURATION.md` for complete reference.
-
----
-
-## Key Design Decisions
-
-### Why JSON at Runtime?
-
-- **Flexibility**: Update content without rebuilding
-- **Simplicity**: No database or CMS needed
-- **Static Hosting**: Works with any static host
-- **Version Control**: JSON files are versioned with code
-
-### Why Separate Config Loader?
-
-- **Centralized Validation**: Single source of truth for validation
-- **Caching**: Prevents redundant fetches
-- **Type Safety**: Consistent getter functions
-- **Fallback Handling**: Graceful degradation
-
-### Why Client-Side Filtering?
-
-- **No Backend**: Fully static architecture
-- **Instant Feedback**: No server round-trips
-- **Simple Implementation**: Array.filter() is sufficient
-- **Offline Capable**: Works without network (after initial load)
-
----
-
-## Extension Points
-
-### Adding a New Theme
-
-1. Add theme name to `VALID_THEMES` in `siteConfig.js`
-2. Create CSS file with `.theme-{name}` classes
-3. Users set `theme.name` in `site.json`
-
-### Adding a New Hero Layout
-
-1. Add layout identifier to `hero.layout` in `site.json`
-2. Create CSS for `hero-layout-{layout}` class
-3. Hero component automatically applies class
-
-### Adding a New Route
-
-1. Add route to `App.jsx`
-2. Create page component in `src/pages/`
-3. Optionally add nav item in `site.json`
-
----
-
-## See Also
-
-- [Configuration Guide](CONFIGURATION.md) - Complete configuration reference
-- [Development Guide](DEVELOPMENT.md) - Development workflow and setup
-- [README](../README.md) - Project overview and quick start
+- **React 19** - UI framework
+- **Vite 7** - Build tool
+- **React Router 7** - Client-side routing
+- **Framer Motion** - Animations
+- **Sharp** - Image processing (build-time)
+- **exifr** - EXIF extraction (build-time)
+- **Leaflet** - Map visualization
+- **D3.js** - Globe visualization
