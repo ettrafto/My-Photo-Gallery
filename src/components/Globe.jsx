@@ -288,6 +288,11 @@ export default function Globe() {
         .attr('r', 4);
       
       // Merge enter and update selections, then update all markers
+      const totalMarkers = markerSelection.merge(newMarkers).size();
+      if (totalMarkers > 0 && albums && albums.length > 0) {
+        console.log(`🌍 Globe: Rendering ${totalMarkers} marker(s) from ${albums.length} album(s)`);
+      }
+      
       markerSelection.merge(newMarkers).each(function(d) {
         if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') {
           hideMarker(select(this));
@@ -320,6 +325,16 @@ export default function Globe() {
           .style('display', 'block')
           .style('pointer-events', 'auto');
       });
+      
+      // Log how many markers are actually visible after rendering
+      const visibleCount = markersGroupRef.current
+        ? markersGroupRef.current.selectAll('circle.globe-marker').filter(function() {
+            return select(this).style('opacity') !== '0' && select(this).style('display') !== 'none';
+          }).size()
+        : 0;
+      if (totalMarkers > 0) {
+        console.log(`🌍 Globe: ${visibleCount} marker(s) visible after render`);
+      }
     }
     
     // Update sphere outline - explicitly call path generator with sphere datum
@@ -481,30 +496,23 @@ export default function Globe() {
         return res.json();
       })
       .then(data => {
-        // map.json contains { photos: [...] } not { albums: [...] }
-        // Each photo has: albumSlug, albumTitle, lat, lng, etc.
-        const photosData = data.photos || [];
+        // map.json contains { albums: [...] } with albumSlug, albumTitle, lat, lng, etc.
+        const albumsData = data.albums || [];
         
-        // Convert photos to marker format and filter to ensure we only have valid lat/lng
-        const validAlbums = photosData
-          .filter(photo => 
-            photo && 
-            typeof photo.lat === 'number' && 
-            typeof photo.lng === 'number' &&
-            !isNaN(photo.lat) && 
-            !isNaN(photo.lng)
-          )
-          .map(photo => ({
-            albumSlug: photo.albumSlug || `${photo.lat}-${photo.lng}`,
-            lat: photo.lat,
-            lng: photo.lng,
-            // Include other properties that might be useful
-            albumTitle: photo.albumTitle,
-            path: photo.path
-          }));
+        // Filter to ensure we only have albums with valid lat/lng
+        const validAlbums = albumsData.filter(album => 
+          album && 
+          typeof album.lat === 'number' && 
+          typeof album.lng === 'number' &&
+          !isNaN(album.lat) && 
+          !isNaN(album.lng)
+        );
           
         if (validAlbums.length > 0) {
-          console.log(`🌍 Globe: Loaded ${validAlbums.length} marker(s) from map.json`);
+          console.log(`🌍 Globe: Loaded ${validAlbums.length} album marker(s) from map.json`);
+          console.log(`🌍 Globe: Sample marker:`, validAlbums[0]);
+        } else {
+          console.warn(`🌍 Globe: No valid albums found in map.json. Raw data:`, albumsData.slice(0, 2));
         }
         setAlbums(validAlbums);
       })
@@ -588,9 +596,11 @@ export default function Globe() {
     
     initGlobe();
     // Always call render after initGlobe to ensure markers are positioned
-    // Use requestAnimationFrame to ensure DOM is ready
+    // Use double RAF to ensure DOM is fully ready and markers are created
     requestAnimationFrame(() => {
-      render();
+      requestAnimationFrame(() => {
+        render();
+      });
     });
 
     // Setup pointer event handlers
@@ -646,7 +656,7 @@ export default function Globe() {
       return; // World data not loaded yet, will be handled by main init effect
     }
     
-    // If globe isn't initialized yet, wait for it
+    // Ensure globe is initialized before trying to render markers
     if (!projectionRef.current || !markersGroupRef.current) {
       // If container exists but globe isn't initialized, initialize it now
       if (containerRef.current && svgRef.current) {
@@ -657,8 +667,11 @@ export default function Globe() {
         if (width > 0 && height > 0) {
           initGlobe();
           // Ensure render is called after init to position markers
+          // Use double RAF to ensure DOM is fully ready
           requestAnimationFrame(() => {
-            render();
+            requestAnimationFrame(() => {
+              render();
+            });
           });
         }
       }
@@ -667,10 +680,13 @@ export default function Globe() {
     
     // Globe is initialized - ensure markers are created and rendered
     // This handles the case where albums load after initial globe setup
+    // Use double RAF to ensure DOM updates are complete
     requestAnimationFrame(() => {
-      // Force a complete marker update by re-running render
-      // Render will use D3 data join to create/update/remove markers as needed
-      render();
+      requestAnimationFrame(() => {
+        // Force a complete marker update by re-running render
+        // Render will use D3 data join to create/update/remove markers as needed
+        render();
+      });
     });
   }, [albums, worldData]); // Depend on both albums and worldData
 
