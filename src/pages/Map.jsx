@@ -86,7 +86,8 @@ export default function MapPage() {
     const iconAnchor = [width / 2, height]; // Center horizontally, anchor at bottom
     
     // Use divIcon with a wrapper div - this allows us to scale the inner img without moving the marker
-    const iconUrl = `${import.meta.env.BASE_URL}icons/marker.svg`;
+    // Using PNG instead of SVG to avoid CORS issues with canvas/WebGL rendering in maps
+    const iconUrl = `${import.meta.env.BASE_URL}icons/marker.png`;
     
     return L.divIcon({
       className: 'map-marker-wrapper', // Class for the wrapper div

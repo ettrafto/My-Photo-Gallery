@@ -8,7 +8,8 @@ import './TripMap.css';
 function createMarkerIcon(size = [28, 35]) {
   const [width, height] = size;
   const iconAnchor = [width / 2, height]; // Center horizontally, anchor at bottom
-  const iconUrl = `${import.meta.env.BASE_URL}icons/marker.svg`;
+  // Using PNG instead of SVG to avoid CORS issues with canvas/WebGL rendering in maps
+  const iconUrl = `${import.meta.env.BASE_URL}icons/marker.png`;
   
   return L.divIcon({
     className: 'trip-map-marker-wrapper',
