@@ -481,17 +481,30 @@ export default function Globe() {
         return res.json();
       })
       .then(data => {
-        const albumsData = data.albums || [];
-        // Filter to ensure we only have albums with valid lat/lng
-        const validAlbums = albumsData.filter(album => 
-          album && 
-          typeof album.lat === 'number' && 
-          typeof album.lng === 'number' &&
-          !isNaN(album.lat) && 
-          !isNaN(album.lng)
-        );
+        // map.json contains { photos: [...] } not { albums: [...] }
+        // Each photo has: albumSlug, albumTitle, lat, lng, etc.
+        const photosData = data.photos || [];
+        
+        // Convert photos to marker format and filter to ensure we only have valid lat/lng
+        const validAlbums = photosData
+          .filter(photo => 
+            photo && 
+            typeof photo.lat === 'number' && 
+            typeof photo.lng === 'number' &&
+            !isNaN(photo.lat) && 
+            !isNaN(photo.lng)
+          )
+          .map(photo => ({
+            albumSlug: photo.albumSlug || `${photo.lat}-${photo.lng}`,
+            lat: photo.lat,
+            lng: photo.lng,
+            // Include other properties that might be useful
+            albumTitle: photo.albumTitle,
+            path: photo.path
+          }));
+          
         if (validAlbums.length > 0) {
-          console.log(`🌍 Globe: Loaded ${validAlbums.length} album marker(s) from map.json`);
+          console.log(`🌍 Globe: Loaded ${validAlbums.length} marker(s) from map.json`);
         }
         setAlbums(validAlbums);
       })
@@ -628,30 +641,38 @@ export default function Globe() {
 
   // Ensure markers are updated when albums change (separate from globe initialization)
   useEffect(() => {
-    // Only update markers if globe is already initialized
-    if (!worldData || !projectionRef.current) {
-      return;
+    // Wait for both worldData and container to be ready
+    if (!worldData) {
+      return; // World data not loaded yet, will be handled by main init effect
     }
     
-    // Ensure markers group exists - if not, we need to reinitialize
-    if (!markersGroupRef.current) {
-      // If markers group doesn't exist, we need to reinitialize the globe
+    // If globe isn't initialized yet, wait for it
+    if (!projectionRef.current || !markersGroupRef.current) {
+      // If container exists but globe isn't initialized, initialize it now
       if (containerRef.current && svgRef.current) {
-        initGlobe();
-        // Wait for next frame to ensure initGlobe completes before rendering
-        requestAnimationFrame(() => {
-          render();
-        });
+        const container = containerRef.current;
+        const width = container.clientWidth || container.offsetWidth || 0;
+        const height = container.clientHeight || container.offsetHeight || 0;
+        
+        if (width > 0 && height > 0) {
+          initGlobe();
+          // Ensure render is called after init to position markers
+          requestAnimationFrame(() => {
+            render();
+          });
+        }
       }
       return;
     }
     
-    // Force marker update by calling render
-    // This ensures markers are created/updated when albums load
+    // Globe is initialized - ensure markers are created and rendered
+    // This handles the case where albums load after initial globe setup
     requestAnimationFrame(() => {
+      // Force a complete marker update by re-running render
+      // Render will use D3 data join to create/update/remove markers as needed
       render();
     });
-  }, [albums]); // Only depend on albums, not worldData
+  }, [albums, worldData]); // Depend on both albums and worldData
 
   // Auto-spin animation
   useEffect(() => {
