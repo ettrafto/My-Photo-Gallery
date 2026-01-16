@@ -3,6 +3,7 @@ import { useSEO } from '../hooks/useSEO';
 import AboutCameraFocus from '../components/AboutCameraFocus';
 import AboutSocialLinks from '../components/AboutSocialLinks';
 import { loadSiteConfig, getAboutCameraConfig } from '../lib/siteConfig';
+import ErrorBoundary from '../components/ErrorBoundary';
 import './Page.css';
 import './About.css';
 
@@ -51,25 +52,51 @@ function AccordionSection({ id, label, title, description, children, isOpen, onT
 }
 
 export default function About() {
+  console.log('[About] 🟢 Component rendering');
+  
+  const [openSections, setOpenSections] = useState({});
+  const [cameraConfig, setCameraConfig] = useState(null);
+  const [error, setError] = useState(null);
+  const [debugInfo, setDebugInfo] = useState({});
+
+  // Call useSEO - this must be called unconditionally
   useSEO({ 
     pageTitle: "About",
     description: "Learn about the photographer, the site, and how this photo archive was built."
   });
 
-  const [openSections, setOpenSections] = useState({});
-  const [cameraConfig, setCameraConfig] = useState(null);
-  const [error, setError] = useState(null);
-
   useEffect(() => {
+    console.log('[About] 🟡 useEffect running');
     async function loadConfig() {
       try {
-        await loadSiteConfig();
-        const config = getAboutCameraConfig();
-        setCameraConfig(config);
+        console.log('[About] 📥 Loading site config...');
+        console.log('[About] 📥 BASE_URL:', import.meta.env.BASE_URL);
+        
+        const config = await loadSiteConfig();
+        console.log('[About] ✅ Site config loaded:', config ? 'success' : 'null');
+        
+        const aboutConfig = getAboutCameraConfig();
+        console.log('[About] 📷 About camera config:', aboutConfig);
+        console.log('[About] 📷 Has imageSrc:', !!aboutConfig?.imageSrc);
+        
+        setCameraConfig(aboutConfig);
+        setDebugInfo({
+          configLoaded: true,
+          hasCameraConfig: !!aboutConfig,
+          hasImageSrc: !!aboutConfig?.imageSrc,
+          baseUrl: import.meta.env.BASE_URL,
+          timestamp: new Date().toISOString()
+        });
       } catch (err) {
-        console.error('Failed to load about config:', err);
+        console.error('[About] ❌ Failed to load about config:', err);
+        console.error('[About] ❌ Error stack:', err.stack);
         setError(err.message);
-        // Continue rendering even if config fails to load
+        setDebugInfo({
+          configLoaded: false,
+          error: err.message,
+          stack: err.stack,
+          timestamp: new Date().toISOString()
+        });
       }
     }
     loadConfig();
@@ -82,18 +109,54 @@ export default function About() {
     }));
   };
 
+  console.log('[About] 🟦 Render state:', { 
+    hasCameraConfig: !!cameraConfig, 
+    hasImageSrc: !!cameraConfig?.imageSrc,
+    error: error || 'none'
+  });
+
   return (
     <main className="page-shell">
-      {cameraConfig && cameraConfig.imageSrc && (
-        <AboutCameraFocus
-          imageSrc={cameraConfig.imageSrc}
-          title={cameraConfig.title}
-          subtitle={cameraConfig.subtitle}
-          body={cameraConfig.body}
-        />
+      {/* Debug info panel - shows in dev mode */}
+      {import.meta.env.DEV && Object.keys(debugInfo).length > 0 && (
+        <div style={{ 
+          padding: '1rem', 
+          background: '#f0f0f0', 
+          margin: '1rem',
+          fontSize: '12px',
+          fontFamily: 'monospace',
+          border: '1px solid #ccc'
+        }}>
+          <strong>🐛 Debug Info:</strong>
+          <pre style={{ margin: '0.5rem 0', whiteSpace: 'pre-wrap' }}>
+            {JSON.stringify(debugInfo, null, 2)}
+          </pre>
+          {error && (
+            <div style={{ color: 'red', marginTop: '0.5rem' }}>
+              <strong>Error:</strong> {error}
+            </div>
+          )}
+        </div>
       )}
 
-      <AboutSocialLinks />
+      <ErrorBoundary>
+        {cameraConfig && cameraConfig.imageSrc ? (
+          <AboutCameraFocus
+            imageSrc={cameraConfig.imageSrc}
+            title={cameraConfig.title}
+            subtitle={cameraConfig.subtitle}
+            body={cameraConfig.body}
+          />
+        ) : (
+          <div style={{ padding: '1rem', fontStyle: 'italic', color: '#666' }}>
+            {import.meta.env.DEV && 'Camera config not loaded yet...'}
+          </div>
+        )}
+      </ErrorBoundary>
+
+      <ErrorBoundary>
+        <AboutSocialLinks />
+      </ErrorBoundary>
 
       <section className="about-section-header">
         <p className="page-label">how I built this</p>

@@ -28,7 +28,20 @@ export default function AboutCameraFocus({
   body,
   className = ''
 }) {
+  console.log('[AboutCameraFocus] 🟢 Rendering with:', { 
+    hasImageSrc: !!imageSrc, 
+    imageSrc: imageSrc ? (imageSrc.length > 50 ? imageSrc.substring(0, 50) + '...' : imageSrc) : null,
+    hasTitle: !!title 
+  });
+
+  // Early return if imageSrc is missing - prevents crash on refresh when config isn't loaded yet
+  if (!imageSrc) {
+    console.log('[AboutCameraFocus] ⚠️ Early return - no imageSrc');
+    return null;
+  }
+
   const containerRef = useRef(null);
+  console.log('[AboutCameraFocus] 🔧 Refs initialized');
   const time = useMotionValue(0);
   const windowScrollY = useMotionValue(0); // Track window scroll position
   
@@ -65,11 +78,13 @@ export default function AboutCameraFocus({
   }, [initialBlur]);
   
   // Scroll progress: 0 at start, 1 at end of component viewport
+  console.log('[AboutCameraFocus] 🔧 Setting up useScroll...');
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ['start end', 'end start'],
     layoutEffect: false // Prevent SSR/hydration issues
   });
+  console.log('[AboutCameraFocus] ✅ useScroll initialized');
   
 
   // Track scroll velocity for pulse effect
