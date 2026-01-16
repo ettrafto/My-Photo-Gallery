@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { loadSiteConfig, getThemeName } from './lib/siteConfig';
 import { useSEO } from './hooks/useSEO';
@@ -26,14 +26,30 @@ function App() {
   // Load config and theme on mount
   useEffect(() => {
     async function initConfig() {
-      await loadSiteConfig();
-      setThemeName(getThemeName());
+      try {
+        await loadSiteConfig();
+        setThemeName(getThemeName());
+      } catch (err) {
+        console.error('Failed to load site config:', err);
+        // Continue with fallback theme
+      }
     }
     initConfig();
   }, []);
 
-  // Get base URL for Router basename (normalize to ensure it starts with / and doesn't end with /)
-  const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/';
+  // Get base URL for Router basename
+  // Vite sets BASE_URL to '/' by default in production
+  // For React Router: only set basename if we have a non-root base path
+  // For root deployments (BASE_URL === '/'), basename should be undefined
+  const baseUrl = useMemo(() => {
+    const envBase = import.meta.env.BASE_URL;
+    // If BASE_URL is undefined, null, empty, or '/', don't set basename (root deployment)
+    if (!envBase || envBase === '' || envBase === '/') {
+      return undefined; // Root deployment - no basename needed
+    }
+    // For subdirectory deployments, remove trailing slash
+    return envBase.endsWith('/') ? envBase.slice(0, -1) : envBase;
+  }, []);
 
   return (
     <Router basename={baseUrl}>

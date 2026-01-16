@@ -58,12 +58,19 @@ export default function About() {
 
   const [openSections, setOpenSections] = useState({});
   const [cameraConfig, setCameraConfig] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function loadConfig() {
-      await loadSiteConfig();
-      const config = getAboutCameraConfig();
-      setCameraConfig(config);
+      try {
+        await loadSiteConfig();
+        const config = getAboutCameraConfig();
+        setCameraConfig(config);
+      } catch (err) {
+        console.error('Failed to load about config:', err);
+        setError(err.message);
+        // Continue rendering even if config fails to load
+      }
     }
     loadConfig();
   }, []);
