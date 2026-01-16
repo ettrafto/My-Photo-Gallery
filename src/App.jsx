@@ -32,8 +32,11 @@ function App() {
     initConfig();
   }, []);
 
+  // Get base URL for Router basename (normalize to ensure it starts with / and doesn't end with /)
+  const baseUrl = (import.meta.env.BASE_URL || '/').replace(/\/$/, '') || '/';
+
   return (
-    <Router>
+    <Router basename={baseUrl}>
       <SEOWrapper>
         <div className={`app-shell theme-${themeName}`}>
           <NavBar />
