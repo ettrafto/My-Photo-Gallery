@@ -84,7 +84,7 @@ export default function About() {
 
   return (
     <main className="page-shell">
-      {cameraConfig && (
+      {cameraConfig && cameraConfig.imageSrc && (
         <AboutCameraFocus
           imageSrc={cameraConfig.imageSrc}
           title={cameraConfig.title}

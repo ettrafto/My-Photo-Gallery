@@ -153,8 +153,13 @@ export default function AboutCameraFocus({
   // Use useMotionTemplate for filter style
   const filter = useMotionTemplate`blur(${finalBlur}px)`;
 
+  // Early return if imageSrc is missing - prevents crash on refresh when config isn't loaded yet
+  if (!imageSrc) {
+    return null;
+  }
+
   // Normalize image path
-  const normalizedImageSrc = imageSrc?.startsWith('/') 
+  const normalizedImageSrc = imageSrc.startsWith('/') 
     ? imageSrc 
     : `/${imageSrc}`;
   const baseUrl = (import.meta.env.BASE_URL || '').replace(/\/$/, '');
