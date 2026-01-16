@@ -588,7 +588,10 @@ export default function Globe() {
       const timeoutId = setTimeout(() => {
         if (containerRef.current && svgRef.current && worldData) {
           initGlobe();
-          render();
+          // Ensure render is called after init to show markers
+          requestAnimationFrame(() => {
+            render();
+          });
         }
       }, 100);
       return () => clearTimeout(timeoutId);
@@ -596,10 +599,13 @@ export default function Globe() {
     
     initGlobe();
     // Always call render after initGlobe to ensure markers are positioned
-    // Use double RAF to ensure DOM is fully ready and markers are created
+    // Use multiple RAF frames to ensure DOM is fully ready and markers are created
+    // This is critical - markers won't appear without this render call
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         render();
+        // If albums haven't loaded yet, render will be called again when they do
+        // But we ensure at least one render happens after globe initialization
       });
     });
 
@@ -680,14 +686,26 @@ export default function Globe() {
     
     // Globe is initialized - ensure markers are created and rendered
     // This handles the case where albums load after initial globe setup
-    // Use double RAF to ensure DOM updates are complete
-    requestAnimationFrame(() => {
+    // CRITICAL: Must call render() to show markers - they start hidden (opacity: 0) from initGlobe()
+    // Without this render() call, markers won't appear until user interaction (which calls render())
+    // This is the key fix - ensure render() is ALWAYS called when albums load
+    if (albums && albums.length > 0) {
+      // Use multiple RAF frames to ensure DOM is fully ready and markers are created
+      // Then call render() to position and show markers immediately
+      // This ensures markers appear on first load without requiring user interaction
       requestAnimationFrame(() => {
-        // Force a complete marker update by re-running render
-        // Render will use D3 data join to create/update/remove markers as needed
-        render();
+        requestAnimationFrame(() => {
+          render();
+          // Call render() a second time after a brief delay to ensure markers are visible
+          // This handles any edge cases where the first render doesn't show markers
+          setTimeout(() => {
+            if (projectionRef.current && markersGroupRef.current) {
+              render();
+            }
+          }, 100);
+        });
       });
-    });
+    }
   }, [albums, worldData]); // Depend on both albums and worldData
 
   // Auto-spin animation
