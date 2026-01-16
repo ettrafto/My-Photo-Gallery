@@ -69,7 +69,6 @@ export function useSEO({
         defaultOGImage = getDefaultOGImage();
       } catch (err) {
         // Config might not be loaded yet on direct page refresh
-        console.warn('Could not get default OG image:', err);
         defaultOGImage = null;
       }
     }
