@@ -8,15 +8,15 @@
  *   npm run process:about -- --force  # Reprocess all images
  *
  * What it does:
- *   1) Reads originals from photo-source/originals/config/about/
- *   2) Generates WebP variants to public/about/:
+ *   1) Reads originals from photo-source/originals/config/about-camera/
+ *   2) Generates WebP variants to public/about-camera/:
  *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
  *   3) Builds/updates content/site/about.json with:
  *        - Processed image paths in images array
  *        - Preserves alt text and captions from metadata or EXIF
  *
  * Notes:
- *   - Processes all images found in photo-source/originals/config/about/
+ *   - Processes all images found in photo-source/originals/config/about-camera/
  *   - Automatically updates about.json with processed paths
  *   - Preserves existing alt text and captions
  *   - Metadata can be configured via _about.json metadata file
@@ -36,11 +36,11 @@ const __dirname = path.dirname(__filename);
 const ROOT = path.resolve(__dirname, '..');
 
 const CONFIG = {
-  INPUT_DIR: 'photo-source/originals/config/about',
-  OUTPUT_DIR: 'public/about',
+  INPUT_DIR: 'photo-source/originals/config/about-camera',
+  OUTPUT_DIR: 'public/about-camera',
   CONTENT_DIR: 'content',
   ABOUT_CONFIG: 'content/site/about.json',
-  METADATA_FILE: 'photo-source/originals/config/about/_about.json',
+  METADATA_FILE: 'photo-source/originals/config/about-camera/_about.json',
   SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
     large: { maxSize: 1800, quality: 80, suffix: '-large' },
@@ -254,7 +254,7 @@ async function processAboutImage(imageFile, index, metadata, force = false) {
     const caption = metadataItem?.caption || formatExifCaption(exif) || null;
 
     return {
-      src: `/about/${baseName}-large.webp`,
+      src: `/about-camera/${baseName}-large.webp`,
       alt: altText,
       caption: caption
     };
@@ -398,7 +398,7 @@ async function main() {
 
   if (!existsSync(inputDir)) {
     console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
-    console.error('   Please create photo-source/originals/config/about/ and add your images');
+    console.error('   Please create photo-source/originals/config/about-camera/ and add your images');
     process.exit(1);
   }
 
@@ -411,7 +411,7 @@ async function main() {
   }).sort();
 
   if (imageFiles.length === 0) {
-    console.error('❌ No images found in photo-source/originals/config/about/');
+    console.error('❌ No images found in photo-source/originals/config/about-camera/');
     console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
     process.exit(1);
   }
