@@ -56,3 +56,6 @@ photo-source/
 !public/icons/marker.png
 !public/favicon.ico
 public/images/**
+
+# Explicitly ensure nginx config is tracked
+!nginx-default.conf

@@ -1,0 +1,8 @@
+# Netlify redirects file
+# This ensures SPA routes work even when directories exist
+/about  /index.html  200
+/albums  /index.html  200
+/trips  /index.html  200
+/map  /index.html  200
+/album/*  /index.html  200
+/trips/*  /index.html  200
