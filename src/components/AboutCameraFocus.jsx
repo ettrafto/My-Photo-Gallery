@@ -67,7 +67,8 @@ export default function AboutCameraFocus({
   // Scroll progress: 0 at start, 1 at end of component viewport
   const { scrollYProgress } = useScroll({
     target: containerRef,
-    offset: ['start end', 'end start']
+    offset: ['start end', 'end start'],
+    layoutEffect: false // Prevent SSR/hydration issues
   });
   
 

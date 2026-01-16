@@ -62,7 +62,17 @@ export function useSEO({
     setMetaTag('robots', robots || seo.robots);
 
     // Determine OG image (page-specific > config > default hero image)
-    const defaultOGImage = ogImage || seo.ogImage || getDefaultOGImage();
+    // Safely get default OG image - may return null if config not loaded yet
+    let defaultOGImage = ogImage || seo.ogImage;
+    if (!defaultOGImage) {
+      try {
+        defaultOGImage = getDefaultOGImage();
+      } catch (err) {
+        // Config might not be loaded yet on direct page refresh
+        console.warn('Could not get default OG image:', err);
+        defaultOGImage = null;
+      }
+    }
     
     // Make OG image absolute URL if siteUrl is configured and image is relative
     let ogImageUrl = defaultOGImage;
