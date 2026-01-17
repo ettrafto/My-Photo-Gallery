@@ -599,6 +599,11 @@ export default function Globe() {
     
     // Always call render to ensure markers are positioned and visible
     // This handles both initial setup and when albums load after worldData
+    // CRITICAL: Ensure projection rotation is synchronized before rendering
+    // On soft refresh, rotationRef.current is reset to [0,0,0], so we must update projection
+    if (projectionRef.current) {
+      projectionRef.current.rotate(rotationRef.current);
+    }
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         render();
@@ -686,6 +691,9 @@ export default function Globe() {
     // render() uses D3 data join to create markers if they don't exist, so it will work even if
     // initGlobe() was called with empty albums
     if (albums && albums.length > 0 && projectionRef.current && markersGroupRef.current) {
+      // CRITICAL: Ensure projection rotation is synchronized before rendering markers
+      // On soft refresh, rotationRef.current may be reset, so we must update projection
+      projectionRef.current.rotate(rotationRef.current);
       // Use double RAF to ensure DOM is fully ready, then render markers
       // Auto-spin will handle subsequent renders as it rotates the globe
       requestAnimationFrame(() => {
