@@ -288,11 +288,6 @@ export default function Globe() {
         .attr('r', 4);
       
       // Merge enter and update selections, then update all markers
-      const totalMarkers = markerSelection.merge(newMarkers).size();
-      if (totalMarkers > 0 && albums && albums.length > 0) {
-        console.log(`🌍 Globe: Rendering ${totalMarkers} marker(s) from ${albums.length} album(s)`);
-      }
-      
       markerSelection.merge(newMarkers).each(function(d) {
         if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') {
           hideMarker(select(this));
@@ -325,16 +320,6 @@ export default function Globe() {
           .style('display', 'block')
           .style('pointer-events', 'auto');
       });
-      
-      // Log how many markers are actually visible after rendering
-      const visibleCount = markersGroupRef.current
-        ? markersGroupRef.current.selectAll('circle.globe-marker').filter(function() {
-            return select(this).style('opacity') !== '0' && select(this).style('display') !== 'none';
-          }).size()
-        : 0;
-      if (totalMarkers > 0) {
-        console.log(`🌍 Globe: ${visibleCount} marker(s) visible after render`);
-      }
     }
     
     // Update sphere outline - explicitly call path generator with sphere datum
@@ -633,7 +618,7 @@ export default function Globe() {
       }
       isRightingRef.current = false;
     };
-  }, [worldData, albums]);
+  }, [worldData]); // Only depend on worldData - albums handled by separate effect
 
   // Handle resize
   useEffect(() => {
@@ -687,23 +672,12 @@ export default function Globe() {
     // Globe is initialized - ensure markers are created and rendered
     // This handles the case where albums load after initial globe setup
     // CRITICAL: Must call render() to show markers - they start hidden (opacity: 0) from initGlobe()
-    // Without this render() call, markers won't appear until user interaction (which calls render())
-    // This is the key fix - ensure render() is ALWAYS called when albums load
-    if (albums && albums.length > 0) {
-      // Use multiple RAF frames to ensure DOM is fully ready and markers are created
-      // Then call render() to position and show markers immediately
-      // This ensures markers appear on first load without requiring user interaction
+    // Only call render() ONCE when albums load to avoid conflicting with auto-spin
+    if (albums && albums.length > 0 && projectionRef.current && markersGroupRef.current) {
+      // Use RAF to ensure DOM is ready, then render markers once
+      // Auto-spin will handle subsequent renders as it rotates the globe
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          render();
-          // Call render() a second time after a brief delay to ensure markers are visible
-          // This handles any edge cases where the first render doesn't show markers
-          setTimeout(() => {
-            if (projectionRef.current && markersGroupRef.current) {
-              render();
-            }
-          }, 100);
-        });
+        render();
       });
     }
   }, [albums, worldData]); // Depend on both albums and worldData
