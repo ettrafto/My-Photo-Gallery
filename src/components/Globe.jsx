@@ -515,12 +515,6 @@ export default function Globe() {
           !isNaN(album.lng)
         );
           
-        if (validAlbums.length > 0) {
-          console.log(`🌍 Globe: Loaded ${validAlbums.length} album marker(s) from map.json`);
-          console.log(`🌍 Globe: Sample marker:`, validAlbums[0]);
-        } else {
-          console.warn(`🌍 Globe: No valid albums found in map.json. Raw data:`, albumsData.slice(0, 2));
-        }
         setAlbums(validAlbums);
       })
       .catch(err => {

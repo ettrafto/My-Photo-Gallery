@@ -52,19 +52,23 @@ export default function Hero({
       setSubheadline(config.hero.subheadline || '');
       setLayout(config.hero.layout || 'default');
       
-      // Load hero images from JSON (fallback to defaults if none configured)
+      // Load hero images from JSON - only use configured images, don't fallback to defaultImages
+      // defaultImages may not exist, causing 404 errors in production
       const items = getHeroImages();
-      setHeroImages(items.length > 0 ? items : images);
+      setHeroImages(items); // Only use configured images, not default fallbacks
     }
     fetchConfig();
   }, []);
 
   useEffect(() => {
-    const imageCount = (heroImages?.length || images.length);
-    if (loadedCount >= imageCount) {
+    const imageCount = heroImages?.length || 0;
+    if (imageCount > 0 && loadedCount >= imageCount) {
+      setShowSkeleton(false);
+    } else if (imageCount === 0) {
+      // No hero images configured - hide skeleton immediately
       setShowSkeleton(false);
     }
-  }, [loadedCount, images.length, heroImages.length]);
+  }, [loadedCount, heroImages.length]);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowSkeleton(false), 1200);
@@ -94,8 +98,10 @@ export default function Hero({
         </motion.div>
 
         {/* Right Image Cluster - Layout: {layout} */}
+        {/* Only render images if hero images are configured - don't use defaultImages */}
+        {heroImages.length > 0 && (
         <div className={`hero-images hero-layout-${layout}`}>
-          {(heroImages.length > 0 ? heroImages : images).map((item, index) => {
+          {heroImages.map((item, index) => {
             const rawSrc = item.src || '';
             const prefersOriginal = !!variantFallback[index];
 
@@ -184,6 +190,7 @@ export default function Hero({
             );
           })}
         </div>
+        )}
       </div>
 
       {showSkeleton && (
