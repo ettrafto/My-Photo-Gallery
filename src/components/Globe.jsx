@@ -252,7 +252,9 @@ export default function Globe() {
   const render = () => {
     if (!projectionRef.current || !pathRef.current) return;
 
-    // Update projection rotation
+    // CRITICAL: Update projection rotation FIRST - this must happen before any marker operations
+    // This ensures all subsequent visibility checks and positioning use the current rotation
+    // Without this, markers will appear in wrong positions and won't rotate with the globe
     projectionRef.current.rotate(rotationRef.current);
 
     // Update graticule path - explicitly call path generator with graticule data
@@ -271,6 +273,7 @@ export default function Globe() {
     }
     
     // Update markers - ensure markers exist and are properly bound to data
+    // CRITICAL: This must run every frame to update marker positions during rotation
     if (markersGroupRef.current && albums && albums.length > 0) {
       // Use proper D3 data join to ensure all markers exist
       const markerSelection = markersGroupRef.current
@@ -287,7 +290,8 @@ export default function Globe() {
         .attr('class', 'globe-marker')
         .attr('r', 4);
       
-      // Merge enter and update selections, then update all markers
+      // Merge enter and update selections, then update ALL markers (both new and existing)
+      // This ensures markers update their positions every frame as the globe rotates
       markerSelection.merge(newMarkers).each(function(d) {
         if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') {
           hideMarker(select(this));
@@ -298,15 +302,17 @@ export default function Globe() {
         const isTest = marker.classed('globe-marker-test');
         
         // Primary check: Use our custom visibility calculation
-        // This accurately determines if point is on front hemisphere
+        // This accurately determines if point is on front hemisphere based on CURRENT rotation
+        // NOTE: isPointVisible uses rotationRef.current which should match projection rotation (updated at start of render)
         const isVisible = isPointVisible(d.lat, d.lng, isTest);
         if (!isVisible) {
           hideMarker(marker);
           return;
         }
         
-        // Secondary check: Get projected coordinates
+        // Secondary check: Get projected coordinates using the CURRENT projection rotation
         // If projection fails, definitely hide (though this should match our check)
+        // NOTE: projection rotation was updated at start of render(), so this uses current rotation
         const coords = projectionRef.current([d.lng, d.lat]);
         if (!coords) {
           hideMarker(marker);
