@@ -271,11 +271,11 @@ export default function Globe() {
     }
     
     // Update markers - ensure markers exist and are properly bound to data
-    if (markersGroupRef.current) {
+    if (markersGroupRef.current && albums && albums.length > 0) {
       // Use proper D3 data join to ensure all markers exist
       const markerSelection = markersGroupRef.current
         .selectAll('circle.globe-marker')
-        .data(albums || [], d => d.albumSlug || `${d.lat}-${d.lng}`);
+        .data(albums, d => d.albumSlug || `${d.lat}-${d.lng}`);
       
       // Remove markers that are no longer in data
       markerSelection.exit().remove();
@@ -572,8 +572,11 @@ export default function Globe() {
       // Retry after a short delay
       const timeoutId = setTimeout(() => {
         if (containerRef.current && svgRef.current && worldData) {
-          initGlobe();
-          // Ensure render is called after init to show markers
+          // Only init if not already initialized
+          if (!projectionRef.current) {
+            initGlobe();
+          }
+          // Ensure render is called to show markers
           requestAnimationFrame(() => {
             render();
           });
@@ -582,15 +585,17 @@ export default function Globe() {
       return () => clearTimeout(timeoutId);
     }
     
-    initGlobe();
-    // Always call render after initGlobe to ensure markers are positioned
-    // Use multiple RAF frames to ensure DOM is fully ready and markers are created
-    // This is critical - markers won't appear without this render call
+    // Only initialize globe if not already initialized
+    // This prevents clearing/recreating everything when albums load
+    if (!projectionRef.current || !markersGroupRef.current) {
+      initGlobe();
+    }
+    
+    // Always call render to ensure markers are positioned and visible
+    // This handles both initial setup and when albums load after worldData
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         render();
-        // If albums haven't loaded yet, render will be called again when they do
-        // But we ensure at least one render happens after globe initialization
       });
     });
 
@@ -618,7 +623,7 @@ export default function Globe() {
       }
       isRightingRef.current = false;
     };
-  }, [worldData]); // Only depend on worldData - albums handled by separate effect
+  }, [worldData, albums]); // Depend on both - ensure markers are created when albums load
 
   // Handle resize
   useEffect(() => {
@@ -672,12 +677,15 @@ export default function Globe() {
     // Globe is initialized - ensure markers are created and rendered
     // This handles the case where albums load after initial globe setup
     // CRITICAL: Must call render() to show markers - they start hidden (opacity: 0) from initGlobe()
-    // Only call render() ONCE when albums load to avoid conflicting with auto-spin
+    // render() uses D3 data join to create markers if they don't exist, so it will work even if
+    // initGlobe() was called with empty albums
     if (albums && albums.length > 0 && projectionRef.current && markersGroupRef.current) {
-      // Use RAF to ensure DOM is ready, then render markers once
+      // Use double RAF to ensure DOM is fully ready, then render markers
       // Auto-spin will handle subsequent renders as it rotates the globe
       requestAnimationFrame(() => {
-        render();
+        requestAnimationFrame(() => {
+          render();
+        });
       });
     }
   }, [albums, worldData]); // Depend on both albums and worldData
