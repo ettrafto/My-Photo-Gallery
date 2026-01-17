@@ -96,7 +96,7 @@ export default function About() {
       <AboutSocialLinks />
 
       <section className="about-section-header">
-        <p className="page-label">how I built this</p>
+        <h1 className="page-title">how I built this</h1>
       </section>
 
       <AccordionSection
