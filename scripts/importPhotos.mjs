@@ -573,6 +573,72 @@ async function processAlbum({ albumName, options, albumLocations }) {
 
 async function writeAlbumsIndex(contentDir, albumsList) {
   const indexPath = path.join(contentDir, 'albums.json');
+  
+  // Load existing albums.json to preserve manually entered covers, geo data, and favorites
+  let existingAlbums = new Map(); // Map<slug, { cover?, coverAspectRatio?, primaryLocation?, isFavorite? }>
+  if (existsSync(indexPath)) {
+    try {
+      const existingData = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+      if (existingData.albums && Array.isArray(existingData.albums)) {
+        existingData.albums.forEach(album => {
+          const preserved = {};
+          let hasPreservedData = false;
+          
+          // Preserve manual cover and coverAspectRatio if they exist
+          if (album.cover && typeof album.cover === 'string' && album.cover.trim() !== '') {
+            preserved.cover = album.cover;
+            hasPreservedData = true;
+            // Also preserve coverAspectRatio if it exists
+            if (typeof album.coverAspectRatio === 'number' && !isNaN(album.coverAspectRatio)) {
+              preserved.coverAspectRatio = album.coverAspectRatio;
+            }
+          }
+          
+          // Preserve geo data if valid coordinates exist (manual input)
+          if (album.primaryLocation && 
+              typeof album.primaryLocation.lat === 'number' && 
+              typeof album.primaryLocation.lng === 'number' &&
+              !isNaN(album.primaryLocation.lat) &&
+              !isNaN(album.primaryLocation.lng)) {
+            preserved.primaryLocation = album.primaryLocation;
+            hasPreservedData = true;
+          }
+          
+          // Preserve isFavorite if it's explicitly set (true or false)
+          if (typeof album.isFavorite === 'boolean') {
+            preserved.isFavorite = album.isFavorite;
+            hasPreservedData = true;
+          }
+          
+          if (hasPreservedData) {
+            existingAlbums.set(album.slug, preserved);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(`  ⚠ Could not read existing albums.json:`, err.message);
+    }
+  }
+  
+  // Preserve manual covers and other manual data from existing albums.json
+  for (const album of albumsList) {
+    const existingData = existingAlbums.get(album.slug);
+    if (existingData) {
+      if (existingData.cover) {
+        album.cover = existingData.cover;
+        if (existingData.coverAspectRatio) {
+          album.coverAspectRatio = existingData.coverAspectRatio;
+        }
+      }
+      if (existingData.primaryLocation) {
+        album.primaryLocation = existingData.primaryLocation;
+      }
+      if (existingData.isFavorite !== undefined) {
+        album.isFavorite = existingData.isFavorite;
+      }
+    }
+  }
+  
   await ensureDir(path.dirname(indexPath));
   await fsp.writeFile(indexPath, JSON.stringify({ albums: albumsList }, null, 2));
   console.log(`\n✅ Generated albums.json (${albumsList.length} album(s))`);

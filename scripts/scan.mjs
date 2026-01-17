@@ -338,6 +338,58 @@ async function scan() {
   // Ensure content directory exists
   fs.mkdirSync(CONTENT_DIR, { recursive: true });
 
+  // Load existing albums.json to preserve manually entered covers, geo data, and favorites
+  const indexPath = path.join(CONTENT_DIR, 'albums.json');
+  let existingAlbums = new Map(); // Map<slug, { cover?, coverAspectRatio?, primaryLocation?, isFavorite? }>
+  if (fs.existsSync(indexPath)) {
+    try {
+      const existingData = JSON.parse(fs.readFileSync(indexPath, 'utf-8'));
+      if (existingData.albums && Array.isArray(existingData.albums)) {
+        existingData.albums.forEach(album => {
+          const preserved = {};
+          let hasPreservedData = false;
+          
+          // Preserve manual cover and coverAspectRatio if they exist
+          if (album.cover && typeof album.cover === 'string' && album.cover.trim() !== '') {
+            preserved.cover = album.cover;
+            hasPreservedData = true;
+            // Also preserve coverAspectRatio if it exists
+            if (typeof album.coverAspectRatio === 'number' && !isNaN(album.coverAspectRatio)) {
+              preserved.coverAspectRatio = album.coverAspectRatio;
+            }
+          }
+          
+          // Preserve geo data if valid coordinates exist (manual input)
+          if (album.primaryLocation && 
+              typeof album.primaryLocation.lat === 'number' && 
+              typeof album.primaryLocation.lng === 'number' &&
+              !isNaN(album.primaryLocation.lat) &&
+              !isNaN(album.primaryLocation.lng)) {
+            preserved.primaryLocation = album.primaryLocation;
+            hasPreservedData = true;
+          }
+          
+          // Preserve isFavorite if it's explicitly set (true or false)
+          if (typeof album.isFavorite === 'boolean') {
+            preserved.isFavorite = album.isFavorite;
+            hasPreservedData = true;
+          }
+          
+          if (hasPreservedData) {
+            existingAlbums.set(album.slug, preserved);
+            const preservedItems = [];
+            if (preserved.cover) preservedItems.push('cover');
+            if (preserved.primaryLocation) preservedItems.push('geo data');
+            if (preserved.isFavorite !== undefined) preservedItems.push('favorite status');
+            console.log(`  💾 Will preserve ${preservedItems.join(' and ')} for: ${album.slug}`);
+          }
+        });
+      }
+    } catch (err) {
+      console.warn(`  ⚠ Could not read existing albums.json:`, err.message);
+    }
+  }
+
   // Get all album folders
   const albumFolders = getDirectories(IMAGES_DIR);
   
@@ -361,6 +413,22 @@ async function scan() {
   for (const albumName of albumFolders) {
     const albumSummary = await processAlbum(albumName);
     if (albumSummary) {
+      // Preserve manual cover and other manual data from existing albums.json
+      const existingData = existingAlbums.get(albumSummary.slug);
+      if (existingData) {
+        if (existingData.cover) {
+          albumSummary.cover = existingData.cover;
+          if (existingData.coverAspectRatio) {
+            albumSummary.coverAspectRatio = existingData.coverAspectRatio;
+          }
+        }
+        if (existingData.primaryLocation) {
+          albumSummary.primaryLocation = existingData.primaryLocation;
+        }
+        if (existingData.isFavorite !== undefined) {
+          albumSummary.isFavorite = existingData.isFavorite;
+        }
+      }
       albumsList.push(albumSummary);
     }
   }
@@ -376,7 +444,6 @@ async function scan() {
   });
 
   // Write master albums index
-  const indexPath = path.join(CONTENT_DIR, 'albums.json');
   fs.writeFileSync(indexPath, JSON.stringify({ albums: albumsList }, null, 2));
 
   console.log(`\n✅ Generated albums.json with ${albumsList.length} album(s)`);

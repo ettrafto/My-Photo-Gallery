@@ -2,9 +2,9 @@
 
 /**
  * Rebuild albums.json and map.json from individual album JSON files
- * Preserves manually entered geo data and isFavorite status from albums.json - any primaryLocation
- * with valid coordinates and isFavorite values in the existing albums.json will be kept and not
- * overwritten by data from individual album files.
+ * Preserves manually entered geo data, isFavorite status, and covers from albums.json - any
+ * primaryLocation with valid coordinates, isFavorite values, and cover/coverAspectRatio in the
+ * existing albums.json will be kept and not overwritten by data from individual album files.
  * Also syncs preserved isFavorite values back to individual album files so they stay in sync.
  * Generates map.json for the Globe component with all albums that have geo data.
  */
@@ -30,8 +30,8 @@ async function rebuildAlbumsIndex() {
     process.exit(1);
   }
 
-  // Load existing albums.json to preserve manually entered geo data and favorites
-  let existingAlbums = new Map(); // Map<slug, { primaryLocation?, isFavorite? }>
+  // Load existing albums.json to preserve manually entered geo data, favorites, and covers
+  let existingAlbums = new Map(); // Map<slug, { primaryLocation?, isFavorite?, cover?, coverAspectRatio? }>
   if (fs.existsSync(INDEX_PATH)) {
     try {
       const existingData = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf-8'));
@@ -56,11 +56,22 @@ async function rebuildAlbumsIndex() {
             hasPreservedData = true;
           }
           
+          // Preserve manual cover and coverAspectRatio if they exist
+          if (album.cover && typeof album.cover === 'string' && album.cover.trim() !== '') {
+            preserved.cover = album.cover;
+            hasPreservedData = true;
+            // Also preserve coverAspectRatio if it exists
+            if (typeof album.coverAspectRatio === 'number' && !isNaN(album.coverAspectRatio)) {
+              preserved.coverAspectRatio = album.coverAspectRatio;
+            }
+          }
+          
           if (hasPreservedData) {
             existingAlbums.set(album.slug, preserved);
             const preservedItems = [];
             if (preserved.primaryLocation) preservedItems.push('geo data');
             if (preserved.isFavorite !== undefined) preservedItems.push('favorite status');
+            if (preserved.cover) preservedItems.push('cover');
             console.log(`  💾 Preserving ${preservedItems.join(' and ')} for: ${album.slug}`);
           }
         });
@@ -154,6 +165,15 @@ async function rebuildAlbumsIndex() {
         isFavorite = albumData.isFavorite;
       }
       
+      // Use preserved manual cover from albums.json, or fall back to individual album file
+      if (existingData?.cover) {
+        cover = existingData.cover;
+        coverAspectRatio = existingData.coverAspectRatio || albumData.coverAspectRatio;
+      } else {
+        cover = albumData.cover;
+        coverAspectRatio = albumData.coverAspectRatio;
+      }
+      
       // Extract only the summary fields (exclude photos array)
       const albumSummary = {
         id: albumData.id,
@@ -164,8 +184,8 @@ async function rebuildAlbumsIndex() {
         date: albumData.date,
         startDate: albumData.startDate,
         endDate: albumData.endDate,
-        cover: albumData.cover,
-        coverAspectRatio: albumData.coverAspectRatio,
+        cover: cover,
+        coverAspectRatio: coverAspectRatio,
         count: albumData.count,
         isFavorite: isFavorite,
         primaryLocation: primaryLocation
@@ -210,6 +230,13 @@ async function rebuildAlbumsIndex() {
   }).length;
   if (favoritesPreserved > 0) {
     console.log(`   ${favoritesPreserved} with preserved favorite status from albums.json`);
+  }
+  const coversPreserved = albumsList.filter(a => {
+    const existing = existingAlbums.get(a.slug);
+    return existing?.cover !== undefined;
+  }).length;
+  if (coversPreserved > 0) {
+    console.log(`   ${coversPreserved} with preserved manual covers from albums.json`);
   }
   if (fromAlbumLocationsCount > 0) {
     console.log(`   ${fromAlbumLocationsCount} with coordinates from album-locations.json`);

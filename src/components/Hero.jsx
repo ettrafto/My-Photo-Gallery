@@ -122,8 +122,13 @@ export default function Hero({
             // Performance:
             // - Prefer webp variants when possible (after running process:hero)
             // - If variants 404, fall back to the original src
+            // - Only provide srcSmall if explicitly provided in item.srcSmall to avoid 404s
+            //   Browser will try to load srcSet images, causing 404s if they don't exist
+            //   We can't check file existence client-side, so only use explicit srcSmall
             const effectiveSrc = prefersOriginal ? rawSrc : derivedLarge;
-            const effectiveSrcSmall = prefersOriginal ? undefined : derivedSmall;
+            // Only use srcSmall if explicitly provided - don't auto-derive to prevent 404s
+            // If process:hero has generated small variants, they should be in item.srcSmall
+            const effectiveSrcSmall = item.srcSmall || undefined;
             const effectiveSrcLarge = prefersOriginal ? undefined : derivedLarge;
 
             const sharedProps = {
