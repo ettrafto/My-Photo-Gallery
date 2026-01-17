@@ -255,7 +255,10 @@ export default function Globe() {
     // CRITICAL: Update projection rotation FIRST - this must happen before any marker operations
     // This ensures all subsequent visibility checks and positioning use the current rotation
     // Without this, markers will appear in wrong positions and won't rotate with the globe
-    projectionRef.current.rotate(rotationRef.current);
+    // On hard refresh, rotationRef.current starts at [0,0,0], so we sync projection to match
+    if (rotationRef.current && Array.isArray(rotationRef.current) && rotationRef.current.length === 3) {
+      projectionRef.current.rotate(rotationRef.current);
+    }
 
     // Update graticule path - explicitly call path generator with graticule data
     if (graticulePathRef.current && graticuleRef.current) {
@@ -284,14 +287,25 @@ export default function Globe() {
       markerSelection.exit().remove();
       
       // Add new markers if needed
+      // CRITICAL: New markers must start completely hidden until visibility is checked
+      // This prevents them from appearing briefly before render() determines their visibility
       const newMarkers = markerSelection
         .enter()
         .append('circle')
         .attr('class', 'globe-marker')
-        .attr('r', 4);
+        .attr('r', 4)
+        .call(marker => {
+          // Explicitly hide new markers before visibility check
+          marker.style('opacity', 0)
+            .style('visibility', 'hidden')
+            .style('display', 'none')
+            .attr('transform', 'translate(-9999,-9999)'); // Move off-screen as well
+        });
       
       // Merge enter and update selections, then update ALL markers (both new and existing)
       // This ensures markers update their positions every frame as the globe rotates
+      // CRITICAL: Projection rotation was already updated at the start of render() (line 258)
+      // so visibility checks and positioning will use the current rotation
       markerSelection.merge(newMarkers).each(function(d) {
         if (!d || typeof d.lat !== 'number' || typeof d.lng !== 'number') {
           hideMarker(select(this));
@@ -301,25 +315,27 @@ export default function Globe() {
         const marker = select(this);
         const isTest = marker.classed('globe-marker-test');
         
-        // Primary check: Use our custom visibility calculation
-        // This accurately determines if point is on front hemisphere based on CURRENT rotation
-        // NOTE: isPointVisible uses rotationRef.current which should match projection rotation (updated at start of render)
+        // CRITICAL: Check visibility FIRST before positioning
+        // isPointVisible uses rotationRef.current which was synchronized with projection rotation
+        // at the start of render() - both use the same current rotation value
         const isVisible = isPointVisible(d.lat, d.lng, isTest);
         if (!isVisible) {
+          // Marker is on back hemisphere - hide it immediately
           hideMarker(marker);
           return;
         }
         
-        // Secondary check: Get projected coordinates using the CURRENT projection rotation
-        // If projection fails, definitely hide (though this should match our check)
-        // NOTE: projection rotation was updated at start of render(), so this uses current rotation
+        // Marker passed visibility check - now get projected coordinates
+        // Projection rotation was updated at start of render(), so this uses current rotation
         const coords = projectionRef.current([d.lng, d.lat]);
         if (!coords) {
+          // Projection failed - hide marker
           hideMarker(marker);
           return;
         }
         
-        // All checks passed - show marker
+        // All checks passed - show marker at correct position for current rotation
+        // This position will update as rotation changes (via auto-spin or drag)
         marker.attr('transform', `translate(${coords[0]},${coords[1]})`)
           .style('opacity', 1)
           .style('visibility', 'visible')
