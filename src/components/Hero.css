@@ -266,7 +266,7 @@
 @media (max-width: 768px) {
   .hero {
     min-height: auto;
-    padding: 3rem 1.5rem 0 1.5rem;
+    padding: 3rem 1.5rem 3rem 1.5rem;
   }
   
   .hero-container {
@@ -282,27 +282,84 @@
     font-size: clamp(0.85rem, 3vw, 1.1rem);
   }
   
-  /* Staggered Vertical Column on Mobile */
+  /* Staggered Vertical Column on Mobile - Creative Layout */
   .hero-images {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 2rem;
     height: auto;
+    padding: 0 1rem;
+    align-items: center;
   }
   
   .hero-image-wrapper {
-    width: 100%;
+    width: 85%;
     height: auto;
     aspect-ratio: 4 / 3;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.4s ease;
+    transform-origin: center;
   }
   
-  .hero-image-1,
-  .hero-image-4 {
-    aspect-ratio: 3 / 4; /* Portrait */
+  /* Staggered alternating layout - offset left and right */
+  .hero-image-1 {
+    width: 90%;
+    max-width: 420px;
+    aspect-ratio: 3 / 4; /* Portrait - primary */
+    align-self: flex-start;
+    transform: translateX(-5%);
+    margin-left: 1rem;
+  }
+  
+  .hero-image-2 {
+    width: 75%;
+    max-width: 360px;
+    aspect-ratio: 16 / 10; /* Landscape */
+    align-self: flex-end;
+    transform: translateX(5%);
+    margin-right: 1rem;
   }
   
   .hero-image-3 {
+    width: 70%;
+    max-width: 320px;
     aspect-ratio: 1; /* Square */
+    align-self: center;
+    transform: translateX(-2%);
+  }
+  
+  .hero-image-4 {
+    width: 80%;
+    max-width: 380px;
+    aspect-ratio: 3 / 4; /* Portrait */
+    align-self: flex-end;
+    transform: translateX(8%);
+    margin-right: 0.5rem;
+  }
+  
+  .hero-image-5 {
+    width: 85%;
+    max-width: 400px;
+    aspect-ratio: 16 / 9; /* Wide landscape */
+    align-self: flex-start;
+    transform: translateX(-8%);
+    margin-left: 0.5rem;
+  }
+  
+  /* Enhanced visual effects for mobile - more dramatic shadows */
+  .hero-image-wrapper {
+    box-shadow: 
+      0 8px 20px rgba(0, 0, 0, 0.5),
+      0 16px 40px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Enhanced active/tap effect for mobile */
+  .hero-image-wrapper:active {
+    transform: translateY(-8px) scale(0.98);
+    box-shadow: 
+      0 12px 30px rgba(0, 0, 0, 0.6),
+      0 24px 60px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
   }
   
   /* Reset grid positioning for mobile */
@@ -334,7 +391,7 @@
 /* Small Mobile */
 @media (max-width: 480px) {
   .hero {
-    padding: 2rem 1rem 0 1rem;
+    padding: 2rem 1rem 3rem 1rem;
   }
   
   .hero-headline {
@@ -342,7 +399,38 @@
   }
   
   .hero-images {
-    gap: 1rem;
+    gap: 1.5rem;
+    padding: 0;
+  }
+  
+  /* Adjusted sizes for small screens - maintain creative staggered layout */
+  .hero-image-1 {
+    width: 85%;
+    max-width: 360px;
+    margin-left: 0.5rem;
+  }
+  
+  .hero-image-2 {
+    width: 70%;
+    max-width: 300px;
+    margin-right: 0.5rem;
+  }
+  
+  .hero-image-3 {
+    width: 65%;
+    max-width: 280px;
+  }
+  
+  .hero-image-4 {
+    width: 75%;
+    max-width: 320px;
+    margin-right: 0;
+  }
+  
+  .hero-image-5 {
+    width: 80%;
+    max-width: 350px;
+    margin-left: 0;
   }
 }
 
