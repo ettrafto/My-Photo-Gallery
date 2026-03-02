@@ -22,11 +22,7 @@ export default function Footer() {
         // Now get footer config (this is synchronous)
         const config = getFooterConfig();
         
-        // Debug logging
         if (!config) {
-          const siteConfig = getSiteConfig();
-          console.log('Footer: Config not found. Site config:', siteConfig);
-          console.log('Footer: Footer config from site:', siteConfig?.footer);
           setIsLoading(false);
           return; // Footer is disabled
         }

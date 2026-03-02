@@ -211,27 +211,6 @@ export default function Globe() {
       setTestNodeVisible(isVisible);
     }
 
-    // If we ever detect a disagreement between hemisphere check and radius check, log it.
-    if (hemisphereVisible && !withinRadius) {
-      console.debug('Globe visibility mismatch: hemisphere says visible but outside radius', {
-        lat,
-        lng,
-        rotLng,
-        rotLat,
-        distFromCenter,
-        scale
-      });
-    } else if (!hemisphereVisible && withinRadius) {
-      console.debug('Globe visibility mismatch: hemisphere says hidden but inside radius', {
-        lat,
-        lng,
-        rotLng,
-        rotLat,
-        distFromCenter,
-        scale
-      });
-    }
-
     return isVisible;
   };
 

@@ -85,7 +85,6 @@ export default function TripDetail() {
           }
         } catch (mapErr) {
           // Map file doesn't exist or couldn't be loaded - use route from trip JSON
-          console.log(`📍 No map file found for ${slug}, using route from trip JSON`);
         }
 
         setTrip(tripData);

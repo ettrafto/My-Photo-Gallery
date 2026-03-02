@@ -75,8 +75,6 @@ export default function AboutCameraFocus({
     offset: ['start end', 'end start'],
     layoutEffect: false // Prevent SSR/hydration issues
   });
-  console.log('[AboutCameraFocus] ✅ useScroll initialized');
-  
 
   // Track scroll velocity for pulse effect
   const scrollVelocity = useVelocity(scrollYProgress);
