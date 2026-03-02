@@ -14,6 +14,18 @@ All site configuration is stored as JSON files in the `content/` directory. Thes
 
 Main site-wide configuration file.
 
+### Secrets (`content/site/site.secrets.json`)
+
+Sensitive values (e.g. API keys) are stored in `site.secrets.json`, which is gitignored and never committed. At build time, the copy-content script merges secrets into `site.json` before copying to `dist/`. Create this file with the same structure as the fields you want to override:
+
+```json
+{
+  "youtube": {
+    "apiKey": "YOUR_YOUTUBE_API_KEY"
+  }
+}
+```
+
 ### Structure
 
 ```json
@@ -73,7 +85,7 @@ Main site-wide configuration file.
     "channelId": "UC...",             // Optional: string (default: null)
     "channelUsername": "@user",       // Optional: string (default: null)
     "channelName": "Channel Name",    // Optional: string (default: null)
-    "apiKey": null                    // Optional: string (default: null)
+    "apiKey": null                    // Required when enabled: Create at console.cloud.google.com/apis/credentials, enable YouTube Data API v3
   },
   "about": {
     "camera": {                       // Optional: object (default: null)

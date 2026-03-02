@@ -16,6 +16,9 @@ dist-ssr
 content/*
 !content/.gitkeep
 
+# Secrets (never commit API keys)
+content/site/site.secrets.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
