@@ -9,7 +9,7 @@
  *
  * What it does:
  *   1) Reads originals from photo-source/originals/config/about/
- *   2) Generates WebP variants to public/about/:
+ *   2) Generates WebP variants to public/about-images/:
  *        -large.webp (1800px), -small.webp (800px), -blur.webp (40px)
  *   3) Builds/updates content/site/about.json with:
  *        - Processed image paths in images array
@@ -37,9 +37,10 @@ const ROOT = path.resolve(__dirname, '..');
 
 const CONFIG = {
   INPUT_DIR: 'photo-source/originals/config/about',
-  OUTPUT_DIR: 'public/about',
+  OUTPUT_DIR: 'public/about-images',
   CONTENT_DIR: 'content',
   ABOUT_CONFIG: 'content/site/about.json',
+  SITE_CONFIG: 'content/site/site.json',
   METADATA_FILE: 'photo-source/originals/config/about/_about.json',
   SUPPORTED_FORMATS: ['.jpg', '.jpeg', '.png', '.heic', '.heif'],
   VARIANTS: {
@@ -254,7 +255,7 @@ async function processAboutImage(imageFile, index, metadata, force = false) {
     const caption = metadataItem?.caption || formatExifCaption(exif) || null;
 
     return {
-      src: `/about/${baseName}-large.webp`,
+      src: `/about-images/${baseName}-large.webp`,
       alt: altText,
       caption: caption
     };
@@ -385,6 +386,37 @@ async function writeAboutConfig(processedImages, existingConfig) {
 }
 
 /**
+ * Update site.json about.camera.imageSrc with first processed image path
+ * Preserves existing title, subtitle, body
+ */
+async function updateSiteConfigAboutCamera(firstImageSrc) {
+  const configPath = path.join(ROOT, CONFIG.SITE_CONFIG);
+  if (!existsSync(configPath)) {
+    return;
+  }
+
+  try {
+    const content = await fsp.readFile(configPath, 'utf-8');
+    const siteConfig = JSON.parse(content);
+
+    if (!siteConfig.about) {
+      siteConfig.about = { camera: {} };
+    }
+    if (!siteConfig.about.camera) {
+      siteConfig.about.camera = {};
+    }
+
+    siteConfig.about.camera.imageSrc = firstImageSrc;
+    // Preserve existing title, subtitle, body - only update imageSrc
+
+    await fsp.writeFile(configPath, JSON.stringify(siteConfig, null, 2));
+    console.log(`  ✅ Updated ${configPath} (about.camera.imageSrc)`);
+  } catch (error) {
+    console.warn(`  ⚠️  Could not update site.json: ${error.message}`);
+  }
+}
+
+/**
  * Main processing function
  */
 async function main() {
@@ -398,7 +430,7 @@ async function main() {
 
   if (!existsSync(inputDir)) {
     console.warn('⚠️  Input directory does not exist (photo-source not available in CI)');
-    console.warn('   Skipping about image processing. Using committed images from public/about/ if present.');
+    console.warn('   Skipping about image processing. Using committed images from public/about-images/ if present.');
     process.exit(0);
   }
 
@@ -412,7 +444,7 @@ async function main() {
 
   if (imageFiles.length === 0) {
     console.warn('⚠️  No images found in photo-source/originals/config/about/');
-    console.warn('   Skipping. Using committed images from public/about/ if present.');
+    console.warn('   Skipping. Using committed images from public/about-images/ if present.');
     process.exit(0);
   }
 
@@ -488,6 +520,12 @@ async function main() {
   // Generate about.json, preserving existing data
   console.log('📝 Updating about.json...');
   await writeAboutConfig(aboutImages, existingConfig);
+
+  // Update site.json about.camera.imageSrc with first image path
+  const firstImageSrc = aboutImages[0]?.src;
+  if (firstImageSrc) {
+    await updateSiteConfigAboutCamera(firstImageSrc);
+  }
 
   console.log('');
   console.log('✅ About processing complete!');

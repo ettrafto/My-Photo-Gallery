@@ -121,7 +121,7 @@ The script **never overwrites** existing JSON data:
 3. Update `content/site/about.json`
 
 ### Output
-- Images: `public/about/{filename}-{variant}.webp`
+- Images: `public/about-images/{filename}-{variant}.webp`
 - Config: `content/site/about.json` (images array)
 
 ## Index Rebuild (`scripts/rebuildAlbumsIndex.mjs`)
@@ -169,7 +169,7 @@ dist/
 │   └── {album-slug}/
 ├── hero/                # Hero images
 ├── showcase/            # Showcase images
-├── about/               # About images
+├── about-images/        # About images
 └── content/             # JSON files (copied)
     ├── site/
     ├── albums.json

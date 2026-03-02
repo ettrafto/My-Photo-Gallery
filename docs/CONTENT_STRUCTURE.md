@@ -68,7 +68,7 @@ content/
   },
   "about": {
     "camera": {
-      "imageSrc": "/about/portrait-large.webp",
+      "imageSrc": "/about-images/portrait-large.webp",
       "title": "Title",
       "subtitle": "Subtitle",
       "body": "Body text with \\n line breaks"
@@ -288,7 +288,7 @@ content/
 {
   "images": [
     {
-      "src": "/about/portrait-large.webp",
+      "src": "/about-images/portrait-large.webp",
       "alt": "Portrait",
       "caption": "Optional caption"
     }

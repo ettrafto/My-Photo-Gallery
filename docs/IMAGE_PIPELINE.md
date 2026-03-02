@@ -145,7 +145,7 @@ photo-source/originals/config/about/portrait.jpg
 public/photos/{album-slug}/IMG_001-{variant}.webp
 public/hero/hero-1-{variant}.webp
 public/photos/showcase/IMG_4062-{variant}.webp
-public/about/portrait-{variant}.webp
+public/about-images/portrait-{variant}.webp
 ```
 
 ### Web Paths
@@ -245,7 +245,7 @@ Forces regeneration of all WebP variants, useful after:
 **About page images**
 
 - **Input**: `photo-source/originals/config/about/`
-- **Output**: `public/about/`
+- **Output**: `public/about-images/`
 - **JSON**: `content/site/about.json`
 - **Features**:
   - Processes about page images
