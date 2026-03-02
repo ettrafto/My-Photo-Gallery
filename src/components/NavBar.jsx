@@ -27,7 +27,6 @@ export default function NavBar() {
       <div className="nav-inner">
         <div className="nav-brand">
           <span className="nav-brand-main">{siteTitle}</span>
-          <p>help</p>
           <span className="nav-brand-sub">/ {ownerName}</span>
         </div>
         {navItems.length > 0 && (
