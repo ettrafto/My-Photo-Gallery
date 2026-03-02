@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { loadSiteConfig, getThemeName } from './lib/siteConfig';
 import { useSEO } from './hooks/useSEO';
 import NavBar from './components/NavBar';
@@ -12,6 +12,15 @@ import TripDetail from './pages/TripDetail';
 import Map from './pages/Map';
 import About from './pages/About';
 import './App.css';
+
+// Scroll to top on route change
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 // Default SEO wrapper component
 function SEOWrapper({ children }) {
@@ -52,7 +61,8 @@ function App() {
   }, []);
 
   return (
-    <Router basename={baseUrl}>
+    <Router>
+      <ScrollToTop />
       <SEOWrapper>
         <div className={`app-shell theme-${themeName}`}>
           <NavBar />
