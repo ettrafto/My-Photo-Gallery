@@ -17,7 +17,7 @@
     "reset:gallery": "node scripts/resetGallery.mjs",
     "album:update": "node scripts/albumUpdate.mjs",
     "dev": "vite",
-    "build": "npm run import:photos && npm run process:hero && npm run process:showcase && vite build && node scripts/copy-content.mjs",
+    "build": "npm run import:photos && npm run process:hero && npm run process:showcase && npm run process:about && vite build && node scripts/copy-content.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

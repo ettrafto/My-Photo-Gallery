@@ -14,8 +14,9 @@ This executes:
 1. `npm run import:photos` - Process album photos
 2. `npm run process:hero` - Process hero images
 3. `npm run process:showcase` - Process showcase images
-4. `vite build` - Build React app
-5. `node scripts/copy-content.mjs` - Copy content to dist
+4. `npm run process:about` - Process about page images
+5. `vite build` - Build React app
+6. `node scripts/copy-content.mjs` - Copy content to dist
 
 ## Photo Import Pipeline (`scripts/importPhotos.mjs`)
 

@@ -55,6 +55,7 @@ photo-source/
 !public/icons/marker.svg
 !public/icons/marker.png
 !public/favicon.ico
+!public/about/*.webp
 public/images/**
 
 # Explicitly ensure nginx config is tracked

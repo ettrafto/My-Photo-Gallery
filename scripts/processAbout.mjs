@@ -397,9 +397,9 @@ async function main() {
   const inputDir = path.join(ROOT, CONFIG.INPUT_DIR);
 
   if (!existsSync(inputDir)) {
-    console.error(`❌ ERROR: Input directory does not exist: ${inputDir}`);
-    console.error('   Please create photo-source/originals/config/about/ and add your images');
-    process.exit(1);
+    console.warn('⚠️  Input directory does not exist (photo-source not available in CI)');
+    console.warn('   Skipping about image processing. Using committed images from public/about/ if present.');
+    process.exit(0);
   }
 
   // Find all image files
@@ -411,9 +411,9 @@ async function main() {
   }).sort();
 
   if (imageFiles.length === 0) {
-    console.error('❌ No images found in photo-source/originals/config/about/');
-    console.error(`   Supported formats: ${CONFIG.SUPPORTED_FORMATS.join(', ')}`);
-    process.exit(1);
+    console.warn('⚠️  No images found in photo-source/originals/config/about/');
+    console.warn('   Skipping. Using committed images from public/about/ if present.');
+    process.exit(0);
   }
 
   console.log(`   Found ${imageFiles.length} image(s)`);
