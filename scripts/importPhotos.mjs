@@ -391,7 +391,7 @@ async function loadExistingAlbumJson(albumSlug, contentDir) {
   }
 }
 
-async function processAlbum({ albumName, options, albumLocations }) {
+async function processAlbum({ albumName, options, albumLocations, existingAlbumsIndex }) {
   const albumPath = path.join(options.inputDir, albumName);
   const albumSlug = slugify(albumName, { lower: true, strict: true });
   const albumOutputDir = path.join(options.outputDir, albumSlug);
@@ -473,15 +473,45 @@ async function processAlbum({ albumName, options, albumLocations }) {
     }
   }
 
-  // Cover - preserve existing if it exists in merged photos
+  // Cover selection priority:
+  // 1) Existing cover from albums.json (index) if it matches a current photo
+  // 2) Existing cover from per-album JSON if it matches a current photo
+  // 3) Explicit cover filename from _album.json metadata
+  // 4) First photo
+  const existingIndexData = existingAlbumsIndex?.get(albumSlug);
+  const indexCover = existingIndexData?.cover;
   const existingCover = existingAlbumData?.cover;
-  const coverPhoto = existingCover && mergedPhotos.find(p => 
-    (p.pathLarge || p.path) === existingCover
-  ) 
-    ? mergedPhotos.find(p => (p.pathLarge || p.path) === existingCover)
-    : metadata.cover
-    ? mergedPhotos.find((p) => p.filename === metadata.cover) || mergedPhotos[0]
-    : mergedPhotos[0];
+
+  let coverPhoto = null;
+
+  // 1) Try cover from existing albums.json index
+  if (indexCover) {
+    const match = mergedPhotos.find(p => (p.pathLarge || p.path) === indexCover);
+    if (match) {
+      coverPhoto = match;
+    }
+  }
+
+  // 2) Fallback to cover from existing per-album JSON
+  if (!coverPhoto && existingCover) {
+    const match = mergedPhotos.find(p => (p.pathLarge || p.path) === existingCover);
+    if (match) {
+      coverPhoto = match;
+    }
+  }
+
+  // 3) Fallback to explicit cover filename from _album.json metadata
+  if (!coverPhoto && metadata.cover) {
+    const match = mergedPhotos.find((p) => p.filename === metadata.cover);
+    if (match) {
+      coverPhoto = match;
+    }
+  }
+
+  // 4) Final fallback: first photo
+  if (!coverPhoto && mergedPhotos.length > 0) {
+    coverPhoto = mergedPhotos[0];
+  }
 
   // Dates - preserve existing if set, otherwise calculate from photos
   const albumDate = existingAlbumData?.date || 
@@ -644,6 +674,39 @@ async function writeAlbumsIndex(contentDir, albumsList) {
   console.log(`\n✅ Generated albums.json (${albumsList.length} album(s))`);
 }
 
+/**
+ * Load existing albums.json index as a Map keyed by slug.
+ * This is used to give existing covers (and related data) highest priority
+ * when recomputing per-album JSON during import.
+ *
+ * @param {string} contentDir
+ * @returns {Promise<Map<string, any>>}
+ */
+async function loadExistingAlbumsIndex(contentDir) {
+  const indexPath = path.join(contentDir, 'albums.json');
+  const existingAlbums = new Map();
+
+  if (!existsSync(indexPath)) {
+    return existingAlbums;
+  }
+
+  try {
+    const raw = await fsp.readFile(indexPath, 'utf-8');
+    const existingData = JSON.parse(raw);
+    if (existingData.albums && Array.isArray(existingData.albums)) {
+      existingData.albums.forEach((album) => {
+        if (album?.slug) {
+          existingAlbums.set(album.slug, album);
+        }
+      });
+    }
+  } catch (err) {
+    console.warn(`  ⚠ Could not read existing albums.json for cover precedence:`, err.message);
+  }
+
+  return existingAlbums;
+}
+
 async function writeMapIndex(contentDir, albumsList) {
   const albumLocationsPath = path.join(contentDir, 'album-locations.json');
   let albumLocations = {};
@@ -776,12 +839,13 @@ async function main() {
 
   console.log(`\nFound ${albumFolders.length} album folder(s):`);
   albumFolders.forEach((folder) => console.log(`  - ${folder}`));
-
+  
   const albumLocations = await loadAlbumLocations(options.contentDir);
+  const existingAlbumsIndex = await loadExistingAlbumsIndex(options.contentDir);
   const albumsList = [];
-
+  
   for (const albumName of albumFolders) {
-    const summary = await processAlbum({ albumName, options, albumLocations });
+    const summary = await processAlbum({ albumName, options, albumLocations, existingAlbumsIndex });
     if (summary) albumsList.push(summary);
   }
 
