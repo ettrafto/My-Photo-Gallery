@@ -656,8 +656,8 @@ async function writeMapIndex(contentDir, albumsList) {
   }
 
   const mapAlbums = [];
-  let albumsWithGpsCount = 0;
-  let albumsWithDefaultCount = 0;
+  let albumsWithGpsFallbackCount = 0;
+  let albumsWithConfiguredLocationCount = 0;
 
   for (const album of albumsList) {
     const albumJsonPath = path.join(contentDir, 'albums', `${album.slug}.json`);
@@ -668,55 +668,45 @@ async function writeMapIndex(contentDir, albumsList) {
 
     // Collect all valid GPS coordinates from photos
     const validGpsPhotos = [];
-    let hasDefaultLocation = false;
-    let defaultLat = null;
-    let defaultLng = null;
-
     for (const photo of photos) {
       if (typeof photo.lat === 'number' && typeof photo.lng === 'number') {
         validGpsPhotos.push({ lat: photo.lat, lng: photo.lng, dateTaken: photo.exif?.dateTaken || null });
       }
     }
 
-    // If no GPS photos, try album default location
-    if (validGpsPhotos.length === 0) {
-      const locationData = albumLocations[album.slug]?.defaultLocation;
-      if (
-        locationData &&
-        typeof locationData.lat === 'number' &&
-        typeof locationData.lng === 'number'
-      ) {
-        defaultLat = locationData.lat;
-        defaultLng = locationData.lng;
-        hasDefaultLocation = true;
-        albumsWithDefaultCount++;
-      } else if (
-        album.primaryLocation &&
-        typeof album.primaryLocation.lat === 'number' &&
-        typeof album.primaryLocation.lng === 'number'
-      ) {
-        defaultLat = album.primaryLocation.lat;
-        defaultLng = album.primaryLocation.lng;
-        hasDefaultLocation = true;
-        albumsWithDefaultCount++;
-      }
-    } else {
-      albumsWithGpsCount++;
+    // Choose location in this priority order:
+    // 1) album-locations.json defaultLocation
+    // 2) album.primaryLocation (from albums.json)
+    // 3) average GPS from photos (fallback)
+    let chosenLat = null;
+    let chosenLng = null;
+
+    const locationData = albumLocations[album.slug]?.defaultLocation;
+    if (
+      locationData &&
+      typeof locationData.lat === 'number' &&
+      typeof locationData.lng === 'number'
+    ) {
+      chosenLat = locationData.lat;
+      chosenLng = locationData.lng;
+      albumsWithConfiguredLocationCount++;
+    } else if (
+      album.primaryLocation &&
+      typeof album.primaryLocation.lat === 'number' &&
+      typeof album.primaryLocation.lng === 'number'
+    ) {
+      chosenLat = album.primaryLocation.lat;
+      chosenLng = album.primaryLocation.lng;
+      albumsWithConfiguredLocationCount++;
+    } else if (validGpsPhotos.length > 0) {
+      chosenLat = validGpsPhotos.reduce((sum, p) => sum + p.lat, 0) / validGpsPhotos.length;
+      chosenLng = validGpsPhotos.reduce((sum, p) => sum + p.lng, 0) / validGpsPhotos.length;
+      albumsWithGpsFallbackCount++;
     }
 
-    // Skip album if no location data available
-    if (validGpsPhotos.length === 0 && !hasDefaultLocation) {
+    // Skip album if no location data available from any source
+    if (typeof chosenLat !== 'number' || typeof chosenLng !== 'number') {
       continue;
-    }
-
-    // Calculate average location
-    let avgLat, avgLng;
-    if (validGpsPhotos.length > 0) {
-      avgLat = validGpsPhotos.reduce((sum, p) => sum + p.lat, 0) / validGpsPhotos.length;
-      avgLng = validGpsPhotos.reduce((sum, p) => sum + p.lng, 0) / validGpsPhotos.length;
-    } else {
-      avgLat = defaultLat;
-      avgLng = defaultLng;
     }
 
     // Collect date range from photos with dates
@@ -728,8 +718,8 @@ async function writeMapIndex(contentDir, albumsList) {
     const albumEntry = {
       albumSlug: album.slug,
       albumTitle: album.title,
-      lat: avgLat,
-      lng: avgLng,
+      lat: chosenLat,
+      lng: chosenLng,
       photoCount: validGpsPhotos.length || photos.length,
       tags: album.tags || []
     };
@@ -749,8 +739,8 @@ async function writeMapIndex(contentDir, albumsList) {
   await fsp.writeFile(mapIndexPath, JSON.stringify({ albums: mapAlbums }, null, 2));
 
   console.log(`✅ Generated map.json with ${mapAlbums.length} album(s)`);
-  console.log(`   ${albumsWithGpsCount} with GPS from photos`);
-  console.log(`   ${albumsWithDefaultCount} with default location`);
+  console.log(`   ${albumsWithConfiguredLocationCount} with configured album/default location`);
+  console.log(`   ${albumsWithGpsFallbackCount} with GPS fallback from photos`);
 }
 
 async function main() {
