@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Rebuild albums.json and map.json from individual album JSON files
- * Preserves manually entered geo data, isFavorite status, and covers from albums.json - any
- * primaryLocation with valid coordinates, isFavorite values, and cover/coverAspectRatio in the
- * existing albums.json will be kept and not overwritten by data from individual album files.
- * Also syncs preserved isFavorite values back to individual album files so they stay in sync.
- * Generates map.json for the Globe component with all albums that have geo data.
+ * LEGACY GEO SCRIPT – prefer unified import pipeline.
+ *
+ * This script rebuilds albums.json and map.json from individual album JSON files.
+ * It was originally the primary way to generate geo data for the Globe.
+ *
+ * Current recommended flow:
+ *   - Use `npm run import:photos` (scripts/importPhotos.mjs), which:
+ *       • scans photos
+ *       • updates per-album manifests
+ *       • regenerates albums.json and map.json for the Globe
+ *
+ * This file is kept for backwards compatibility and ad‑hoc geo fixes only.
  */
 
 import fs from 'fs';
@@ -198,21 +204,75 @@ async function rebuildAlbumsIndex() {
     }
   }
 
+  // Merge with existing index to avoid nuking additional metadata.
+  // We treat the existing albums.json as the base source of truth and
+  // only add/update the fields this script is responsible for (geo,
+  // favorites, covers, counts, core summary fields). Any extra keys on
+  // each album object are preserved.
+  let existingIndexAlbums = [];
+  if (fs.existsSync(INDEX_PATH)) {
+    try {
+      const existingRaw = JSON.parse(fs.readFileSync(INDEX_PATH, 'utf-8'));
+      if (Array.isArray(existingRaw.albums)) {
+        existingIndexAlbums = existingRaw.albums;
+      }
+    } catch (err) {
+      console.warn('  ⚠ Could not re-read existing albums.json for merge:', err.message);
+    }
+  }
+
+  const existingIndexMap = new Map(
+    existingIndexAlbums.map(album => [album.slug, album])
+  );
+
+  const mergedAlbumsMap = new Map();
+
+  for (const summary of albumsList) {
+    const slug = summary.slug;
+    const base = existingIndexMap.get(slug) ? { ...existingIndexMap.get(slug) } : {};
+
+    // Only set/update known summary fields; never intentionally erase others.
+    base.id = summary.id ?? base.id ?? slug;
+    base.slug = slug ?? base.slug;
+    base.title = summary.title ?? base.title;
+    base.description = summary.description ?? base.description;
+    base.tags = summary.tags ?? base.tags ?? [];
+    base.date = summary.date ?? base.date;
+    base.startDate = summary.startDate ?? base.startDate;
+    base.endDate = summary.endDate ?? base.endDate;
+    base.cover = summary.cover ?? base.cover;
+    base.coverAspectRatio = summary.coverAspectRatio ?? base.coverAspectRatio;
+    base.count = summary.count ?? base.count;
+    base.isFavorite = summary.isFavorite ?? base.isFavorite;
+    base.primaryLocation = summary.primaryLocation ?? base.primaryLocation;
+
+    mergedAlbumsMap.set(slug, base);
+  }
+
+  // Carry over any albums that exist only in the current index (no matching album file)
+  for (const [slug, album] of existingIndexMap.entries()) {
+    if (!mergedAlbumsMap.has(slug)) {
+      mergedAlbumsMap.set(slug, album);
+    }
+  }
+
+  const finalAlbums = Array.from(mergedAlbumsMap.values());
+
   // Sort albums by date (newest first), then by title
-  albumsList.sort((a, b) => {
+  finalAlbums.sort((a, b) => {
     if (a.date && b.date) {
       return b.date.localeCompare(a.date);
     }
     if (a.date) return -1;
     if (b.date) return 1;
-    return a.title.localeCompare(b.title);
+    return (a.title || '').localeCompare(b.title || '');
   });
 
   // Write the index
-  const indexData = { albums: albumsList };
+  const indexData = { albums: finalAlbums };
   fs.writeFileSync(INDEX_PATH, JSON.stringify(indexData, null, 2));
 
-  const albumsWithGeo = albumsList.filter(a => 
+  const albumsWithGeo = finalAlbums.filter(a => 
     a.primaryLocation && 
     typeof a.primaryLocation.lat === 'number' && 
     typeof a.primaryLocation.lng === 'number' &&
