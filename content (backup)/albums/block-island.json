@@ -1,0 +1,143 @@
+{
+  "id": "block-island",
+  "slug": "block-island",
+  "title": "Block Island",
+  "description": null,
+  "tags": [
+    "Canon"
+  ],
+  "date": "2025-03-12",
+  "startDate": "2025-03-12",
+  "endDate": "2025-03-12",
+  "cover": "photos/block-island/IMG_8633-large.webp",
+  "coverAspectRatio": 1.5,
+  "count": 5,
+  "isFavorite": false,
+  "primaryLocation": {
+    "name": "Block Island",
+    "lat": null,
+    "lng": null
+  },
+  "photos": [
+    {
+      "filename": "IMG_8633.jpg",
+      "path": "photos/block-island/IMG_8633-large.webp",
+      "pathLarge": "photos/block-island/IMG_8633-large.webp",
+      "pathSmall": "photos/block-island/IMG_8633-small.webp",
+      "pathBlur": "photos/block-island/IMG_8633-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/5",
+        "shutterSpeed": "1/320s",
+        "iso": 125,
+        "focalLength": "85mm",
+        "dateTaken": "2025-03-12T14:12:08.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8650.jpg",
+      "path": "photos/block-island/IMG_8650-large.webp",
+      "pathLarge": "photos/block-island/IMG_8650-large.webp",
+      "pathSmall": "photos/block-island/IMG_8650-small.webp",
+      "pathBlur": "photos/block-island/IMG_8650-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/22",
+        "shutterSpeed": "1/4000s",
+        "iso": 6400,
+        "focalLength": "18mm",
+        "dateTaken": "2025-03-12T17:21:07.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8652.jpg",
+      "path": "photos/block-island/IMG_8652-large.webp",
+      "pathLarge": "photos/block-island/IMG_8652-large.webp",
+      "pathSmall": "photos/block-island/IMG_8652-small.webp",
+      "pathBlur": "photos/block-island/IMG_8652-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/22",
+        "shutterSpeed": "1/2500s",
+        "iso": 6400,
+        "focalLength": "21mm",
+        "dateTaken": "2025-03-12T17:23:43.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8655.jpg",
+      "path": "photos/block-island/IMG_8655-large.webp",
+      "pathLarge": "photos/block-island/IMG_8655-large.webp",
+      "pathSmall": "photos/block-island/IMG_8655-small.webp",
+      "pathBlur": "photos/block-island/IMG_8655-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/22",
+        "shutterSpeed": "1/4000s",
+        "iso": 6400,
+        "focalLength": "110mm",
+        "dateTaken": "2025-03-12T17:25:00.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8671.jpg",
+      "path": "photos/block-island/IMG_8671-large.webp",
+      "pathLarge": "photos/block-island/IMG_8671-large.webp",
+      "pathSmall": "photos/block-island/IMG_8671-small.webp",
+      "pathBlur": "photos/block-island/IMG_8671-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/20",
+        "shutterSpeed": "1/3200s",
+        "iso": 6400,
+        "focalLength": "105mm",
+        "dateTaken": "2025-03-12T22:56:24.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    }
+  ]
+}

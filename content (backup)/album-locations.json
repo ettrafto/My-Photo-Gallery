@@ -1,0 +1,183 @@
+{
+  "arches": {
+    "albumSlug": "arches",
+    "albumTitle": "Arches",
+    "defaultLocation": {
+      "lat": 38.743629,
+      "lng": -109.499313,
+      "accuracy": "album-default"
+    }
+  },
+  "bryce": {
+    "albumSlug": "bryce",
+    "albumTitle": "Bryce",
+    "defaultLocation": {
+      "lat": 37.593048,
+      "lng": -112.187332,
+      "accuracy": "album-default"
+    }
+  },
+  "cascades": {
+    "albumSlug": "cascades",
+    "albumTitle": "Cascades",
+    "defaultLocation": {
+      "lat": 48.47950579605614,
+      "lng": -121.05432222269741,
+      "accuracy": "album-default"
+    }
+  },
+  "cratter-lake": {
+    "albumSlug": "cratter-lake",
+    "albumTitle": "Cratter Lake",
+    "defaultLocation": {
+      "lat": 42.93979068405015, 
+      "lng": -122.10648237643024,
+      "accuracy": "album-default"
+    }
+  },
+  "death-valley": {
+    "albumSlug": "death-valley",
+    "albumTitle": "Death Valley",
+    "defaultLocation": {
+      "lat": 36.5104303130284, 
+      "lng": -117.06750042080066,
+      "accuracy": "album-default"
+    }
+  },
+  "edits": {
+    "albumSlug": "edits",
+    "albumTitle": "Edits",
+    "defaultLocation": {
+      "lat": null,
+      "lng": null,
+      "accuracy": "album-default"
+    }
+  },
+  "mammoth": {
+    "albumSlug": "mammoth",
+    "albumTitle": "Mammoth",
+    "defaultLocation": {
+      "lat": 37.5608206491826,
+      "lng": -118.96167441878072,
+      "accuracy": "album-default"
+    }
+  },
+  "olympic": {
+    "albumSlug": "olympic",
+    "albumTitle": "Olympic",
+    "defaultLocation": {
+      "lat": 47.81760866805056,
+      "lng": -123.59627931360976,
+      "accuracy": "album-default"
+    }
+  },
+  "rocky-mountains": {
+    "albumSlug": "rocky-mountains",
+    "albumTitle": "Rocky Mountains",
+    "defaultLocation": {
+      "lat": 40.355847710966714,
+      "lng": -105.68747383812088,
+      "accuracy": "album-default"
+    }
+  },
+
+  "sf-and-rt-1": {
+    "albumSlug": "sf-and-rt-1",
+    "albumTitle": "SF & Rt. 1",
+    "defaultLocation": {
+      "lat": 40.06166173286706,
+      "lng": -124.05245992910861,
+      "accuracy": "album-default"
+    }
+  },
+  "yosemite": {
+    "albumSlug": "yosemite",
+    "albumTitle": "Yosemite",
+    "defaultLocation": {
+      "lat": 37.87729160031029,
+      "lng": -119.53949427704856,
+      "accuracy": "album-default"
+    }
+  },
+  "zion": {
+    "albumSlug": "zion",
+    "albumTitle": "Zion",
+    "defaultLocation": {
+      "lat": 37.31810497448636,
+      "lng": -113.02969680067798,
+      "accuracy": "album-default"
+    }
+  },
+  "block-island": {
+    "albumSlug": "block-island",
+    "albumTitle": "Block Island",
+    "defaultLocation": {
+      "lat": 41.17256658335454, 
+      "lng": -71.58065008923724,
+      "accuracy": "album-default"
+    }
+  },
+  "new-hampshire": {
+    "albumSlug": "new-hampshire",
+    "albumTitle": "New Hampshire",
+    "defaultLocation": {
+      "lat": 44.16520938506758, 
+      "lng": -71.4324288377043,
+      "accuracy": "album-default"
+    }
+  },
+  "africa": {
+    "albumSlug": "africa",
+    "albumTitle": "Africa",
+    "defaultLocation": {
+      "lat": -2.4291818499185287,  
+      "lng": 34.7731302424175,
+      "accuracy": "album-default"
+    }
+  },
+  "barcelona": {
+    "albumSlug": "barcelona",
+    "albumTitle": "Barcelona",
+    "defaultLocation": {
+      "lat": 41.39830471745027, 
+      "lng": 2.1745185286489286,
+      "accuracy": "album-default"
+    }
+  },
+  "hawaiicali-2023": {
+    "albumSlug": "hawaiicali-2023",
+    "albumTitle": "Hawaii+Cali 2023",
+    "defaultLocation": {
+      "lat": 21.486001216474076, 
+      "lng": -157.96739709566774,
+      "accuracy": "album-default"
+    }
+  },
+  "vermont": {
+    "albumSlug": "vermont",
+    "albumTitle": "Vermont",
+    "defaultLocation": {
+      "lat": 44.476733129879925, 
+      "lng": -73.21185633743755,
+      "accuracy": "album-default"
+    }
+  },
+  "maine": {
+    "albumSlug": "maine",
+    "albumTitle": "Maine",
+    "defaultLocation": {
+      "lat": 45.90478760460558, 
+      "lng": -68.91946238899821,
+      "accuracy": "album-default"
+    }
+  },
+  "boston": {
+    "albumSlug": "boston",
+    "albumTitle": "Boston",
+    "defaultLocation": {
+      "lat": 42.355957625992396, 
+      "lng": -71.05826120031969,
+      "accuracy": "album-default"
+    }
+  }
+}

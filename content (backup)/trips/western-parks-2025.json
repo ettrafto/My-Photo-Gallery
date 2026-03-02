@@ -1,0 +1,157 @@
+{
+  "slug": "western-parks-2025",
+  "title": "Western Parks Road Trip 2025",
+  "dateStart": "2025-06-19",
+  "dateEnd": "2025-08-14",
+  "region": "Western United States",
+  "summary": "An epic 60-day journey through the American West, exploring national parks from Colorado to Washington. From desert arches to mountain peaks, this trip captured the diverse beauty of the western landscape.",
+  "coverImage": "photos/cascades/IMG_4198-large.webp",
+  "useFirstAlbumCoverIfMissing": true,
+
+  "albumIds": [
+    "rocky-mountains",
+    "arches",
+    "bryce",
+    "zion",
+    "death-valley",
+    "mammoth",
+    "yosemite",
+    "cratter-lake",
+    "cascades",
+    "olympic"
+  ],
+
+  "miscImages": [],
+
+  "route": {
+    "polyline": [
+      { "lat": 40.3428, "lng": -105.6836, "label": "Rocky Mountain NP" },
+      { "lat": 38.7331, "lng": -109.5925, "label": "Arches NP" },
+      { "lat": 37.5930, "lng": -112.1871, "label": "Bryce Canyon NP" },
+      { "lat": 37.2982, "lng": -113.0263, "label": "Zion NP" },
+      { "lat": 36.5054, "lng": -116.9325, "label": "Death Valley NP" },
+      { "lat": 37.6458, "lng": -119.0328, "label": "Mammoth Lakes" },
+      { "lat": 37.8651, "lng": -119.5383, "label": "Yosemite NP" },
+      { "lat": 42.8684, "lng": -122.1685, "label": "Crater Lake NP" },
+      { "lat": 47.9702, "lng": -123.4993, "label": "Olympic NP - End" },
+      { "lat": 48.4795, "lng": -121.0543, "label": "North Cascades NP" }
+    ],
+    "gpxFile": null
+  },
+
+  "highlights": [
+    {
+      "id": "rocky-mountains-sunrise",
+      "title": "Rocky Mountains Sunrise",
+      "description": "Rocky Mountain National Park - Vista",
+      "date": "2025-06-20",
+      "image": "photos/rocky-mountains/IMG_8988-large.webp",
+      "albumSlug": "rocky-mountains",
+      "photoFilename": null,
+      "mapLat": 40.3428,
+      "mapLng": -105.6836
+    },
+    {
+      "id": "delicate-arch-sunset",
+      "title": "Delicate Arch at Golden Hour",
+      "description": "The iconic arch glowing in warm evening light.",
+      "date": "2025-06-24",
+      "image": "photos/arches/IMG_9093-large.webp",
+      "albumSlug": "arches",
+      "photoFilename": null,
+      "mapLat": 38.7436,
+      "mapLng": -109.4993
+    },
+    {
+      "id": "bryce-hoodoos",
+      "title": "Bryce Canyon Hoodoos",
+      "description": "The otherworldly rock formations of Bryce Canyon at sunrise. The colors were surreal - orange, red, and white spires everywhere.",
+      "date": "2025-06-27",
+      "image": "photos/bryce/IMG_9137-2-large.webp",
+      "albumSlug": "bryce",
+      "photoFilename": null,
+      "mapLat": 37.5930,
+      "mapLng": -112.1871
+    },
+    {
+      "id": "zion-narrows",
+      "title": "The Narrows",
+      "description": "Wading through the Virgin River in Zion's famous slot canyon. The towering walls and flowing water created an unforgettable experience.",
+      "date": "2025-06-30",
+      "image": "photos/zion/GPTempDownload(1)-large.webp",
+      "albumSlug": "zion",
+      "photoFilename": null,
+      "mapLat": 37.2982,
+      "mapLng": -113.0263
+    },
+    {
+      "id": "death-valley-dunes",
+      "title": "Mesquite Flat Sand Dunes",
+      "description": "Exploring the vast dunes of Death Valley. The heat was intense but the landscape was mesmerizing.",
+      "date": "2025-07-05",
+      "image": "photos/death-valley/IMG_9289-large.webp",
+      "albumSlug": "death-valley",
+      "photoFilename": null,
+      "mapLat": 36.5054,
+      "mapLng": -116.9325
+    },
+    {
+      "id": "yosemite-half-dome",
+      "title": "Half Dome Vista",
+      "description": "The granite monolith of Half Dome rising above Yosemite Valley. One of the most recognizable landmarks in the American West.",
+      "date": "2025-07-10",
+      "image": "photos/yosemite/IMG_9363-large.webp",
+      "albumSlug": "yosemite",
+      "photoFilename": null,
+      "mapLat": 37.8651,
+      "mapLng": -119.5383
+    },
+    {
+      "id": "crater-lake-blue",
+      "title": "The Deepest Blue",
+      "description": "Crater Lake's impossibly blue water. The depth and clarity create a color unlike any other lake.",
+      "date": "2025-07-18",
+      "image": "photos/cratter-lake/IMG_9420-large.webp",
+      "albumSlug": "cratter-lake",
+      "photoFilename": null,
+      "mapLat": 42.8684,
+      "mapLng": -122.1685
+    },
+    {
+      "id": "cascades-wilderness",
+      "title": "North Cascades Wilderness",
+      "description": "Jagged peaks and alpine lakes in the North Cascades. This remote park felt like true wilderness.",
+      "date": "2025-07-25",
+      "image": "photos/cascades/IMG_4198-large.webp",
+      "albumSlug": "cascades",
+      "photoFilename": null,
+      "mapLat": 48.4795,
+      "mapLng": -121.0543
+    },
+    {
+      "id": "olympic-rainforest",
+      "title": "Hoh Rainforest",
+      "description": "Hurricane Ridge, where the mountains meet the sea - Olympic National Park.",
+      "date": "2025-07-27",
+      "image": "photos/olympic/IMG_4147-large.webp",
+      "albumSlug": "olympic",
+      "photoFilename": null,
+      "mapLat": 47.9702,
+      "mapLng": -123.4993
+    }
+  ],
+
+  "media": [
+    {
+      "type": "playlist-link",
+      "href": "https://youtube.com/playlist?list=PL5jvhlFbzitCm0sWq3YxxIg93caKCeXXA&si=e-6DndRWpj4err74",
+      "caption": "Playlist of my adventures west"
+    },
+    {
+      "type": "external-link",
+      "href": "https://www.nps.gov/",
+      "label": "National Park Service - Plan Your Visit"
+    }
+  ]
+}
+

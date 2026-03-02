@@ -1,0 +1,119 @@
+{
+  "id": "boston",
+  "slug": "boston",
+  "title": "Boston",
+  "description": null,
+  "tags": [
+    "Canon"
+  ],
+  "date": "2024-03-11",
+  "startDate": "2024-03-11",
+  "endDate": "2024-03-11",
+  "cover": "photos/boston/IMG_8331-large.webp",
+  "coverAspectRatio": 1.5001531393568146,
+  "count": 4,
+  "isFavorite": false,
+  "primaryLocation": {
+    "name": "Boston",
+    "lat": null,
+    "lng": null
+  },
+  "photos": [
+    {
+      "filename": "IMG_8331.jpg",
+      "path": "photos/boston/IMG_8331-large.webp",
+      "pathLarge": "photos/boston/IMG_8331-large.webp",
+      "pathSmall": "photos/boston/IMG_8331-small.webp",
+      "pathBlur": "photos/boston/IMG_8331-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 4898,
+      "height": 3265,
+      "aspectRatio": 1.5001531393568146,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/8",
+        "shutterSpeed": "1/320s",
+        "iso": 100,
+        "focalLength": "38mm",
+        "dateTaken": "2024-03-11T18:41:44.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8338.jpg",
+      "path": "photos/boston/IMG_8338-large.webp",
+      "pathLarge": "photos/boston/IMG_8338-large.webp",
+      "pathSmall": "photos/boston/IMG_8338-small.webp",
+      "pathBlur": "photos/boston/IMG_8338-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 4898,
+      "height": 3265,
+      "aspectRatio": 1.5001531393568146,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/9",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "18mm",
+        "dateTaken": "2024-03-11T20:58:18.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8355.jpg",
+      "path": "photos/boston/IMG_8355-large.webp",
+      "pathLarge": "photos/boston/IMG_8355-large.webp",
+      "pathSmall": "photos/boston/IMG_8355-small.webp",
+      "pathBlur": "photos/boston/IMG_8355-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 4898,
+      "height": 3265,
+      "aspectRatio": 1.5001531393568146,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/5",
+        "shutterSpeed": "1/160s",
+        "iso": 100,
+        "focalLength": "33mm",
+        "dateTaken": "2024-03-11T21:13:47.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_8369.jpg",
+      "path": "photos/boston/IMG_8369-large.webp",
+      "pathLarge": "photos/boston/IMG_8369-large.webp",
+      "pathSmall": "photos/boston/IMG_8369-small.webp",
+      "pathBlur": "photos/boston/IMG_8369-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 4898,
+      "height": 3265,
+      "aspectRatio": 1.5001531393568146,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/8",
+        "shutterSpeed": "1/320s",
+        "iso": 100,
+        "focalLength": "24mm",
+        "dateTaken": "2024-03-11T21:44:42.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    }
+  ]
+}

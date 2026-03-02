@@ -1,0 +1,139 @@
+{
+  "site": {
+    "title": "PHOTO.LOG",
+    "ownerName": "Evan Trafton",
+    "tagline": "Photography / Trips / Experiments"
+  },
+  "theme": {
+    "name": "mono"
+  },
+  "nav": {
+    "items": [
+      {
+        "label": "home",
+        "href": "/",
+        "enabled": true
+      },
+      {
+        "label": "albums",
+        "href": "/albums",
+        "enabled": true
+      },
+      {
+        "label": "trips",
+        "href": "/trips",
+        "enabled": true
+      },
+      {
+        "label": "map",
+        "href": "/map",
+        "enabled": true
+      },
+      {
+        "label": "about",
+        "href": "/about",
+        "enabled": true
+      }
+    ]
+  },
+  "social": {
+    "items": [
+      {
+        "label": "Resume Site",
+        "href": "https://www.evantrafton.com/",
+        "icon": "file",
+        "enabled": true
+      },
+      {
+        "label": "GitHub",
+        "href": "https://github.com/ettrafto",
+        "icon": "github",
+        "enabled": true
+      },
+      {
+        "label": "LinkedIn",
+        "href": "https://www.linkedin.com/in/evantrafton",
+        "icon": "linkedin",
+        "enabled": true
+      }
+
+    ]
+  },
+  "seo": {
+    "defaultTitle": "PHOTO.LOG",
+    "titleTemplate": "%s · PHOTO.LOG",
+    "description": "A minimal photo archive of trips, places, and light.",
+    "siteUrl": "",
+    "ogImage": "",
+    "robots": "index,follow"
+  },
+  "hero": {
+    "layout": "default",
+    "headline": "Photography & Adventures",
+    "subheadline": "A minimal archive of light through time.",
+    "images": [
+      {
+        "src": "/hero/IMG_4070-large.webp",
+        "alt": "Hero image 1",
+        "caption": "7mm • f/1.8 • 1/2700s • ISO 64",
+        "order": 4
+      },
+      {
+        "src": "/hero/IMG_4075-large.webp",
+        "alt": "Hero image 2",
+        "caption": "155mm • f/5 • 1/1250s • ISO 800",
+        "order": 5
+      },
+      {
+        "src": "/hero/IMG_4147-large.webp",
+        "alt": "Hero image 3",
+        "caption": "7mm • f/1.8 • 1/5300s • ISO 80",
+        "order": 3
+      },
+      {
+        "src": "/hero/IMG_4212-large.webp",
+        "alt": "Hero image 4",
+        "caption": "7mm • f/1.78 • 1/1453s • ISO 64",
+        "order": 2
+      },
+      {
+        "src": "/hero/IMG_9371-large.webp",
+        "alt": "Hero image 5",
+        "caption": "55mm • f/11 • 1/200s • ISO 100",
+        "order": 1
+      }
+    ]
+  },
+  "favorites": {
+    "album": {
+      "slug": "zion",
+      "enabled": true
+    },
+    "trip": {
+      "slug": "western-parks-2025",
+      "enabled": true
+    }
+  },
+  "youtube": {
+    "enabled": true,
+    "channelUsername": "@evantrafton",
+    "channelName": "Evan Trafton",
+    "channelId": "UCETRevXiO_wqoVEEvzsLHeg",
+    "apiKey": null
+  },
+  
+  "about": {
+    "camera": {
+      "imageSrc": "/about/portrait-large.webp",
+      "title": "Behind the Lens",
+      "subtitle": "Photography · Design · Development",
+      "body": "Photography trained my eye. \n Software trained my thinking. \n What I build is shaped by both—carefully framed, structurally sound, and built to last."
+    }
+  },
+  
+  "footer": {
+    "enabled": true,
+    "credit": "Created by Evan Trafton © {year}. All rights reserved.",
+    "showSocialLinks": true
+  }
+}

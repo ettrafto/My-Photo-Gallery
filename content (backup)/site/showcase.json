@@ -1,0 +1,572 @@
+{
+  "images": [
+    {
+      "id": 1,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_4062-large.webp",
+      "alt": "Showcase image 1",
+      "label": null,
+      "location": "Tarangire National Park, Tanzania",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/10",
+        "shutterSpeed": "1/800s",
+        "iso": 800,
+        "focalLength": "300mm",
+        "dateTaken": "2022-08-05T15:51:04.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4898,
+        "height": 3265,
+        "aspectRatio": 1.5001531393568146
+      },
+      "order": 1
+    },
+    {
+      "id": 2,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_4070-large.webp",
+      "alt": "Showcase image 2",
+      "label": null,
+      "location": "Rt. 1, Oregon Coast",
+      "exif": {
+        "camera": "Apple iPhone 14 Pro",
+        "lens": "iPhone 14 Pro back triple camera 6.86mm f/1.78",
+        "aperture": "f/1.8",
+        "shutterSpeed": "1/2700s",
+        "iso": 64,
+        "focalLength": "7mm",
+        "dateTaken": "2025-07-14T02:23:49.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 2911,
+        "height": 2184,
+        "aspectRatio": 1.3328754578754578
+      },
+      "order": 2
+    },
+    {
+      "id": 3,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_4147-large.webp",
+      "alt": "Showcase image 3",
+      "label": null,
+      "location": "Olympic National Park",
+      "exif": {
+        "camera": "Apple iPhone 14 Pro",
+        "lens": "iPhone 14 Pro back triple camera 6.86mm f/1.78",
+        "aperture": "f/1.8",
+        "shutterSpeed": "1/5300s",
+        "iso": 80,
+        "focalLength": "7mm",
+        "dateTaken": "2025-07-27T01:42:57.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4032,
+        "height": 3024,
+        "aspectRatio": 1.3333333333333333
+      },
+      "order": 3
+    },
+    {
+      "id": 4,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_4591-large.webp",
+      "alt": "Showcase image 4",
+      "label": null,
+      "location": "Mt. Khatadin, ME",
+      "exif": {
+        "camera": "Apple iPhone 14 Pro",
+        "lens": "iPhone 14 Pro back triple camera 6.86mm f/1.78",
+        "aperture": "f/1.8",
+        "shutterSpeed": "1/2700s",
+        "iso": 80,
+        "focalLength": "7mm",
+        "dateTaken": "2025-10-01T16:46:39.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4032,
+        "height": 3024,
+        "aspectRatio": 1.3333333333333333
+      },
+      "order": 4
+    },
+    {
+      "id": 5,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_6175-large.webp",
+      "alt": "Showcase image 5",
+      "label": null,
+      "location": "Presedential Range, NH",
+      "exif": {
+        "camera": "Canon Canon PowerShot G7 X Mark II",
+        "lens": "8.8-36.8 mm",
+        "aperture": "f/5",
+        "shutterSpeed": "1/1600s",
+        "iso": 200,
+        "focalLength": "26mm",
+        "dateTaken": "2024-09-22T03:59:25.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 2304,
+        "height": 1536,
+        "aspectRatio": 1.5
+      },
+      "order": 5
+    },
+    {
+      "id": 6,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_6916-large.webp",
+      "alt": "Showcase image 6",
+      "label": null,
+      "location": "Southwick Hall UVM, VT",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/32",
+        "shutterSpeed": "1/4000s",
+        "iso": 800,
+        "focalLength": "75mm",
+        "dateTaken": "2022-10-22T23:53:24.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 6
+    },
+    {
+      "id": 7,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_7101-large.webp",
+      "alt": "Showcase image 7",
+      "label": null,
+      "location": "Mt. Mansfield, VT",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/5.6",
+        "shutterSpeed": "1/800s",
+        "iso": 1000,
+        "focalLength": "210mm",
+        "dateTaken": "2022-11-10T01:28:03.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 7
+    },
+    {
+      "id": 8,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_7609-large.webp",
+      "alt": "Showcase image 8",
+      "label": null,
+      "location": "Lagunga, CA",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/13",
+        "shutterSpeed": "1/200s",
+        "iso": 100,
+        "focalLength": "38mm",
+        "dateTaken": "2023-08-14T00:04:54.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4898,
+        "height": 3265,
+        "aspectRatio": 1.5001531393568146
+      },
+      "order": 8
+    },
+    {
+      "id": 9,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_8970-large.webp",
+      "alt": "Showcase image 9",
+      "label": null,
+      "location": "Rocky Mountain National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/10",
+        "shutterSpeed": "1/200s",
+        "iso": 100,
+        "focalLength": "75mm",
+        "dateTaken": "2025-06-20T23:11:56.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 9
+    },
+    {
+      "id": 10,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_8998-large.webp",
+      "alt": "Showcase image 10",
+      "label": null,
+      "location": "Rocky Mountain National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S24mm f/2.8 STM",
+        "aperture": "f/7.1",
+        "shutterSpeed": "1/500s",
+        "iso": 100,
+        "focalLength": "24mm",
+        "dateTaken": "2025-06-21T01:51:06.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 10
+    },
+    {
+      "id": 11,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_9003-large.webp",
+      "alt": "Showcase image 11",
+      "label": null,
+      "location": "Western Colorado",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/5.6",
+        "shutterSpeed": "1/500s",
+        "iso": 100,
+        "focalLength": "75mm",
+        "dateTaken": "2025-06-21T03:17:00.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 11
+    },
+    {
+      "id": 12,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_9011-large.webp",
+      "alt": "Showcase image 12",
+      "label": null,
+      "location": "Mt. Elbert, CO",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/5",
+        "shutterSpeed": "1/400s",
+        "iso": 200,
+        "focalLength": "40mm",
+        "dateTaken": "2025-06-23T04:11:41.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 12
+    },
+    {
+      "id": 13,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_9078-large.webp",
+      "alt": "Showcase image 13",
+      "label": null,
+      "location": "Double Arch, Arches National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/7.1",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "32mm",
+        "dateTaken": "2025-06-24T22:11:13.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 2048,
+        "height": 1365,
+        "aspectRatio": 1.5003663003663004
+      },
+      "order": 13
+    },
+    {
+      "id": 14,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_9186-2-large.webp",
+      "alt": "Showcase image 14",
+      "label": null,
+      "location": "Bryce Canyon National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF75-300mm f/4-5.6",
+        "aperture": "f/11",
+        "shutterSpeed": "1/250s",
+        "iso": 200,
+        "focalLength": "130mm",
+        "dateTaken": "2025-06-27T04:32:03.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 2048,
+        "height": 1365,
+        "aspectRatio": 1.5003663003663004
+      },
+      "order": 14
+    },
+    {
+      "id": 15,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_9242-large.webp",
+      "alt": "Showcase image 15",
+      "label": null,
+      "location": "Angel's Landing, Zion National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/9",
+        "shutterSpeed": "1/200s",
+        "iso": 100,
+        "focalLength": "29mm",
+        "dateTaken": "2025-06-30T20:18:45.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 15
+    },
+    {
+      "id": 16,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_9289-large.webp",
+      "alt": "Showcase image 16",
+      "label": null,
+      "location": "Death Valley Dunes",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/7.1",
+        "shutterSpeed": "1/400s",
+        "iso": 100,
+        "focalLength": "55mm",
+        "dateTaken": "2025-07-06T04:14:54.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 16
+    },
+    {
+      "id": 17,
+      "type": "landscape",
+      "side": "left",
+      "src": "/photos/showcase/IMG_9306-large.webp",
+      "alt": "Showcase image 17",
+      "label": null,
+      "location": "Mammoth Lakes",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/7.1",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "31mm",
+        "dateTaken": "2025-07-07T02:33:06.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 17
+    },
+    {
+      "id": 18,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_9347-large.webp",
+      "alt": "Showcase image 18",
+      "label": null,
+      "location": "Yosemite National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/7.1",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "55mm",
+        "dateTaken": "2025-07-10T22:40:51.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 18
+    },
+    {
+      "id": 19,
+      "type": "portrait",
+      "side": "left",
+      "src": "/photos/showcase/IMG_9353-large.webp",
+      "alt": "Showcase image 19",
+      "label": null,
+      "location": "Yosemite National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/6.3",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "55mm",
+        "dateTaken": "2025-07-10T23:34:33.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4000,
+        "height": 6000,
+        "aspectRatio": 0.6666666666666666
+      },
+      "order": 19
+    },
+    {
+      "id": 20,
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_9420-large.webp",
+      "alt": "Showcase image 20",
+      "label": null,
+      "location": "Crater Lake National Park",
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S24mm f/2.8 STM",
+        "aperture": "f/10",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "24mm",
+        "dateTaken": "2025-07-17T22:12:20.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 6000,
+        "height": 4000,
+        "aspectRatio": 1.5
+      },
+      "order": 20
+    },
+    {
+      "id": 8,
+      "filename": "IMG_7708.jpg",
+      "type": "landscape",
+      "side": "right",
+      "src": "/photos/showcase/IMG_7708-large.webp",
+      "alt": "Showcase image 8",
+      "label": null,
+      "location": null,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/11",
+        "shutterSpeed": "1/200s",
+        "iso": 100,
+        "focalLength": "55mm",
+        "dateTaken": "2023-08-20T23:02:29.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      },
+      "dimensions": {
+        "width": 4898,
+        "height": 3265,
+        "aspectRatio": 1.5001531393568146
+      },
+      "order": 21
+    }
+  ]
+}

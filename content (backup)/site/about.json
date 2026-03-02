@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "src": "/about/GPTempDownload(1)-2-large.webp",
+      "alt": "About image 1",
+      "caption": null
+    },
+    {
+      "src": "/about/portrait-large.webp",
+      "alt": "About image 1",
+      "caption": null
+    }
+  ]
+}

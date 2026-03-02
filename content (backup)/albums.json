@@ -1,0 +1,436 @@
+{
+  "albums": [
+    {
+      "id": "maine",
+      "slug": "maine",
+      "title": "Maine",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-09-30",
+      "startDate": "2025-09-30",
+      "endDate": "2025-10-03",
+      "cover": "photos/maine/IMG_4591-large.webp",
+      "coverAspectRatio": 0.75,
+      "count": 13,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Maine",
+        "lat": 45.90478760460558,
+        "lng": -68.91946238899821
+      }
+    },
+    {
+      "id": "cascades",
+      "slug": "cascades",
+      "title": "Cascades",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-07-30",
+      "startDate": "2025-07-28",
+      "endDate": "2025-08-01",
+      "cover": "photos/cascades/IMG_4198-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 13,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Cascades",
+        "lat": 48.47950579605614,
+        "lng": -121.05432222269741
+      }
+    },
+    {
+      "id": "olympic",
+      "slug": "olympic",
+      "title": "Olympic",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-07-27",
+      "startDate": "2025-07-26",
+      "endDate": "2025-07-27",
+      "cover": "photos/olympic/IMG_4147-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 6,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Olympic",
+        "lat": 47.81760866805056,
+        "lng": -123.59627931360976
+      }
+    },
+    {
+      "id": "cratter-lake",
+      "slug": "cratter-lake",
+      "title": "Cratter Lake",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-07-17",
+      "startDate": "2025-07-17",
+      "endDate": "2025-07-17",
+      "cover": "photos/cratter-lake/IMG_9417-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 12,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Cratter Lake",
+        "lat": 42.93979068405015,
+        "lng": -122.10648237643024
+      }
+    },
+    {
+      "id": "sf-and-rt-1",
+      "slug": "sf-and-rt-1",
+      "title": "SF & Rt. 1",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-07-14",
+      "startDate": "2025-07-11",
+      "endDate": "2025-07-15",
+      "cover": "photos/sf-and-rt-1/IMG_4070-large.webp",
+      "coverAspectRatio": 1.3328754578754578,
+      "count": 9,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "SF & Rt. 1",
+        "lat": 40.06166173286706,
+        "lng": -124.05245992910861
+      }
+    },
+    {
+      "id": "yosemite",
+      "slug": "yosemite",
+      "title": "Yosemite",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-07-10",
+      "startDate": "2025-07-10",
+      "endDate": "2025-07-11",
+      "cover": "photos/yosemite/IMG_9363-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 13,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Yosemite",
+        "lat": 37.87729160031029,
+        "lng": -119.53949427704856
+      }
+    },
+    {
+      "id": "mammoth",
+      "slug": "mammoth",
+      "title": "Mammoth",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-07-07",
+      "startDate": "2025-07-07",
+      "endDate": "2025-07-09",
+      "cover": "photos/mammoth/IMG_9314-3-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 11,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Mammoth",
+        "lat": 37.5608206491826,
+        "lng": -118.96167441878072
+      }
+    },
+    {
+      "id": "death-valley",
+      "slug": "death-valley",
+      "title": "Death Valley",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-07-06",
+      "startDate": "2025-07-06",
+      "endDate": "2025-07-06",
+      "cover": "photos/death-valley/IMG_9289-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 10,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Death Valley",
+        "lat": 36.5104303130284,
+        "lng": -117.06750042080066
+      }
+    },
+    {
+      "id": "zion",
+      "slug": "zion",
+      "title": "Zion",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-06-30",
+      "startDate": "2025-06-30",
+      "endDate": "2025-07-01",
+      "cover": "photos/zion/GPTempDownload(1)-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 19,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Zion",
+        "lat": 37.31810497448636,
+        "lng": -113.02969680067798
+      }
+    },
+    {
+      "id": "bryce",
+      "slug": "bryce",
+      "title": "Bryce",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-06-26",
+      "startDate": "2025-06-26",
+      "endDate": "2025-06-28",
+      "cover": "photos/bryce/IMG_9137-2-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 19,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Bryce",
+        "lat": 37.593048,
+        "lng": -112.187332
+      }
+    },
+    {
+      "id": "arches",
+      "slug": "arches",
+      "title": "Arches",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-06-24",
+      "startDate": "2025-06-24",
+      "endDate": "2025-06-25",
+      "cover": "photos/arches/GPTempDownload-large.webp",
+      "coverAspectRatio": 1.7777777777777777,
+      "count": 29,
+      "isFavorite": true,
+      "primaryLocation": {
+        "name": "Arches",
+        "lat": 38.743629,
+        "lng": -109.499313
+      }
+    },
+    {
+      "id": "rocky-mountains",
+      "slug": "rocky-mountains",
+      "title": "Rocky Mountains",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2025-06-22",
+      "startDate": "2025-06-20",
+      "endDate": "2025-06-23",
+      "cover": "photos/rocky-mountains/IMG_8988-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 22,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Rocky Mountains",
+        "lat": 40.355847710966714,
+        "lng": -105.68747383812088
+      }
+    },
+    {
+      "id": "edits",
+      "slug": "edits",
+      "title": "Edits",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-06-20",
+      "startDate": "2025-06-20",
+      "endDate": "2025-07-13",
+      "cover": "photos/edits/IMG_8970-large.webp",
+      "coverAspectRatio": 1.5003663003663004,
+      "count": 41,
+      "isFavorite": true,
+      "primaryLocation": {
+        "name": "Edits",
+        "lat": null,
+        "lng": null
+      }
+    },
+    {
+      "id": "block-island",
+      "slug": "block-island",
+      "title": "Block Island",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2025-03-12",
+      "startDate": "2025-03-12",
+      "endDate": "2025-03-12",
+      "cover": "photos/block-island/IMG_8633-large.webp",
+      "coverAspectRatio": 1.5,
+      "count": 5,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Block Island",
+        "lat": 41.17256658335454,
+        "lng": -71.58065008923724
+      }
+    },
+    {
+      "id": "new-hampshire",
+      "slug": "new-hampshire",
+      "title": "New Hampshire",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": "2024-09-21",
+      "startDate": "2023-09-04",
+      "endDate": "2025-06-12",
+      "cover": "photos/new-hampshire/IMG_6175-large.webp",
+      "coverAspectRatio": 1.3333333333333333,
+      "count": 15,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "New Hampshire",
+        "lat": 44.16520938506758,
+        "lng": -71.4324288377043
+      }
+    },
+    {
+      "id": "boston",
+      "slug": "boston",
+      "title": "Boston",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2024-03-11",
+      "startDate": "2024-03-11",
+      "endDate": "2024-03-11",
+      "cover": "photos/boston/IMG_8331-large.webp",
+      "coverAspectRatio": 1.5001531393568146,
+      "count": 4,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Boston",
+        "lat": 42.355957625992396,
+        "lng": -71.05826120031969
+      }
+    },
+    {
+      "id": "africa",
+      "slug": "africa",
+      "title": "Africa",
+      "description": null,
+      "tags": [
+        "Canon"
+      ],
+      "date": "2022-08-04",
+      "startDate": "2022-08-04",
+      "endDate": "2022-08-10",
+      "cover": "photos/africa/IMG_4062-large.webp",
+      "coverAspectRatio": 1.5001531393568146,
+      "count": 93,
+      "isFavorite": true,
+      "primaryLocation": {
+        "name": "Africa",
+        "lat": -6.4986858735143125,
+        "lng": 34.461938691899974
+      }
+    },
+    {
+      "id": "barcelona",
+      "slug": "barcelona",
+      "title": "Barcelona",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": null,
+      "startDate": "2024-07-08",
+      "endDate": "2024-07-19",
+      "cover": "photos/barcelona/8DFE9DED-C570-4E1A-BE26-E78501797D51-large.webp",
+      "coverAspectRatio": 1,
+      "count": 12,
+      "isFavorite": false,
+      "primaryLocation": {
+        "name": "Barcelona",
+        "lat": 41.39830471745027,
+        "lng": 2.1745185286489286
+      }
+    },
+    {
+      "id": "hawaii-cali-2023",
+      "slug": "hawaii-cali-2023",
+      "title": "Hawaii + Cali 2023",
+      "description": null,
+      "tags": [
+        "NORITSU",
+        "Canon",
+        "Apple"
+      ],
+      "date": null,
+      "startDate": "2023-08-14",
+      "endDate": "2023-08-24",
+      "cover": "photos/hawaii-cali-2023/IMG_7609-large.webp",
+      "coverAspectRatio": 1.50927734375,
+      "count": 24,
+      "isFavorite": true,
+      "primaryLocation": {
+        "name": "Hawaii + Cali 2023",
+        "lat": null,
+        "lng": null
+      }
+    },
+    {
+      "id": "vermont",
+      "slug": "vermont",
+      "title": "Vermont",
+      "description": null,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "date": null,
+      "startDate": "2022-01-16",
+      "endDate": "2025-04-29",
+      "cover": "photos/vermont/IMG_8754-large.webp",
+      "coverAspectRatio": 1.3336693548387097,
+      "count": 34,
+      "isFavorite": true,
+      "primaryLocation": {
+        "name": "Vermont",
+        "lat": 44.476733129879925,
+        "lng": -73.21185633743755
+      }
+    }
+  ]
+}

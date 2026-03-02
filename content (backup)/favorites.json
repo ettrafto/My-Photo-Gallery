@@ -1,0 +1,25 @@
+{
+  "favoriteAlbums": [
+    {
+      "slug": "yosemite",
+      "order": 1
+    },
+    {
+      "slug": "arches",
+      "order": 2
+    },
+    {
+      "slug": "zion",
+      "order": 3
+    },
+    {
+      "slug": "bryce",
+      "order": 4
+    },
+    {
+      "slug": "olympic",
+      "order": 5
+    }
+  ]
+}
+

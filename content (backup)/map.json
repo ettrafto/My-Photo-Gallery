@@ -1,0 +1,266 @@
+{
+  "albums": [
+    {
+      "albumSlug": "maine",
+      "albumTitle": "Maine",
+      "lat": 45.90478760460558,
+      "lng": -68.91946238899821,
+      "photoCount": 13,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-09-30T00:00:00.000Z",
+        "end": "2025-10-03T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "cascades",
+      "albumTitle": "Cascades",
+      "lat": 48.47950579605614,
+      "lng": -121.05432222269741,
+      "photoCount": 13,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-28T00:00:00.000Z",
+        "end": "2025-08-01T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "olympic",
+      "albumTitle": "Olympic",
+      "lat": 47.81760866805056,
+      "lng": -123.59627931360976,
+      "photoCount": 6,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-26T00:00:00.000Z",
+        "end": "2025-07-27T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "cratter-lake",
+      "albumTitle": "Cratter Lake",
+      "lat": 42.93979068405015,
+      "lng": -122.10648237643024,
+      "photoCount": 12,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-17T00:00:00.000Z",
+        "end": "2025-07-17T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "sf-and-rt-1",
+      "albumTitle": "SF & Rt. 1",
+      "lat": 40.06166173286706,
+      "lng": -124.05245992910861,
+      "photoCount": 9,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-11T00:00:00.000Z",
+        "end": "2025-07-15T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "yosemite",
+      "albumTitle": "Yosemite",
+      "lat": 37.87729160031029,
+      "lng": -119.53949427704856,
+      "photoCount": 13,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-10T00:00:00.000Z",
+        "end": "2025-07-11T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "mammoth",
+      "albumTitle": "Mammoth",
+      "lat": 37.5608206491826,
+      "lng": -118.96167441878072,
+      "photoCount": 11,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-07T00:00:00.000Z",
+        "end": "2025-07-09T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "death-valley",
+      "albumTitle": "Death Valley",
+      "lat": 36.5104303130284,
+      "lng": -117.06750042080066,
+      "photoCount": 10,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-07-06T00:00:00.000Z",
+        "end": "2025-07-06T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "zion",
+      "albumTitle": "Zion",
+      "lat": 37.31810497448636,
+      "lng": -113.02969680067798,
+      "photoCount": 19,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-06-30T00:00:00.000Z",
+        "end": "2025-07-01T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "bryce",
+      "albumTitle": "Bryce",
+      "lat": 37.593048,
+      "lng": -112.187332,
+      "photoCount": 19,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-06-26T00:00:00.000Z",
+        "end": "2025-06-28T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "arches",
+      "albumTitle": "Arches",
+      "lat": 38.743629,
+      "lng": -109.499313,
+      "photoCount": 29,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-06-24T00:00:00.000Z",
+        "end": "2025-06-25T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "rocky-mountains",
+      "albumTitle": "Rocky Mountains",
+      "lat": 40.355847710966714,
+      "lng": -105.68747383812088,
+      "photoCount": 22,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-06-20T00:00:00.000Z",
+        "end": "2025-06-23T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "block-island",
+      "albumTitle": "Block Island",
+      "lat": 41.17256658335454,
+      "lng": -71.58065008923724,
+      "photoCount": 5,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2025-03-12T00:00:00.000Z",
+        "end": "2025-03-12T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "new-hampshire",
+      "albumTitle": "New Hampshire",
+      "lat": 44.16520938506758,
+      "lng": -71.4324288377043,
+      "photoCount": 15,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2023-09-04T00:00:00.000Z",
+        "end": "2025-06-12T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "boston",
+      "albumTitle": "Boston",
+      "lat": 42.355957625992396,
+      "lng": -71.05826120031969,
+      "photoCount": 4,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2024-03-11T00:00:00.000Z",
+        "end": "2024-03-11T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "africa",
+      "albumTitle": "Africa",
+      "lat": -6.4986858735143125,
+      "lng": 34.461938691899974,
+      "photoCount": 93,
+      "tags": [
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2022-08-04T00:00:00.000Z",
+        "end": "2022-08-10T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "barcelona",
+      "albumTitle": "Barcelona",
+      "lat": 41.39830471745027,
+      "lng": 2.1745185286489286,
+      "photoCount": 12,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2024-07-08T00:00:00.000Z",
+        "end": "2024-07-19T23:59:59.999Z"
+      }
+    },
+    {
+      "albumSlug": "vermont",
+      "albumTitle": "Vermont",
+      "lat": 44.476733129879925,
+      "lng": -73.21185633743755,
+      "photoCount": 34,
+      "tags": [
+        "Apple",
+        "Canon"
+      ],
+      "dateRange": {
+        "start": "2022-01-16T00:00:00.000Z",
+        "end": "2025-04-29T23:59:59.999Z"
+      }
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "id": "olympic",
+  "slug": "olympic",
+  "title": "Olympic",
+  "description": null,
+  "tags": [
+    "Apple",
+    "Canon"
+  ],
+  "date": "2025-07-27",
+  "startDate": "2025-07-26",
+  "endDate": "2025-07-27",
+  "cover": "photos/olympic/IMG_4147-large.webp",
+  "coverAspectRatio": 1.3333333333333333,
+  "count": 6,
+  "isFavorite": false,
+  "primaryLocation": {
+    "name": "Olympic",
+    "lat": 47.81760866805056,
+    "lng": -123.59627931360976
+  },
+  "photos": [
+    {
+      "filename": "IMG_4147.jpg",
+      "path": "photos/olympic/IMG_4147-large.webp",
+      "pathLarge": "photos/olympic/IMG_4147-large.webp",
+      "pathSmall": "photos/olympic/IMG_4147-small.webp",
+      "pathBlur": "photos/olympic/IMG_4147-blur.webp",
+      "lat": 47.99216943333333,
+      "lng": -123.45290276666667,
+      "width": 4032,
+      "height": 3024,
+      "aspectRatio": 1.3333333333333333,
+      "exif": {
+        "camera": "Apple iPhone 14 Pro",
+        "lens": "iPhone 14 Pro back triple camera 6.86mm f/1.78",
+        "aperture": "f/1.8",
+        "shutterSpeed": "1/5300s",
+        "iso": 80,
+        "focalLength": "7mm",
+        "dateTaken": "2025-07-27T01:42:57.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_9426.jpg",
+      "path": "photos/olympic/IMG_9426-large.webp",
+      "pathLarge": "photos/olympic/IMG_9426-large.webp",
+      "pathSmall": "photos/olympic/IMG_9426-small.webp",
+      "pathBlur": "photos/olympic/IMG_9426-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/5.6",
+        "shutterSpeed": "1/80s",
+        "iso": 160,
+        "focalLength": "18mm",
+        "dateTaken": "2025-07-26T02:38:26.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_9427.jpg",
+      "path": "photos/olympic/IMG_9427-large.webp",
+      "pathLarge": "photos/olympic/IMG_9427-large.webp",
+      "pathSmall": "photos/olympic/IMG_9427-small.webp",
+      "pathBlur": "photos/olympic/IMG_9427-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/8",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "40mm",
+        "dateTaken": "2025-07-26T23:03:26.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_9428.jpg",
+      "path": "photos/olympic/IMG_9428-large.webp",
+      "pathLarge": "photos/olympic/IMG_9428-large.webp",
+      "pathSmall": "photos/olympic/IMG_9428-small.webp",
+      "pathBlur": "photos/olympic/IMG_9428-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S18-55mm f/4-5.6 IS STM",
+        "aperture": "f/10",
+        "shutterSpeed": "1/200s",
+        "iso": 100,
+        "focalLength": "18mm",
+        "dateTaken": "2025-07-26T23:03:33.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_9429.jpg",
+      "path": "photos/olympic/IMG_9429-large.webp",
+      "pathLarge": "photos/olympic/IMG_9429-large.webp",
+      "pathSmall": "photos/olympic/IMG_9429-small.webp",
+      "pathBlur": "photos/olympic/IMG_9429-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S24mm f/2.8 STM",
+        "aperture": "f/10",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "24mm",
+        "dateTaken": "2025-07-27T00:40:35.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    },
+    {
+      "filename": "IMG_9430.jpg",
+      "path": "photos/olympic/IMG_9430-large.webp",
+      "pathLarge": "photos/olympic/IMG_9430-large.webp",
+      "pathSmall": "photos/olympic/IMG_9430-small.webp",
+      "pathBlur": "photos/olympic/IMG_9430-blur.webp",
+      "lat": null,
+      "lng": null,
+      "width": 6000,
+      "height": 4000,
+      "aspectRatio": 1.5,
+      "exif": {
+        "camera": "Canon Canon EOS Rebel SL2",
+        "lens": "EF-S24mm f/2.8 STM",
+        "aperture": "f/11",
+        "shutterSpeed": "1/250s",
+        "iso": 100,
+        "focalLength": "24mm",
+        "dateTaken": "2025-07-27T00:40:56.000Z",
+        "copyright": null,
+        "artist": null,
+        "description": null
+      }
+    }
+  ]
+}
